@@ -14,6 +14,7 @@
 system("conda install -y -c bioconda r-factominer ; conda install -y -c conda-forge r-factoextra ; conda install -y -c r r-reshape2 ; conda install -y -c conda-forge r-ggpubr ; conda install -y -c conda-forge r-hrbrthemes ; conda install -y -c conda-forge r-svglite")
 
 setwd("..")
+install.packages("parallel", repos="http://cran.rstudio.com/")
 install.packages("GUniFrac", repos="http://cran.rstudio.com/")
 install.packages("ggplot2", repos="http://cran.rstudio.com/")
 install.packages("dplyr", repos="http://cran.rstudio.com/")
@@ -22,3 +23,12 @@ install.packages("ggrepel", repos="http://cran.rstudio.com/")
 install.packages("ggsci", repos="http://cran.rstudio.com/")
 install.packages("scales", repos="http://cran.rstudio.com/")
 install.packages("varhandle", repos="http://cran.rstudio.com/")
+
+defaultW <- getOption("warn") 
+options(warn = -1) 
+dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite")
+check <- dependencies %in% rownames(installed.packages())
+ok <- as.logical(c(TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE))
+if (check == ok) {message("Dependencies installed")}
+options(warn = defaultW)
+

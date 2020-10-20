@@ -12,7 +12,7 @@
 
 ## Rename reads
 cd ..
-for x in $(echo data/V*)
+for x in $(echo dataPANAM/V*)
 do
     for f in $(ls $x/*.fastq)
     do

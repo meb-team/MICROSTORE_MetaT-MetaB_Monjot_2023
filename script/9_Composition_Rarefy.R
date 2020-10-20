@@ -9,6 +9,42 @@
 # XX/XX/XXXX
 #
 # Script Composition
+# Set directory, input, output and import packages -----------------------------------------------------------
+#!/usr/bin/env Rscript
+#
+#output <- "Analyse-Composition-Rarefy-V4-095-Vsearch"
+#input <- "../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt"
+#region <- "V4"
+#rarecurveop <- "no"
+#
+args = commandArgs(trailingOnly=TRUE)
+
+if (length(args)==2) {
+cat("Enter ribosomal region (V4 or V9) : ");
+region <- readLines("stdin",n=1);
+cat("You entered")
+str(region);
+cat( "\n" )}
+if (length(args)==4) {
+  region <- args[3]
+}
+
+output <- args[2]
+input <- args[1]
+
+# Import package -----------------------------------------------------------
+pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
+lapply(pkg, require, character.only = TRUE)
+
+palette <- c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(7))
+show_col(palette)
+palette <- c("#D43F3ACC","#EEA236CC","#AD002ACC","#46B8DACC","#357EBDCC","#9632B8CC","#B8B8B8CC","#00468BCC","#ED0000CC","#42B540CC","#0099B4CC","#925E9FCC")
+
+input <- paste("..",input, sep = "/")
+output <- paste("../result",output, sep = "/")
+if (dir.exists("../result") == FALSE) { dir.create("../result") }
+if (dir.exists(output) == FALSE) { dir.create(output) }
+if (dir.exists(output) == TRUE) { setwd(output) }
 
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {
@@ -66,39 +102,86 @@ theme_unique_darkbis <- function (base_size = 12, base_family = "") {
   ret
 } 
 
-# Set directory and import package -----------------------------------------------------------
-setwd("..")
+# quickRareCurve fonction -------------------------------------------------
+quickRareCurve <- function (x, step = 1, sample, xlab = "Sequences",
+                            ylab = "OTUs", label = TRUE, col, lty, max.cores = T, nCores = 1, ...)
+{
+  require(parallel)
+  x <- as.matrix(x)
+  if (!identical(all.equal(x, round(x)), TRUE))
+    stop("function accepts only integers (counts)")
+  if (missing(col))
+    col <- par("col")
+  if (missing(lty))
+    lty <- par("lty")
+  tot <- rowSums(x) # calculates library sizes
+  S <- specnumber(x) # calculates n species for each sample
+  if (any(S <= 0)) {
+    message("empty rows removed")
+    x <- x[S > 0, , drop = FALSE]
+    tot <- tot[S > 0]
+    S <- S[S > 0]
+  } # removes any empty rows
+  nr <- nrow(x) # number of samples
+  col <- rep(col, length.out = nr)
+  lty <- rep(lty, length.out = nr)
+  # parallel mclapply
+  # set number of cores
+  mc <- getOption("mc.cores", ifelse(max.cores, detectCores(), nCores))
+  message(paste("Using ", mc, " cores"))
+  out <- mclapply(seq_len(nr), mc.cores = mc, function(i) {
+    n <- seq(1, tot[i], by = step)
+    if (n[length(n)] != tot[i])
+      n <- c(n, tot[i])
+    drop(rarefy(x[i, ], n))
+  })
+  Nmax <- sapply(out, function(x) max(attr(x, "Subsample")))
+  Smax <- sapply(out, max)
+  plot(c(1, max(Nmax)), c(1, max(Smax)), xlab = xlab, ylab = ylab,
+       type = "n", ...)
+  if (!missing(sample)) {
+    abline(v = sample)
+    rare <- sapply(out, function(z) approx(x = attr(z, "Subsample"),
+                                           y = z, xout = sample, rule = 1)$y)
+    abline(h = rare, lwd = 0.5)
+  }
+  for (ln in seq_along(out)) {
+    N <- attr(out[[ln]], "Subsample")
+    lines(N, out[[ln]], col = col[ln], lty = lty[ln], ...)
+  }
+  if (label) {
+    ordilabel(cbind(tot, S), labels = rownames(x), ...)
+  }
+  invisible(out)
+}
 
-pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
-lapply(pkg, require, character.only = TRUE)
-
-palette <- c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(7))
-show_col(palette)
-palette <- c("#D43F3ACC","#EEA236CC","#AD002ACC","#46B8DACC","#357EBDCC","#9632B8CC","#B8B8B8CC","#00468BCC","#ED0000CC","#42B540CC","#0099B4CC","#925E9FCC")
 
 # Input OTU Table ---------------------------------------------------------
-tableV4095 <- read.csv(file = "dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt", sep = "\t")
+tableVinput <- read.csv(file = input, sep = "\t")
 # Prepare data inf --------------------------------------------------------
-infdataini <- read.table(file = "rawdata/data-inf.txt", sep = "\t", header = FALSE)
-infdataini <- infdataini[,-1]
-infdataini$Rep <- rep("_1", each = 114)
-infdataini$variable <- paste(infdataini$V3,infdataini$Rep, sep = "")
-infdataini <- infdataini[,-5]
-infdataini <- infdataini[,-2]
-infdatainif <- separate(infdataini, variable, c("Conditions","Dates","Replicats"), sep = "_")
+infdataini <- read.table(file = "../../rawdata/data-inf.txt", sep = "\t", header = FALSE, col.names = c("row","Id","Conditions","Technologies","Regions"))
+infdataini <- infdataini %>% select(-"row")
+infdataini$Rep <- rep("_1", each = nrow(infdataini))
+infdataini$Variable <- paste(infdataini$Condition,infdataini$Rep, sep = "")
+infdataini <- infdataini %>% select(-"Rep",-"Conditions")
+infdataini <- separate(infdataini, Variable, c("Conditions","Dates","Replicats"), sep = "_")
 x <- 0
-for (i in infdatainif$Replicats) { 
+for (i in infdataini$Replicats) { 
   x <- x+1
-  if (i == "01") infdatainif[x,6] <- "1"
-  if (i == "02") infdatainif[x,6] <- "2"
+  if (i == "01") infdataini[x,6] <- "1"
+  if (i == "02") infdataini[x,6] <- "2"
 }
-infdatainif$OSTA <- rep("OSTA", each = 114)
-infdatainif$variable <- paste(infdatainif$V2,infdatainif$OSTA, sep = "")
-infdatainif <- infdatainif[,-1]
-infdatainif <- infdatainif[,-6]
-infdatainif <- separate(infdatainif, variable, c("Cin","variable"), sep = "_")
-infdatainif <- infdatainif[,-6]
-infdataini<-filter(infdatainif, V5 == "V4")
+infdataini$OSTA <- rep("OSTA", each = nrow(infdataini))
+infdataini$Variable <- paste(infdataini$Id,infdataini$OSTA, sep = "")
+infdataini <- infdataini %>% select(-"Id",-"OSTA")
+infdataini <- separate(infdataini, Variable, c("Cin","Variable"), sep = "_")
+infdataini <- infdataini %>% select(-"Cin")
+
+# FR sample (V9 in reality and not V4)
+for (i in row.names(infdataini)) { if (infdataini[i,"Variable"] == "FROSTA") { infdataini[i,"Regions"] <- "V9"}}
+for (i in row.names(infdataini)) { if (infdataini[i,"Variable"] == "FROSTA") { infdataini[i,"Technologies"] <- "Miseq"}}
+
+# Prepare sample_df
 infdataini[infdataini == "DJOG"] <- "D;J;O;G"
 infdataini[infdataini == "DJOP"] <- "D;J;O;P"
 infdataini[infdataini == "DJAG"] <- "D;J;A;G"
@@ -109,14 +192,14 @@ infdataini[infdataini == "DNAG"] <- "D;N;A;G"
 infdataini[infdataini == "DNAP"] <- "D;N;A;P"
 infdataini<-as.data.frame(infdataini)
 infdataini <- separate(infdataini, Conditions, c("ADN","Jour_Nuit","Oxique_Anoxique","Grande_Petite"),sep = ";")
-pattern <- c("variable","V4","V5","ADN","Jour_Nuit","Oxique_Anoxique","Grande_Petite","Dates","Replicats")
-samples_df <- infdataini[,pattern]
+pattern <- c("Variable","Technologies","Regions","ADN","Jour_Nuit","Oxique_Anoxique","Grande_Petite","Dates","Replicats")
+samples_df <- infdataini[,all_of(pattern)]
 samples_df$Conditions <- paste(samples_df$ADN,samples_df$Jour_Nuit,samples_df$Oxique_Anoxique,samples_df$Grande_Petite, sep = "")
-colnames(samples_df) <- c("sample","Technologie","Regions","ADN","Cycles","Fraction-Oxygène","Fraction-Taille","Dates","Replicats","Conditions")
+colnames(samples_df) <- c("sample","Technologies","Regions","ADN","Cycle","Fraction-Oxygène","Fraction-Taille","Dates","Replicats","Conditions")
 w <- 0
-for (i in samples_df$Cycles) { w <- w +1
-if (i == "J") { samples_df[w,"Cycles"] <- "Jour"}
-if (i == "N") { samples_df[w,"Cycles"] <- "Nuit"}}
+for (i in samples_df$Cycle) { w <- w +1
+if (i == "J") { samples_df[w,"Cycle"] <- "Jour"}
+if (i == "N") { samples_df[w,"Cycle"] <- "Nuit"}}
 w <- 0
 for (i in samples_df$`Fraction-Oxygène`) { w <- w +1
 if (i == "O") { samples_df[w,"Fraction-Oxygène"] <- "Oxique"}
@@ -125,41 +208,33 @@ w <- 0
 for (i in samples_df$`Fraction-Taille`) { w <- w +1
 if (i == "G") { samples_df[w,"Fraction-Taille"] <- "Grande"}
 if (i == "P") { samples_df[w,"Fraction-Taille"] <- "Petite"}}
-# Remove FR sample (V9 in reality and not V4)
-FR <- grep(samples_df[,"sample"], pattern = "FROSTA")
-samples_df <- samples_df[-FR,]
+
+# Select V4 or V9 ---------------------------------------------------------
+samples_df<-filter(samples_df, Regions == region)
 
 # Prepare  Object -------------------------------------------------
   # OTU+SUM ---------------------------------------------------------------------
-pattern <- c(grep(pattern = "OSTA", colnames(tableV4095), value = FALSE, fixed = FALSE))
-otu_mat <- tableV4095 %>% select(OTU_Id,pattern)
+pattern <- c(grep(pattern = "OSTA", colnames(tableVinput), value = FALSE, fixed = FALSE))
+otu_mat <- tableVinput %>% select("OTU_Id",all_of(pattern))
 row.names(otu_mat)<-otu_mat$OTU_Id
 pattern <- c(grep(pattern = "OSTA", colnames(otu_mat), value = FALSE, fixed = FALSE))
-otu_mat[,pattern] <- lapply(otu_mat[,pattern], as.numeric)
+otu_mat[,all_of(pattern)] <- lapply(otu_mat[,all_of(pattern)], as.numeric)
 
-# Prep table Corres
-tblc <- samples_df[,-2:-7]
+# Prepare correspondance table
+tblc <- samples_df %>% select("sample", "Dates", "Replicats", "Conditions")
 tblc$Paste <- paste(tblc$Conditions,tblc$Dates, sep = "_")
-tblc <- tblc[,c(-4,-2)]
+tblc <- tblc %>% select(-"Dates",-"Conditions")
 tblc1 <- tblc %>% filter(tblc$Rep == 1)
 tblc2 <- tblc %>% filter(tblc$Rep == 2)
-tblcx <- merge(x = tblc1,y = tblc2, by = "Paste")
-norep <- c(grep(pattern = "DMOSTA", tblc1$sample),
-           grep(pattern = "DVOSTA", tblc1$sample),
-           grep(pattern = "DWOSTA", tblc1$sample),
-           grep(pattern = "DXOSTA", tblc1$sample),
-           grep(pattern = "FOOSTA", tblc1$sample),
-           grep(pattern = "FHOSTA", tblc1$sample),
-           grep(pattern = "ESOSTA", tblc1$sample))
-tblcnorep <- tblc1[norep,]
-tblcnorep <- merge(tblcnorep,tblcnorep, by = "Paste")
-tblcx <- rbind(tblcx, tblcnorep)
+tblcx <- merge(x = tblc1,y = tblc2, by = "Paste", all = TRUE)
+Fusion <- c(tblcx[,"sample.x"][which(is.na(tblcx[,"sample.y"]) == TRUE)])
+for (i in row.names(tblcx)) { if (is.na(tblcx[i,"sample.y"]) == TRUE) { tblcx[i,"sample.y"] <- tblcx[i,"sample.x"]}}
+for (i in row.names(tblcx)) { if (is.na(tblcx[i,"Replicats.y"]) == TRUE) { tblcx[i,"Replicats.y"] <- tblcx[i,"Replicats.x"]}}
+
 # Pool
-w <- 0
-data_pool <- as.data.frame(tableV4095[,1])
-colnames(data_pool) <- "OTU_Id"
+data_pool <- tableVinput %>% select("OTU_Id")
 row.names(data_pool) <- data_pool$OTU_Id
-for ( h in tblcx[,"sample.x"] ) { w <- w+1
+for ( h in tblcx[,"sample.x"] ) {
 f <- tblcx %>% filter(sample.x == h) %>% select(sample.y)
 f <- f$sample.y
 print (h)
@@ -173,6 +248,794 @@ data_pool <- data_pool %>% select(-OTU_Id)
 data_poolx <- t(data_pool)
 # Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
 otu_mat_rare <- as.data.frame(t(Rarefy(data_poolx)$otu.tab.rff))
+  # Rarecurve ---------------------------------------------------------------
+#rarecurveop <- readline(prompt="Should I calculate the rarefaction curves (yes or no) ? : ")
+if (length(args)==2) {
+cat("Should I calculate the rarefaction curves (yes or no) (It takes a lot of time and resources) ? : ");
+rarecurveop <- readLines("stdin",n=1);
+cat("You entered")
+str(rarecurveop);
+cat( "\n" )}
+if (length(args)==4) {
+  rarecurveop <- args[4]
+}
+if (rarecurveop == "yes") {
+    # Raw ---------------------------------------------------------------------
+#rarecurve
+pdf("Rarecurve/Pool/Rarecurve-Raw.pdf",width = 5.00,height = 5.00)
+curve <- quickRareCurve(data_poolx, col = "black", cex = 0.6)
+dev.off()
+
+#rarecurve all
+#rawcurve_all <- t(colSums(data_poolx))
+#rownames(rawcurve_all) <- "sum"
+#pdf("Rarecurve/Pool/Rarecurve-all-Raw.pdf",width = 5.00,height = 5.00)
+#curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
+#dev.off()
+#Color
+colraw <- as.data.frame(rownames(data_poolx))
+colnames(colraw) <- "sample"
+w <- 0
+for (x in colraw[,"sample"]) { w <- w+1
+colraw[w,1:10] <- subset(samples_df, sample == x)}
+#Color Cycle
+colraw$color_cycle <- rep("black", time = nrow(colraw))
+for (w in rownames(colraw)) {
+  if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
+pdf("Rarecurve/Pool/Rarecurve-Cycle-Rawdata.pdf", width = 5.00, height = 5.00)
+curve_a <- quickRareCurve(data_poolx, col = colraw$color_cycle, cex = 0.6)
+legend("topleft", inset=.02, title="Day/Night cycle",
+       c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
+print(curve_a)
+dev.off()
+#Color Oxygène
+colraw$color_Ox <- rep("black", time = nrow(colraw))
+for (w in rownames(colraw)) {
+  if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
+pdf("Rarecurve/Pool/Rarecurve-Ox-Rawdata.pdf", width = 5.00, height = 5.00)
+curve_b <- quickRareCurve(data_poolx, col = colraw$color_Ox, cex = 0.6)
+legend("topleft", inset=.02, title="Fraction Ox/Anox",
+       c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
+print(curve_b)
+dev.off()
+#Color Taille
+colraw$color_Size <- rep("black", time = nrow(colraw))
+for (w in rownames(colraw)) {
+  if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
+pdf("Rarecurve/Pool/Rarecurve-Size-Rawdata.pdf", width = 5.00, height = 5.00)
+curve_c <- quickRareCurve(data_poolx, col = colraw$color_Size, cex = 0.6)
+legend("topleft", inset=.02, title="Fraction Taille",
+       c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
+print(curve_c)
+dev.off()
+
+    # Rare --------------------------------------------------------------------
+#rarecurve
+rarecurve <- t(otu_mat_rare)
+pdf("Rarecurve/Pool/Rarecurve-Rarefy.pdf",width = 5.00,height = 5.00)
+curve <- quickRareCurve(rarecurve, col = "black", cex = 0.6)
+dev.off()
+
+#rarecurve all
+#rawcurve_all <- t(colSums(rarecurve))
+#rownames(rawcurve_all) <- "sum"
+#pdf("Rarecurve/Pool/Rarecurve-all-Rarefy.pdf",width = 5.00,height = 5.00)
+#curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
+#dev.off()
+
+#Color
+colraw <- as.data.frame(rownames(rarecurve))
+colnames(colraw) <- "sample"
+w <- 0
+for (x in colraw[,"sample"]) { w <- w+1
+colraw[w,1:10] <- subset(samples_df, sample == x)}
+#Color Cycle
+colraw$color_cycle <- rep("black", time = nrow(colraw))
+for (w in rownames(colraw)) {
+  if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
+pdf("Rarecurve/Pool/Rarecurve-Cycle-Rarefy.pdf", width = 5.00, height = 5.00)
+curve_a <- quickRareCurve(rarecurve, col = colraw$color_cycle, cex = 0.6)
+legend("topleft", inset=.02, title="Day/Night cycle",
+       c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
+print(curve_a)
+dev.off()
+#Color Oxygène
+colraw$color_Ox <- rep("black", time = nrow(colraw))
+for (w in rownames(colraw)) {
+  if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
+pdf("Rarecurve/Pool/Rarecurve-Ox-Rarefy.pdf", width = 5.00, height = 5.00)
+curve_b <- quickRareCurve(rarecurve, col = colraw$color_Ox, cex = 0.6)
+legend("topleft", inset=.02, title="Fraction Ox/Anox",
+       c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
+print(curve_b)
+dev.off()
+#Color Taille
+colraw$color_Size <- rep("black", time = nrow(colraw))
+for (w in rownames(colraw)) {
+  if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
+pdf("Rarecurve/Pool/Rarecurve-Size-Rarefy.pdf", width = 5.00, height = 5.00)
+curve_c <- quickRareCurve(rarecurve, col = colraw$color_Size, cex = 0.6)
+legend("topleft", inset=.02, title="Fraction Taille",
+       c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
+print(curve_c)
+dev.off()
+}
+  # Diversity Raw ---------------------------------------------------------------
+    # Shannon -----------------------------------------------------------------
+Div_Table <- samples_df
+rownames(Div_Table) <- Div_Table[,"sample"]
+Divraw <- as.data.frame(diversity(data_poolx, index = "shannon"))
+colnames(Divraw) <- "Shannon"
+for (i in rownames(Divraw)) { Div_Table[i,"Shannon"] <- Divraw[i,"Shannon"] }
+Div_Table <- Div_Table %>% filter(Replicats == 1)
+# Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Shannon-Raw.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+    # Simpson -----------------------------------------------------------------
+Divraw <- as.data.frame(diversity(data_poolx, index = "simpson"))
+colnames(Divraw) <- "Simpson"
+for (i in rownames(Divraw)) { Div_Table[i,"Simpson"] <- Divraw[i,"Simpson"] }
+Div_Table <- Div_Table %>% filter(Replicats == 1)
+
+# Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Simpson-Raw.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+    # Chao1 -------------------------------------------------------------------
+chao_pool <- as.data.frame(estimateR(data_poolx))
+for (i in colnames(chao_pool)) { Div_Table[i,"chao"] <- chao_pool["S.chao1",i] }
+for (i in colnames(chao_pool)) { Div_Table[i,"chao_se"] <- chao_pool["se.chao1",i] }
+#Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Chao-Raw.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+    # ACE -------------------------------------------------------------------
+for (i in colnames(chao_pool)) { Div_Table[i,"ACE"] <- chao_pool["S.ACE",i] }
+for (i in colnames(chao_pool)) { Div_Table[i,"ACE_se"] <- chao_pool["se.ACE",i] }
+#Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=90, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-ACE-Raw.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+
+    # Obs -------------------------------------------------------------------
+for (i in colnames(chao_pool)) { Div_Table[i,"Obs"] <- chao_pool["S.obs",i] }
+#Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Obs-Raw.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+
+
+  # Diversity Rare ---------------------------------------------------------------
+    # Shannon -----------------------------------------------------------------
+Div_Table <- samples_df
+rownames(Div_Table) <- Div_Table[,"sample"]
+Divrare <- as.data.frame(diversity(t(otu_mat_rare), index = "shannon"))
+colnames(Divrare) <- "Shannon"
+for (i in rownames(Divrare)) { Div_Table[i,"Shannon"] <- Divrare[i,"Shannon"] }
+Div_Table <- Div_Table %>% filter(Replicats == 1)
+# Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = Shannon)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Shannon-Rare.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+    # Simpson -----------------------------------------------------------------
+Divrare <- as.data.frame(diversity(t(otu_mat_rare), index = "simpson"))
+colnames(Divrare) <- "Simpson"
+for (i in rownames(Divrare)) { Div_Table[i,"Simpson"] <- Divrare[i,"Simpson"] }
+Div_Table <- Div_Table %>% filter(Replicats == 1)
+
+# Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = Simpson)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Simpson-Rare.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+    # Chao1 -------------------------------------------------------------------
+chao_pool <- as.data.frame(estimateR(t(otu_mat_rare)))
+for (i in colnames(chao_pool)) { Div_Table[i,"chao"] <- chao_pool["S.chao1",i] }
+for (i in colnames(chao_pool)) { Div_Table[i,"chao_se"] <- chao_pool["se.chao1",i] }
+#Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = chao)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=chao-chao_se,ymax=chao+chao_se), width=.1,position=position_dodge(0.05)) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Chao-Rare.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+    # ACE -------------------------------------------------------------------
+for (i in colnames(chao_pool)) { Div_Table[i,"ACE"] <- chao_pool["S.ACE",i] }
+for (i in colnames(chao_pool)) { Div_Table[i,"ACE_se"] <- chao_pool["se.ACE",i] }
+#Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) +
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = ACE)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  geom_errorbar(aes(ymin=ACE-ACE_se,ymax=ACE+ACE_se), width=.1,position=position_dodge(0.05)) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=90, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-ACE-Rare.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+
+    # Obs -------------------------------------------------------------------
+for (i in colnames(chao_pool)) { Div_Table[i,"Obs"] <- chao_pool["S.obs",i] }
+#Dates
+my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))
+adiv <- ggplot(Div_Table, aes(x = Dates, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Dates",y="Diversity") #+ guides(color = FALSE)
+print(adiv)
+legend <- get_legend(adiv)
+adiv<- adiv + theme(legend.position="none")
+
+#Cycle
+my_comp <- list(c("Jour","Nuit"))
+bdiv <- ggplot(Div_Table, aes(x = Cycle, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Cycles",y="Diversity") #+ guides(color = FALSE)
+print(bdiv)
+bdiv<- bdiv + theme(legend.position="none")
+#Fraction(Taille)
+my_comp <- list(c("Petite","Grande"))
+cdiv <- ggplot(Div_Table, aes(x = `Fraction-Taille`, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Fractions",y="Diversity") #+ guides(color = FALSE)
+print(cdiv)
+cdiv<- cdiv + theme(legend.position="none")
+#Fraction(Oxygène)
+my_comp <- list(c("Oxique","Anoxique"))
+ddiv <- ggplot(Div_Table, aes(x = `Fraction-Oxygène`, y = Obs)) + geom_boxplot() + geom_point(aes(color = sample), size = 2.5) + 
+  stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 0.5, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  labs(x="Zones",y="Diversity") #+ guides(color = FALSE)
+print(ddiv)
+ddiv<- ddiv + theme(legend.position="none")
+#Coplot
+fdiv<-ggplot() + theme(panel.background = element_rect(fill="white",colour = "white", size = 0.5, linetype = "solid"))
+pdf("Diversity/Pool/Analyse-Obs-Rare.pdf",width = 16.00,height = 9.00)
+Diversity_plot <- plot_grid(adiv,bdiv, fdiv, fdiv,fdiv,legend,cdiv,ddiv, labels=c("A","B", "", "", "", "", "C","D", ""), ncol = 3, nrow = 3, rel_widths = c(3,3,1.5), rel_heights = c(5,0.1,5))
+print(Diversity_plot)
+dev.off()
+
+
+
   # PA-AB ------------------------------------------------------------------
 #Sequence AB
 raw_Sequence_Norm <- otu_mat_rare
@@ -180,18 +1043,18 @@ raw_Sequence_Norm$OTU_Id <- row.names(raw_Sequence_Norm)
 #OTU PA
 raw_OTU_Norm <- otu_mat_rare
 pattern <- c(grep(pattern = "OSTA", colnames(raw_OTU_Norm), value = FALSE, fixed = FALSE))
-raw_OTU_Norm[,pattern][raw_OTU_Norm[,pattern] != 0] <- 1
+raw_OTU_Norm[,all_of(pattern)][raw_OTU_Norm[,all_of(pattern)] != 0] <- 1
 raw_OTU_Norm$OTU_Id <- row.names(raw_OTU_Norm)
 #Stat Rarefy
   #Sequence
 avRarefyS <- as.data.frame(colSums(data_pool))
-apRarefyS <- as.data.frame(colSums(raw_Sequence_Norm[,pattern]))
+apRarefyS <- as.data.frame(colSums(raw_Sequence_Norm[,all_of(pattern)]))
 statRarefy <- cbind(avRarefyS,apRarefyS)
   #OTU
-otu_mat_uniq <- data_pool[,pattern]
+otu_mat_uniq <- data_pool[,all_of(pattern)]
 otu_mat_uniq[otu_mat_uniq != 0] <- 1
 avRarefyO <- as.data.frame(colSums(otu_mat_uniq))
-apRarefyO <- as.data.frame(colSums(raw_OTU_Norm[,pattern]))
+apRarefyO <- as.data.frame(colSums(raw_OTU_Norm[,all_of(pattern)]))
 statRarefy <- cbind(statRarefy,avRarefyO,apRarefyO)
 statRarefy["Total",]<-colSums(statRarefy)
 colnames(statRarefy) <- c("avRarefy-Sequence","apRarefy-Sequence","avRarefy-OTU","apRarefy-OTU")
@@ -199,27 +1062,27 @@ colnames(statRarefy) <- c("avRarefy-Sequence","apRarefy-Sequence","avRarefy-OTU"
 OTUav <- otu_mat_uniq
 OTUav$OTU_Id <- row.names(OTUav)
 pattern <- c(grep(pattern = "OSTA", colnames(OTUav), value = FALSE, fixed = FALSE))
-for ( i in row.names(OTUav)) { if (sum(OTUav[i,pattern]) == 0) { OTUav[i,"OTU_Id"] <- "Uniq"}}
+for ( i in row.names(OTUav)) { if (sum(OTUav[i,all_of(pattern)]) == 0) { OTUav[i,"OTU_Id"] <- "Uniq"}}
 
 OTUap <- raw_OTU_Norm
 OTUap$OTU_Id <- row.names(OTUap)
 pattern <- c(grep(pattern = "OSTA", colnames(OTUap), value = FALSE, fixed = FALSE))
-for ( i in row.names(OTUap)) { if (sum(OTUap[i,pattern]) == 0) { OTUap[i,"OTU_Id"] <- "Uniq"}}
+for ( i in row.names(OTUap)) { if (sum(OTUap[i,all_of(pattern)]) == 0) { OTUap[i,"OTU_Id"] <- "Uniq"}}
 OTUap <- OTUap %>% filter(OTU_Id != "Uniq")
 
 statRarefy["Total","avRarefy-OTU"] <- nrow(OTUav)
 statRarefy["Total","apRarefy-OTU"] <- nrow(OTUap)
-write.table(statRarefy, file = "Analyse-Composition-Rarefy/TableOnly/StatRarefy_withoutDuplicat.txt", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(statRarefy, file = "TableOnly/StatRarefy_withoutDuplicat.txt", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
 
 #Figure
 
 statRarefyOTU <- statRarefy %>% select("avRarefy-OTU","apRarefy-OTU")
 colnames(statRarefyOTU) <- c("NON","OUI")
 statRarefyOTU$Echantillons <- row.names(statRarefyOTU)
-statRarefymelt <- melt(statRarefyOTU[pattern,])
+statRarefymelt <- melt(statRarefyOTU[all_of(pattern),], id = "Echantillons")
 my_comp <- list(c("OUI","NON"))
 
-svglite("Analyse-Composition-Rarefy/Figure-Sum/Stat-Rarefy-V4_095.svg",width = 3.00,height = 4.00)
+svglite("Figure-Sum/Stat-Rarefy.svg",width = 3.00,height = 4.00)
 R <- ggplot(statRarefymelt, aes(y = value, x = variable)) + geom_boxplot() + geom_point(aes(color = Echantillons), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(statRarefymelt$value)+0.12*max(statRarefymelt$value)) +
@@ -236,16 +1099,9 @@ dev.off()
 
   # Sum files ---------------------------------------------------------------
 pattern <- c(grep(pattern = "OSTA", colnames(raw_Sequence_Norm), value = TRUE, fixed = FALSE)) 
-Sum <- as.data.frame(colSums((raw_Sequence_Norm[,pattern])))
+Sum <- as.data.frame(colSums((raw_Sequence_Norm[,all_of(pattern)])))
 colnames(Sum)<- "Séquences"
-Sum$OTUs <- colSums((raw_OTU_Norm[,pattern]))
-Fusion <- c(grep(pattern = "DMOSTA", row.names(Sum)),
-            grep(pattern = "DVOSTA", row.names(Sum)),
-            grep(pattern = "DWOSTA", row.names(Sum)),
-            grep(pattern = "DXOSTA", row.names(Sum)),
-            grep(pattern = "FOOSTA", row.names(Sum)),
-            grep(pattern = "FHOSTA", row.names(Sum)),
-            grep(pattern = "ESOSTA", row.names(Sum)))
+Sum$OTUs <- colSums((raw_OTU_Norm[,all_of(pattern)]))
 Sum[,"Fusion"] <- "OUI"
 Sum[Fusion,"Fusion"] <- "NON"
 Sum$Echantillons <- rownames(Sum)
@@ -253,7 +1109,7 @@ Sum$Echantillons <- rownames(Sum)
 #Après rarefaction
 # OTU
 my_comp <- list(c("OUI","NON"))
-svglite("Analyse-Composition-Rarefy/Figure-Sum/Analyse-SumApRare-OTU-V4_095.svg",width = 3.00,height = 4.00)
+svglite("Figure-Sum/Analyse-SumApRare-OTU.svg",width = 3.00,height = 4.00)
 J <- ggplot(Sum, aes(y = OTUs, x = Fusion)) + geom_boxplot() + geom_point(aes(color = Echantillons), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(Sum$OTUs)+0.12*max(Sum$OTUs)) +
@@ -274,7 +1130,7 @@ SequenceavRare$Echantillons <- rownames(SequenceavRare)
 SequenceavRare <- SequenceavRare %>% filter(Echantillons != "Total") %>% select(Echantillons,`avRarefy-Sequence`)
 Sum <- merge(Sum,SequenceavRare, by = "Echantillons")
 my_comp <- list(c("OUI","NON"))
-svglite("Analyse-Composition-Rarefy/Figure-Sum/Analyse-SumAvRare-Séquences-V4_095.svg",width = 3.00,height = 4.00)
+svglite("Figure-Sum/Analyse-SumAvRare-Séquences.svg",width = 3.00,height = 4.00)
 G <- ggplot(Sum, aes(y = `avRarefy-Sequence`, x = Fusion)) + geom_boxplot() + geom_point(aes(color = Echantillons), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(Sum$`avRarefy-Sequence`)+0.12*max(Sum$`avRarefy-Sequence`)) +
@@ -294,7 +1150,7 @@ OTUavRare$Echantillons <- rownames(OTUavRare)
 OTUavRare <- OTUavRare %>% filter(Echantillons != "Total") %>% select(Echantillons,`avRarefy-OTU`)
 Sum <- merge(Sum,OTUavRare, by = "Echantillons")
 my_comp <- list(c("OUI","NON"))
-svglite("Analyse-Composition-Rarefy/Figure-Sum/Analyse-SumAvRare-OTU-V4_095.svg",width = 3.00,height = 4.00)
+svglite("Figure-Sum/Analyse-SumAvRare-OTU.svg",width = 3.00,height = 4.00)
 H <- ggplot(Sum, aes(y = `avRarefy-OTU`, x = Fusion)) + geom_boxplot() + geom_point(aes(color = Echantillons), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(Sum$`avRarefy-OTU`)+0.12*max(Sum$`avRarefy-OTU`)) +
@@ -310,9 +1166,9 @@ print(H)
 dev.off()  
 # Create sort Condition pattern -------------------------------------------
 #Cycles
-patternCyclesJour <- samples_df %>% filter(Cycles == "Jour") %>% filter(Replicats == 1)
+patternCyclesJour <- samples_df %>% filter(Cycle == "Jour") %>% filter(Replicats == 1)
 patternCyclesJour <- patternCyclesJour$sample
-patternCyclesNuit <- samples_df %>% filter(Cycles == "Nuit") %>% filter(Replicats == 1)
+patternCyclesNuit <- samples_df %>% filter(Cycle == "Nuit") %>% filter(Replicats == 1)
 patternCyclesNuit <- patternCyclesNuit$sample
 #Fraction oxygène
 patternFractionOxique <- samples_df %>% filter(`Fraction-Oxygène` == "Oxique") %>% filter(Replicats == 1)
@@ -341,30 +1197,30 @@ patternDates11 <- patternDates11$sample
     # Condition Cycles ---------------------------------------------------------
 # Sequence
 #Jour
-Jour_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,patternCyclesJour)
+Jour_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternCyclesJour))
 Jour_Sequence_Norm$TotalJour <- rep(0,each = nrow(Jour_Sequence_Norm))
-for (i in row.names(Jour_Sequence_Norm)) {Jour_Sequence_Norm[i,"TotalJour"] <- sum(raw_Sequence_Norm[i,patternCyclesJour])}
-Jour_Sequence_Norm <- Jour_Sequence_Norm %>% select(-patternCyclesJour)
+for (i in row.names(Jour_Sequence_Norm)) {Jour_Sequence_Norm[i,"TotalJour"] <- sum(raw_Sequence_Norm[i,all_of(patternCyclesJour)])}
+Jour_Sequence_Norm <- Jour_Sequence_Norm %>% select(-all_of(patternCyclesJour))
 #Nuit
-Nuit_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,patternCyclesNuit)
+Nuit_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternCyclesNuit))
 Nuit_Sequence_Norm$TotalNuit <- rep(0,each = nrow(Nuit_Sequence_Norm))
-for (i in row.names(Nuit_Sequence_Norm)) {Nuit_Sequence_Norm[i,"TotalNuit"] <- sum(raw_Sequence_Norm[i,patternCyclesNuit])}
-Nuit_Sequence_Norm <- Nuit_Sequence_Norm %>% select(-patternCyclesNuit)
+for (i in row.names(Nuit_Sequence_Norm)) {Nuit_Sequence_Norm[i,"TotalNuit"] <- sum(raw_Sequence_Norm[i,all_of(patternCyclesNuit)])}
+Nuit_Sequence_Norm <- Nuit_Sequence_Norm %>% select(-all_of(patternCyclesNuit))
 #Cycles
 Cycles_Sequence_Norm <- merge(x = Jour_Sequence_Norm,y = Nuit_Sequence_Norm, by = "OTU_Id")
 
     # Condition Fraction Oxygène ---------------------------------------------------------
 # Sequence
 #Oxique
-Oxique_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,patternFractionOxique)
+Oxique_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternFractionOxique))
 Oxique_Sequence_Norm$TotalOxique <- rep(0,each = nrow(Oxique_Sequence_Norm))
-for (i in row.names(Oxique_Sequence_Norm)) {Oxique_Sequence_Norm[i,"TotalOxique"] <- sum(raw_Sequence_Norm[i,patternFractionOxique])}
-Oxique_Sequence_Norm <- Oxique_Sequence_Norm %>% select(-patternFractionOxique)
+for (i in row.names(Oxique_Sequence_Norm)) {Oxique_Sequence_Norm[i,"TotalOxique"] <- sum(raw_Sequence_Norm[i,all_of(patternFractionOxique)])}
+Oxique_Sequence_Norm <- Oxique_Sequence_Norm %>% select(-all_of(patternFractionOxique))
 #Anoxique
-Anoxique_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,patternFractionAnoxique)
+Anoxique_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternFractionAnoxique))
 Anoxique_Sequence_Norm$TotalAnoxique <- rep(0,each = nrow(Anoxique_Sequence_Norm))
-for (i in row.names(Anoxique_Sequence_Norm)) {Anoxique_Sequence_Norm[i,"TotalAnoxique"] <- sum(raw_Sequence_Norm[i,patternFractionAnoxique])}
-Anoxique_Sequence_Norm <- Anoxique_Sequence_Norm %>% select(-patternFractionAnoxique)
+for (i in row.names(Anoxique_Sequence_Norm)) {Anoxique_Sequence_Norm[i,"TotalAnoxique"] <- sum(raw_Sequence_Norm[i,all_of(patternFractionAnoxique)])}
+Anoxique_Sequence_Norm <- Anoxique_Sequence_Norm %>% select(-all_of(patternFractionAnoxique))
 #FractionO
 FractionO_Sequence_Norm <- merge(x = Oxique_Sequence_Norm,y = Anoxique_Sequence_Norm, by = "OTU_Id")
 
@@ -372,15 +1228,15 @@ FractionO_Sequence_Norm <- merge(x = Oxique_Sequence_Norm,y = Anoxique_Sequence_
     # Condition Fraction Taille ---------------------------------------------------------
 # Sequence
 #Petite
-Petite_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,patternFractionPetite)
+Petite_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternFractionPetite))
 Petite_Sequence_Norm$TotalPetite <- rep(0,each = nrow(Petite_Sequence_Norm))
-for (i in row.names(Petite_Sequence_Norm)) {Petite_Sequence_Norm[i,"TotalPetite"] <- sum(raw_Sequence_Norm[i,patternFractionPetite])}
-Petite_Sequence_Norm <- Petite_Sequence_Norm %>% select(-patternFractionPetite)
+for (i in row.names(Petite_Sequence_Norm)) {Petite_Sequence_Norm[i,"TotalPetite"] <- sum(raw_Sequence_Norm[i,all_of(patternFractionPetite)])}
+Petite_Sequence_Norm <- Petite_Sequence_Norm %>% select(-all_of(patternFractionPetite))
 #Grande
-Grande_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,patternFractionGrande)
+Grande_Sequence_Norm <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternFractionGrande))
 Grande_Sequence_Norm$TotalGrande <- rep(0,each = nrow(Grande_Sequence_Norm))
-for (i in row.names(Grande_Sequence_Norm)) {Grande_Sequence_Norm[i,"TotalGrande"] <- sum(raw_Sequence_Norm[i,patternFractionGrande])}
-Grande_Sequence_Norm <- Grande_Sequence_Norm %>% select(-patternFractionGrande)
+for (i in row.names(Grande_Sequence_Norm)) {Grande_Sequence_Norm[i,"TotalGrande"] <- sum(raw_Sequence_Norm[i,all_of(patternFractionGrande)])}
+Grande_Sequence_Norm <- Grande_Sequence_Norm %>% select(-all_of(patternFractionGrande))
 #FractionT
 FractionT_Sequence_Norm <- merge(x = Petite_Sequence_Norm,y = Grande_Sequence_Norm, by = "OTU_Id")
 
@@ -389,25 +1245,25 @@ FractionT_Sequence_Norm <- merge(x = Petite_Sequence_Norm,y = Grande_Sequence_No
     # Condition Dates ---------------------------------------------------------
 # Sequence
 #04
-`04_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,patternDates04)
+`04_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternDates04))
 `04_Sequence_Norm`$Total04 <- rep(0,each = nrow(`04_Sequence_Norm`))
-for (i in row.names(`04_Sequence_Norm`)) {`04_Sequence_Norm`[i,"Total04"] <- sum(raw_Sequence_Norm[i,patternDates04])}
-`04_Sequence_Norm` <- `04_Sequence_Norm` %>% select(-patternDates04)
+for (i in row.names(`04_Sequence_Norm`)) {`04_Sequence_Norm`[i,"Total04"] <- sum(raw_Sequence_Norm[i,all_of(patternDates04)])}
+`04_Sequence_Norm` <- `04_Sequence_Norm` %>% select(-all_of(patternDates04))
 #06
-`06_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,patternDates06)
+`06_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternDates06))
 `06_Sequence_Norm`$Total06 <- rep(0,each = nrow(`06_Sequence_Norm`))
-for (i in row.names(`06_Sequence_Norm`)) {`06_Sequence_Norm`[i,"Total06"] <- sum(raw_Sequence_Norm[i,patternDates06])}
-`06_Sequence_Norm` <- `06_Sequence_Norm` %>% select(-patternDates06)
+for (i in row.names(`06_Sequence_Norm`)) {`06_Sequence_Norm`[i,"Total06"] <- sum(raw_Sequence_Norm[i,all_of(patternDates06)])}
+`06_Sequence_Norm` <- `06_Sequence_Norm` %>% select(-all_of(patternDates06))
 #09
-`09_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,patternDates09)
+`09_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternDates09))
 `09_Sequence_Norm`$Total09 <- rep(0,each = nrow(`09_Sequence_Norm`))
-for (i in row.names(`09_Sequence_Norm`)) {`09_Sequence_Norm`[i,"Total09"] <- sum(raw_Sequence_Norm[i,patternDates09])}
-`09_Sequence_Norm` <- `09_Sequence_Norm` %>% select(-patternDates09)
+for (i in row.names(`09_Sequence_Norm`)) {`09_Sequence_Norm`[i,"Total09"] <- sum(raw_Sequence_Norm[i,all_of(patternDates09)])}
+`09_Sequence_Norm` <- `09_Sequence_Norm` %>% select(-all_of(patternDates09))
 #11
-`11_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,patternDates11)
+`11_Sequence_Norm` <- raw_Sequence_Norm %>% select(OTU_Id,all_of(patternDates11))
 `11_Sequence_Norm`$Total11 <- rep(0,each = nrow(`11_Sequence_Norm`))
-for (i in row.names(`11_Sequence_Norm`)) {`11_Sequence_Norm`[i,"Total11"] <- sum(raw_Sequence_Norm[i,patternDates11])}
-`11_Sequence_Norm` <- `11_Sequence_Norm` %>% select(-patternDates11)
+for (i in row.names(`11_Sequence_Norm`)) {`11_Sequence_Norm`[i,"Total11"] <- sum(raw_Sequence_Norm[i,all_of(patternDates11)])}
+`11_Sequence_Norm` <- `11_Sequence_Norm` %>% select(-all_of(patternDates11))
 #FractionT
 Dates_Sequence_Norm <- merge(x = `04_Sequence_Norm`,y = `06_Sequence_Norm`, by = "OTU_Id")
 Dates_Sequence_Norm <- merge(x = `Dates_Sequence_Norm`,y = `09_Sequence_Norm`, by = "OTU_Id")
@@ -416,30 +1272,30 @@ Dates_Sequence_Norm <- merge(x = `Dates_Sequence_Norm`,y = `11_Sequence_Norm`, b
     # Condition Cycles ---------------------------------------------------------
 # OTU
 #Jour
-Jour_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,patternCyclesJour)
+Jour_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternCyclesJour))
 Jour_OTU_Norm$TotalJour <- rep(0,each = nrow(Jour_OTU_Norm))
-for (i in row.names(Jour_OTU_Norm)) {if (sum(raw_OTU_Norm[i,patternCyclesJour]) > 0) {Jour_OTU_Norm[i,"TotalJour"] <- 1}}
-Jour_OTU_Norm <- Jour_OTU_Norm %>% select(-patternCyclesJour)
+for (i in row.names(Jour_OTU_Norm)) {if (sum(raw_OTU_Norm[i,all_of(patternCyclesJour)]) > 0) {Jour_OTU_Norm[i,"TotalJour"] <- 1}}
+Jour_OTU_Norm <- Jour_OTU_Norm %>% select(-all_of(patternCyclesJour))
 #Nuit
-Nuit_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,patternCyclesNuit)
+Nuit_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternCyclesNuit))
 Nuit_OTU_Norm$TotalNuit <- rep(0,each = nrow(Nuit_OTU_Norm))
-for (i in row.names(Nuit_OTU_Norm)) {if (sum(raw_OTU_Norm[i,patternCyclesNuit]) > 0) {Nuit_OTU_Norm[i,"TotalNuit"] <- 1}}
-Nuit_OTU_Norm <- Nuit_OTU_Norm %>% select(-patternCyclesNuit)
+for (i in row.names(Nuit_OTU_Norm)) {if (sum(raw_OTU_Norm[i,all_of(patternCyclesNuit)]) > 0) {Nuit_OTU_Norm[i,"TotalNuit"] <- 1}}
+Nuit_OTU_Norm <- Nuit_OTU_Norm %>% select(-all_of(patternCyclesNuit))
 #Cycles
 Cycles_OTU_Norm <- merge(x = Jour_OTU_Norm,y = Nuit_OTU_Norm, by = "OTU_Id")
 
     # Condition Fraction Oxygène ---------------------------------------------------------
 # OTU
 #Oxique
-Oxique_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,patternFractionOxique)
+Oxique_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternFractionOxique))
 Oxique_OTU_Norm$TotalOxique <- rep(0,each = nrow(Oxique_OTU_Norm))
-for (i in row.names(Oxique_OTU_Norm)) {if (sum(raw_OTU_Norm[i,patternFractionOxique]) > 0) {Oxique_OTU_Norm[i,"TotalOxique"] <- 1}}
-Oxique_OTU_Norm <- Oxique_OTU_Norm %>% select(-patternFractionOxique)
+for (i in row.names(Oxique_OTU_Norm)) {if (sum(raw_OTU_Norm[i,all_of(patternFractionOxique)]) > 0) {Oxique_OTU_Norm[i,"TotalOxique"] <- 1}}
+Oxique_OTU_Norm <- Oxique_OTU_Norm %>% select(-all_of(patternFractionOxique))
 #Anoxique
-Anoxique_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,patternFractionAnoxique)
+Anoxique_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternFractionAnoxique))
 Anoxique_OTU_Norm$TotalAnoxique <- rep(0,each = nrow(Anoxique_OTU_Norm))
-for (i in row.names(Anoxique_OTU_Norm)) {if (sum(raw_OTU_Norm[i,patternFractionAnoxique]) > 0) {Anoxique_OTU_Norm[i,"TotalAnoxique"] <- 1}}
-Anoxique_OTU_Norm <- Anoxique_OTU_Norm %>% select(-patternFractionAnoxique)
+for (i in row.names(Anoxique_OTU_Norm)) {if (sum(raw_OTU_Norm[i,all_of(patternFractionAnoxique)]) > 0) {Anoxique_OTU_Norm[i,"TotalAnoxique"] <- 1}}
+Anoxique_OTU_Norm <- Anoxique_OTU_Norm %>% select(-all_of(patternFractionAnoxique))
 #FractionO
 FractionO_OTU_Norm <- merge(x = Oxique_OTU_Norm,y = Anoxique_OTU_Norm, by = "OTU_Id")
 
@@ -447,15 +1303,15 @@ FractionO_OTU_Norm <- merge(x = Oxique_OTU_Norm,y = Anoxique_OTU_Norm, by = "OTU
     # Condition Fraction Taille ---------------------------------------------------------
 # OTU
 #Petite
-Petite_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,patternFractionPetite)
+Petite_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternFractionPetite))
 Petite_OTU_Norm$TotalPetite <- rep(0,each = nrow(Petite_OTU_Norm))
-for (i in row.names(Petite_OTU_Norm)) {if (sum(raw_OTU_Norm[i,patternFractionPetite]) > 0) {Petite_OTU_Norm[i,"TotalPetite"] <- 1}}
-Petite_OTU_Norm <- Petite_OTU_Norm %>% select(-patternFractionPetite)
+for (i in row.names(Petite_OTU_Norm)) {if (sum(raw_OTU_Norm[i,all_of(patternFractionPetite)]) > 0) {Petite_OTU_Norm[i,"TotalPetite"] <- 1}}
+Petite_OTU_Norm <- Petite_OTU_Norm %>% select(-all_of(patternFractionPetite))
 #Grande
-Grande_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,patternFractionGrande)
+Grande_OTU_Norm <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternFractionGrande))
 Grande_OTU_Norm$TotalGrande <- rep(0,each = nrow(Grande_OTU_Norm))
-for (i in row.names(Grande_OTU_Norm)) {if (sum(raw_OTU_Norm[i,patternFractionGrande]) > 0) {Grande_OTU_Norm[i,"TotalGrande"] <- 1}}
-Grande_OTU_Norm <- Grande_OTU_Norm %>% select(-patternFractionGrande)
+for (i in row.names(Grande_OTU_Norm)) {if (sum(raw_OTU_Norm[i,all_of(patternFractionGrande)]) > 0) {Grande_OTU_Norm[i,"TotalGrande"] <- 1}}
+Grande_OTU_Norm <- Grande_OTU_Norm %>% select(-all_of(patternFractionGrande))
 #FractionT
 FractionT_OTU_Norm <- merge(x = Petite_OTU_Norm,y = Grande_OTU_Norm, by = "OTU_Id")
 
@@ -464,25 +1320,25 @@ FractionT_OTU_Norm <- merge(x = Petite_OTU_Norm,y = Grande_OTU_Norm, by = "OTU_I
     # Condition Dates ---------------------------------------------------------
 # OTU
 #04
-`04_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,patternDates04)
+`04_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternDates04))
 `04_OTU_Norm`$Total04 <- rep(0,each = nrow(`04_OTU_Norm`))
-for (i in row.names(`04_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,patternDates04]) > 0) {`04_OTU_Norm`[i,"Total04"] <- 1}}
-`04_OTU_Norm` <- `04_OTU_Norm` %>% select(-patternDates04)
+for (i in row.names(`04_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,all_of(patternDates04)]) > 0) {`04_OTU_Norm`[i,"Total04"] <- 1}}
+`04_OTU_Norm` <- `04_OTU_Norm` %>% select(-all_of(patternDates04))
 #06
-`06_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,patternDates06)
+`06_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternDates06))
 `06_OTU_Norm`$Total06 <- rep(0,each = nrow(`06_OTU_Norm`))
-for (i in row.names(`06_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,patternDates06]) > 0) {`06_OTU_Norm`[i,"Total06"] <- 1}}
-`06_OTU_Norm` <- `06_OTU_Norm` %>% select(-patternDates06)
+for (i in row.names(`06_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,all_of(patternDates06)]) > 0) {`06_OTU_Norm`[i,"Total06"] <- 1}}
+`06_OTU_Norm` <- `06_OTU_Norm` %>% select(-all_of(patternDates06))
 #09
-`09_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,patternDates09)
+`09_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternDates09))
 `09_OTU_Norm`$Total09 <- rep(0,each = nrow(`09_OTU_Norm`))
-for (i in row.names(`09_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,patternDates09]) > 0) {`09_OTU_Norm`[i,"Total09"] <- 1}}
-`09_OTU_Norm` <- `09_OTU_Norm` %>% select(-patternDates09)
+for (i in row.names(`09_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,all_of(patternDates09)]) > 0) {`09_OTU_Norm`[i,"Total09"] <- 1}}
+`09_OTU_Norm` <- `09_OTU_Norm` %>% select(-all_of(patternDates09))
 #11
-`11_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,patternDates11)
+`11_OTU_Norm` <- raw_OTU_Norm %>% select(OTU_Id,all_of(patternDates11))
 `11_OTU_Norm`$Total11 <- rep(0,each = nrow(`11_OTU_Norm`))
-for (i in row.names(`11_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,patternDates11]) > 0) {`11_OTU_Norm`[i,"Total11"] <- 1}}
-`11_OTU_Norm` <- `11_OTU_Norm` %>% select(-patternDates11)
+for (i in row.names(`11_OTU_Norm`)) {if (sum(raw_OTU_Norm[i,all_of(patternDates11)]) > 0) {`11_OTU_Norm`[i,"Total11"] <- 1}}
+`11_OTU_Norm` <- `11_OTU_Norm` %>% select(-all_of(patternDates11))
 #FractionT
 Dates_OTU_Norm <- merge(x = `04_OTU_Norm`,y = `06_OTU_Norm`, by = "OTU_Id")
 Dates_OTU_Norm <- merge(x = `Dates_OTU_Norm`,y = `09_OTU_Norm`, by = "OTU_Id")
@@ -605,7 +1461,7 @@ Dim2OTU <- paste("Dim 2 [",round(XOTU %>% filter(dim == 2) %>% select(eig),1),"%
 # AFC Taxonomy ------------------------------------------------------------
   # AFC Sequence ----------------------------------------------------------------
 dataSequenceTaxo <- dataSequence
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataSequenceTaxo <- merge(x = dataSequenceTaxo, y =  taxo, by = "OTU_Id")
 dataSequenceTaxo <- separate(dataSequenceTaxo, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -681,13 +1537,13 @@ c <- ggplot(dataSequenceTaxo, aes(y = `Dim 2`, x = `Dim 1`, color = FractionT)) 
   labs(x=Dim1Seq,y=Dim2Seq,color = "Fractions", alpha = "Fractions", linetype = "Fractions")
 print(c)
 #Coplot
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-Sequence-Parasite-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-Sequence-Parasite.svg",width = 10.00,height = 6.00)
 Sum_plot <- plot_grid(a, c, b, ncol = 2, nrow = 2, rel_widths = c(3,3), rel_heights = c(3,3))
 print(Sum_plot)
 dev.off()  
     # Toute Condition Avril ---------------------------------------------------
 
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataSequenceTaxo04 <- merge(x = dataSequence04, y =  taxo, by = "OTU_Id")
 dataSequenceTaxo04 <- separate(dataSequenceTaxo04, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -765,12 +1621,12 @@ cw <- ggplot(dataSequenceTaxo04, aes(y = `Dim 2`, x = `Dim 1`, color = FractionT
   labs(x=Dim1Seq,y=Dim2Seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
 print(cw)
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-Sequence-Parasite-Avril-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-Sequence-Parasite-Avril.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
     # Toute Condition Juin ---------------------------------------------------
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataSequenceTaxo06 <- merge(x = dataSequence06, y =  taxo, by = "OTU_Id")
 dataSequenceTaxo06 <- separate(dataSequenceTaxo06, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -849,12 +1705,12 @@ print(cw)
 #Potentiel parasite
 
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-Sequence-Parasite-Juin-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-Sequence-Parasite-Juin.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
     # Toute Condition Septembre ---------------------------------------------------
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataSequenceTaxo09 <- merge(x = dataSequence09, y =  taxo, by = "OTU_Id")
 dataSequenceTaxo09 <- separate(dataSequenceTaxo09, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -933,12 +1789,12 @@ print(cw)
 
 #Potentiel parasite
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-Sequence-Parasite-Septembre-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-Sequence-Parasite-Septembre.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
     # Toute Condition Novembre ---------------------------------------------------
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataSequenceTaxo11 <- merge(x = dataSequence11, y =  taxo, by = "OTU_Id")
 dataSequenceTaxo11 <- separate(dataSequenceTaxo11, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -1015,7 +1871,7 @@ print(cw)
 
 #Potentiel parasite
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-Sequence-Parasite-Novembre-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-Sequence-Parasite-Novembre.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
@@ -1054,7 +1910,7 @@ print(as)
 
   # AFC OTU ---------------------------------------------------------------------
 dataOTUTaxo <- dataOTU
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataOTUTaxo <- merge(x = dataOTUTaxo, y =  taxo, by = "OTU_Id")
 dataOTUTaxo <- separate(dataOTUTaxo, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -1130,7 +1986,7 @@ cs <- ggplot(dataOTUTaxo, aes(y = `Dim 2`, x = `Dim 1`, color = FractionT)) + ge
   labs(x=Dim1OTU,y=Dim2OTU,color = "Fractions", alpha = "Fractions", linetype = "Fractions")
 print(cs)
 #Coplot
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-OTU-Parasite-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-OTU-Parasite.svg",width = 10.00,height = 6.00)
 Sum_plot <- plot_grid(as, cs, bs, ncol = 2, nrow = 2, rel_widths = c(3,3), rel_heights = c(3,3))
 print(Sum_plot)
 dev.off()  
@@ -1139,7 +1995,7 @@ dev.off()
 
     # Toute Condition Avril ---------------------------------------------------
 
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataOTUTaxo04 <- merge(x = dataOTU04, y =  taxo, by = "OTU_Id")
 dataOTUTaxo04 <- separate(dataOTUTaxo04, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -1217,12 +2073,12 @@ cw <- ggplot(dataOTUTaxo04, aes(y = `Dim 2`, x = `Dim 1`, color = FractionT)) + 
   labs(x=Dim1OTU,y=Dim2OTU,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
 print(cw)
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-OTU-Parasite-Avril-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-OTU-Parasite-Avril.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
     # Toute Condition Juin ---------------------------------------------------
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataOTUTaxo06 <- merge(x = dataOTU06, y =  taxo, by = "OTU_Id")
 dataOTUTaxo06 <- separate(dataOTUTaxo06, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -1301,12 +2157,12 @@ print(cw)
 #Potentiel parasite
 
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-OTU-Parasite-Juin-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-OTU-Parasite-Juin.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
     # Toute Condition Septembre ---------------------------------------------------
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataOTUTaxo09 <- merge(x = dataOTU09, y =  taxo, by = "OTU_Id")
 dataOTUTaxo09 <- separate(dataOTUTaxo09, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -1385,12 +2241,12 @@ print(cw)
 
 #Potentiel parasite
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-OTU-Parasite-Septembre-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-OTU-Parasite-Septembre.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
     # Toute Condition Novembre ---------------------------------------------------
-taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
+taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
 dataOTUTaxo11 <- merge(x = dataOTU11, y =  taxo, by = "OTU_Id")
 dataOTUTaxo11 <- separate(dataOTUTaxo11, NN.taxonomy, c('Domain', 'Supergroup','Division'), sep = ";")
 Parasitemin <- c("Apicomplexa","Perkinsea","Chytridiomycota","Cryptomycota","Ichthyophonida","Cercozoa","Oomycetes","Pirsonia","Labyrinthulida")
@@ -1467,7 +2323,7 @@ print(cw)
 
 #Potentiel parasite
 
-svglite("Analyse-Composition-Rarefy/AFC-Parasite/Analyse-AFC-OTU-Parasite-Novembre-V4_095.svg",width = 10.00,height = 6.00)
+svglite("AFC-Parasite/Analyse-AFC-OTU-Parasite-Novembre.svg",width = 10.00,height = 6.00)
 b_plot <- plot_grid(aw, cw, bw, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(b_plot)
 dev.off()  
@@ -1624,7 +2480,7 @@ dev.off()
   ay <- ay + theme(legend.position = "none") + labs(x="Fractions",y="OTUs (%)")
   print(ay) 
     # Coplot -------------------------------------------------------------------
-  svglite("Analyse-Composition-Rarefy/HistOnly/Analyse-OTU-Parasite-only-V4_095.svg",width = 8.00,height = 6.00)
+  svglite("HistOnly/Analyse-OTU-Parasite-only.svg",width = 8.00,height = 6.00)
   b_plot <- plot_grid(az,ax,ay,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,2),rel_heights = c(3))
   print(b_plot)
   dev.off()  
@@ -1632,11 +2488,11 @@ dev.off()
   f <- ggplot() + theme_void()
   print(f)
   
-  svglite("Analyse-Composition-Rarefy/Biplot/Analyse-OTU-Parasite-onlyX-V4_095.svg",width = 10.00,height = 13.00)
+  svglite("Biplot/Analyse-OTU-Parasite-onlyX.svg",width = 10.00,height = 13.00)
   b_plot <- plot_grid(as,az,f,bs,ax,legendOTU,cs,ay,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
   print(b_plot)
   dev.off()  
-  svglite("Analyse-Composition-Rarefy/Biplot/Analyse-SequenceXOTU-Parasite-onlyX-V4_095.svg",width = 10.00,height = 13.00)
+  svglite("Biplot/Analyse-SequenceXOTU-Parasite-onlyX.svg",width = 10.00,height = 13.00)
   b_plot <- plot_grid(a,az,f,b,ax,legendOTU,c,ay,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
   print(b_plot)
   dev.off()  
@@ -1876,7 +2732,7 @@ dev.off()
   bw <- bw + theme(legend.position = "none") + labs(x="Dates",y="OTUs (%)")
   print(bw) 
     # Coplot -------------------------------------------------------------------
-  svglite("Analyse-Composition-Rarefy/HistOnly/Analyse-OTU-Parasite-Total-V4_095.svg",width = 12.00,height = 6.00)
+  svglite("HistOnly/Analyse-OTU-Parasite-Total.svg",width = 12.00,height = 6.00)
   b_plot <- plot_grid(bz,bx,by,bw,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,2),rel_heights = c(3))
   print(b_plot)
   dev.off()
@@ -2028,7 +2884,7 @@ dev.off()
   iy <- iy + theme(legend.position = "none") + labs(x="Fractions",y="Séquences (%)")
   print(iy) 
     # Coplot -------------------------------------------------------------------
-  svglite("Analyse-Composition-Rarefy/HistOnly/Analyse-Sequence-Parasite-only-V4_095.svg",width = 8.00,height = 6.00)
+  svglite("HistOnly/Analyse-Sequence-Parasite-only.svg",width = 8.00,height = 6.00)
   b_plot <- plot_grid(iz,ix,iy,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,2),rel_heights = c(3))
   print(b_plot)
   dev.off()  
@@ -2037,12 +2893,12 @@ dev.off()
   f <- ggplot() + theme_void()
   print(f)
   
-  svglite("Analyse-Composition-Rarefy/Biplot/Analyse-Sequence-Parasite-onlyX-V4_095.svg",width = 10.00,height = 13.00)
+  svglite("Biplot/Analyse-Sequence-Parasite-onlyX.svg",width = 10.00,height = 13.00)
   b_plot <- plot_grid(a,iz,f,b,ix,legendSequence,c,iy,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
   print(b_plot)
   dev.off()  
   
-  svglite("Analyse-Composition-Rarefy/Biplot/Analyse-OTUXSequence-Parasite-onlyX-V4_095.svg",width = 10.00,height = 13.00)
+  svglite("Biplot/Analyse-OTUXSequence-Parasite-onlyX.svg",width = 10.00,height = 13.00)
   b_plot <- plot_grid(as,iz,f,bs,ix,legendSequence,cs,iy,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
   print(b_plot)
   dev.off()  
@@ -2292,13 +3148,13 @@ dev.off()
   jw <- jw + theme(legend.position = "none") + labs(x="Dates",y="Séquences (%)")
   print(jw) 
     # Coplot -------------------------------------------------------------------
-  svglite("Analyse-Composition-Rarefy/HistOnly/Analyse-Sequence-Parasite-Total-V4_095.svg",width = 12.00,height = 7.00)
+  svglite("HistOnly/Analyse-Sequence-Parasite-Total.svg",width = 12.00,height = 7.00)
   b_plot <- plot_grid(jz,jx,jy,jw, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,2),rel_heights = c(3))
   print(b_plot)
   dev.off()
 # Table OTUs majoritaires -------------------------------------------------
   # Table ONLY---------------------------------------------------------------------
-  totaltaxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy,LCA.taxonomy,Best_hit_identity,Identity....)
+  totaltaxo <- tableVinput %>% select(OTU_Id,NN.taxonomy,LCA.taxonomy,Best_hit_identity,Identity....)
     # Cycles only -------------------------------------------------------------------
   onlyJourTable <- dataSequenceTaxo %>% filter(Cycles == "Jour") %>% select(OTU_Id,TotalJour,Division,Cycles)
   x <- sum(onlyJourTable$TotalJour)
@@ -2312,9 +3168,9 @@ dev.off()
   onlyCyclesTable <- rbind(onlyJourTable,onlyNuitTable)
   onlyCyclesTable <- merge(onlyCyclesTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(onlyCyclesTable, file = "Analyse-Composition-Rarefy/TableOnly/TableOnlyCycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(onlyCyclesOTU, file = "Analyse-Composition-Rarefy/TableOnly/OnlyCyclesOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(onlyCyclesSequence, file = "Analyse-Composition-Rarefy/TableOnly/OnlyCyclesSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyCyclesTable, file = "TableOnly/TableOnlyCycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyCyclesOTU, file = "TableOnly/OnlyCyclesOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyCyclesSequence, file = "TableOnly/OnlyCyclesSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
     # FractionO only -------------------------------------------------------------------
   onlyOxiqueTable <- dataSequenceTaxo %>% filter(FractionO == "Oxique") %>% select(OTU_Id,TotalOxique,Division,FractionO)
@@ -2329,9 +3185,9 @@ dev.off()
   onlyFractionOTable <- rbind(onlyOxiqueTable,onlyAnoxiqueTable)
   onlyFractionOTable <- merge(onlyFractionOTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(onlyFractionOTable, file = "Analyse-Composition-Rarefy/TableOnly/TableOnlyFractionO.txt", sep = "\t", col.names = TRUE, row.names = FALSE,quote = FALSE)
-  write.table(onlyFractionOOTU, file = "Analyse-Composition-Rarefy/TableOnly/OnlyFractionOOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(onlyFractionOSequence, file = "Analyse-Composition-Rarefy/TableOnly/OnlyFractionOSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyFractionOTable, file = "TableOnly/TableOnlyFractionO.txt", sep = "\t", col.names = TRUE, row.names = FALSE,quote = FALSE)
+  write.table(onlyFractionOOTU, file = "TableOnly/OnlyFractionOOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyFractionOSequence, file = "TableOnly/OnlyFractionOSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
     # FractionT only -------------------------------------------------------------------
   onlyPetiteTable <- dataSequenceTaxo %>% filter(FractionT == "Petite") %>% select(OTU_Id,TotalPetite,Division,FractionT)
@@ -2346,12 +3202,12 @@ dev.off()
   onlyFractionTTable <- rbind(onlyPetiteTable,onlyGrandeTable)
   onlyFractionTTable <- merge(onlyFractionTTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(onlyFractionTTable, file = "Analyse-Composition-Rarefy/TableOnly/TableOnlyFractionT.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(onlyFractionTOTU, file = "Analyse-Composition-Rarefy/TableOnly/OnlyFractionTOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(onlyFractionTSequence, file = "Analyse-Composition-Rarefy/TableOnly/OnlyFractionTSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyFractionTTable, file = "TableOnly/TableOnlyFractionT.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyFractionTOTU, file = "TableOnly/OnlyFractionTOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(onlyFractionTSequence, file = "TableOnly/OnlyFractionTSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
   # Table Total---------------------------------------------------------------------
-  totaltaxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy,LCA.taxonomy,Best_hit_identity,Identity....)
+  totaltaxo <- tableVinput %>% select(OTU_Id,NN.taxonomy,LCA.taxonomy,Best_hit_identity,Identity....)
     # Cycles Total -------------------------------------------------------------------
   totalJourTable <- dataSequenceTaxo %>% select(OTU_Id,TotalJour,Division,Cycles)
   totalJourTable$Cycles <- rep("Jour",each = nrow(totalJourTable))
@@ -2367,9 +3223,9 @@ dev.off()
   totalCyclesTable <- rbind(totalJourTable,totalNuitTable)
   totalCyclesTable <- merge(totalCyclesTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(totalCyclesTable, file = "Analyse-Composition-Rarefy/TableOnly/TableTotalCycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalCyclesOTU, file = "Analyse-Composition-Rarefy/TableOnly/TotalCyclesOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalCyclesSequence, file = "Analyse-Composition-Rarefy/TableOnly/TotalCyclesSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalCyclesTable, file = "TableOnly/TableTotalCycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalCyclesOTU, file = "TableOnly/TotalCyclesOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalCyclesSequence, file = "TableOnly/TotalCyclesSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
     # FractionO Total -------------------------------------------------------------------
   totalOxiqueTable <- dataSequenceTaxo %>% select(OTU_Id,TotalOxique,Division,FractionO)
@@ -2386,9 +3242,9 @@ dev.off()
   totalFractionOTable <- rbind(totalOxiqueTable,totalAnoxiqueTable)
   totalFractionOTable <- merge(totalFractionOTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(totalFractionOTable, file = "Analyse-Composition-Rarefy/TableOnly/TableTotalFractionO.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalFractionOOTU, file = "Analyse-Composition-Rarefy/TableOnly/TotalFractionOOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalFractionOSequence, file = "Analyse-Composition-Rarefy/TableOnly/TotalFractionOSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalFractionOTable, file = "TableOnly/TableTotalFractionO.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalFractionOOTU, file = "TableOnly/TotalFractionOOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalFractionOSequence, file = "TableOnly/TotalFractionOSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
     # FractionT Total -------------------------------------------------------------------
   totalPetiteTable <- dataSequenceTaxo %>% select(OTU_Id,TotalPetite,Division,FractionT)
@@ -2405,9 +3261,9 @@ dev.off()
   totalFractionTTable <- rbind(totalPetiteTable,totalGrandeTable)
   totalFractionTTable <- merge(totalFractionTTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(totalFractionTTable, file = "Analyse-Composition-Rarefy/TableOnly/TableTotalFractionT.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalFractionTOTU, file = "Analyse-Composition-Rarefy/TableOnly/TotalFractionTOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalFractionTSequence, file = "Analyse-Composition-Rarefy/TableOnly/TotalFractionTSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalFractionTTable, file = "TableOnly/TableTotalFractionT.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalFractionTOTU, file = "TableOnly/TotalFractionTOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalFractionTSequence, file = "TableOnly/TotalFractionTSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
     # Dates Total -------------------------------------------------------------------
   total04Table <- dataSequenceTaxo %>% select(OTU_Id,Total04,Division)
@@ -2437,9 +3293,9 @@ dev.off()
   totalDatesTable <- rbind(total04Table,total06Table,total09Table,total11Table)
   totalDatesTable <- merge(totalDatesTable,totaltaxo, by = "OTU_Id")
   ##
-  write.table(totalDatesTable, file = "Analyse-Composition-Rarefy/TableOnly/TableTotalDates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalDatesTOTU, file = "Analyse-Composition-Rarefy/TableOnly/TotalDatesOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-  write.table(totalDatesTSequence, file = "Analyse-Composition-Rarefy/TableOnly/TotalDatesSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalDatesTable, file = "TableOnly/TableTotalDates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalDatesTOTU, file = "TableOnly/TotalDatesOTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(totalDatesTSequence, file = "TableOnly/TotalDatesSequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   
 
 # Hist OTU majoritaire ----------------------------------------------------
@@ -2514,9 +3370,9 @@ dev.off()
   # Sequence ----------------------------------------------------------------
   Sequence_pool_Parasitism_Norm <- raw_Sequence_Norm
   pattern <- c(grep(pattern = "OSTA", colnames(Sequence_pool_Parasitism_Norm), value = FALSE, fixed = FALSE))
-  Sequence_pool_Parasitism_Norm$Total<-rep(0, each = 3402)
-  taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
-  for (i in row.names(Sequence_pool_Parasitism_Norm)) {Sequence_pool_Parasitism_Norm[i,"Total"] <- sum(Sequence_pool_Parasitism_Norm[i,pattern])}
+  Sequence_pool_Parasitism_Norm$Total<-rep(0, each = nrow(Sequence_pool_Parasitism_Norm))
+  taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
+  for (i in row.names(Sequence_pool_Parasitism_Norm)) {Sequence_pool_Parasitism_Norm[i,"Total"] <- sum(Sequence_pool_Parasitism_Norm[i,all_of(pattern)])}
   w <- 0
   Sequence_pool_Parasitism_Norm <- merge(Sequence_pool_Parasitism_Norm,taxo, by = "OTU_Id")
   colnames(Sequence_pool_Parasitism_Norm)[35] <- "Taxonomy"
@@ -2529,7 +3385,7 @@ dev.off()
   Parasitism_Norm_Sequencex <- separate(Parasitism_Norm_Sequencex, Taxonomy, c('Domain', 'Supergroup','Division'), sep = "/")
   # Rapport sur 100
   pattern <- c(grep(pattern = c("OSTA"), colnames(Parasitism_Norm_Sequencex), value = TRUE, fixed = FALSE))
-  pattern <- c(pattern, "Total")
+  pattern <- c(all_of(pattern), "Total")
   for (i in pattern) {Parasitism_Norm_Sequencex[,i]<-Parasitism_Norm_Sequencex[,i]*100/sum(Parasitism_Norm_Sequencex[,i])}
   #Add Column Parasitism
   Parasitism_Norm_Sequencex$Parasitism <- rep("Autres",each = nrow(Parasitism_Norm_Sequencex))
@@ -2560,7 +3416,7 @@ dev.off()
   for (i in rownames(Parasitism_polarNorm_Sequence)) {
     if (is.na(Parasitism_polarNorm_Sequence[i,"label"]) == FALSE) { Parasitism_polarNorm_Sequence[i,"label"] <- paste(Parasitism_polarNorm_Sequence[i,"Parasitism"]," : ",Parasitism_polarNorm_Sequence[i,"label"], sep = "")}}
   #Figure
-  pdf("Analyse-Composition-Rarefy/Composition/Analyse-polar-Sequence-Parasitism(min)-Detail-Total-Norm-V4_095.pdf",width = 8.00,height = 8.00)
+  pdf("Composition/Analyse-polar-Sequence-Parasitism(min)-Detail-Total-Norm.pdf",width = 8.00,height = 8.00)
   ax <- ggplot(Parasitism_polarNorm_Sequence, mapping = aes(y= value, x = 2, fill = Parasitism), Rowv = NA, col = colMain, scale = "column") +
     geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
     geom_label_repel(aes(y = lab.ypos,label = label),color = "white",segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -2573,7 +3429,7 @@ dev.off()
   dev.off()
   
   #palette <- c(pal_locuszoom(alpha = 0.9)(5), pal_lancet(alpha = 0.9)(5))
-  pdf("Analyse-Composition-Rarefy/Composition/Analyse-polar-Sequence-Parasitism(min)-Detail-Total-Norm-V4_095.pdf",width = 4.00,height = 4.00)
+  pdf("Composition/Analyse-polar-Sequence-Parasitism(min)-Detail-Total-Norm.pdf",width = 4.00,height = 4.00)
   ax <- ggplot(Parasitism_polarNorm_Sequence, mapping = aes(y= value, x = 2, fill = Parasitism), Rowv = NA, col = colMain, scale = "column") +
     geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
     geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -2585,7 +3441,7 @@ dev.off()
   print(ax)
   dev.off()
   
-  svglite("Analyse-Composition-Rarefy/Composition/Analyse-polar-Sequence-Parasitism(min)-Detail-Total-Norm-V4_095.svg",width = 4.00,height = 4.00)
+  svglite("Composition/Analyse-polar-Sequence-Parasitism(min)-Detail-Total-Norm.svg",width = 4.00,height = 4.00)
   ax <- ggplot(Parasitism_polarNorm_Sequence, mapping = aes(y= value, x = 2, fill = Parasitism), Rowv = NA, col = colMain, scale = "column") +
     geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
     geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -2599,9 +3455,9 @@ dev.off()
   # OTU ----------------------------------------------------------------
   OTU_pool_Parasitism_Norm <- raw_OTU_Norm
   pattern <- c(grep(pattern = "OSTA", colnames(OTU_pool_Parasitism_Norm), value = FALSE, fixed = FALSE))
-  OTU_pool_Parasitism_Norm$Total<-rep(0, each = 3402)
-  taxo <- tableV4095 %>% select(OTU_Id,NN.taxonomy)
-  for (i in row.names(OTU_pool_Parasitism_Norm)) {if (sum(OTU_pool_Parasitism_Norm[i,pattern]) > 0) { OTU_pool_Parasitism_Norm[i,"Total"] <- 1}}
+  OTU_pool_Parasitism_Norm$Total<-rep(0, each = nrow(OTU_pool_Parasitism_Norm))
+  taxo <- tableVinput %>% select(OTU_Id,NN.taxonomy)
+  for (i in row.names(OTU_pool_Parasitism_Norm)) {if (sum(OTU_pool_Parasitism_Norm[i,all_of(pattern)]) > 0) { OTU_pool_Parasitism_Norm[i,"Total"] <- 1}}
   w <- 0
   OTU_pool_Parasitism_Norm <- merge(OTU_pool_Parasitism_Norm,taxo, by = "OTU_Id")
   colnames(OTU_pool_Parasitism_Norm)[35] <- "Taxonomy"
@@ -2614,7 +3470,7 @@ dev.off()
   Parasitism_Norm_OTUx <- separate(Parasitism_Norm_OTUx, Taxonomy, c('Domain', 'Supergroup','Division'), sep = "/")
   # Rapport sur 100
   pattern <- c(grep(pattern = c("OSTA"), colnames(Parasitism_Norm_OTUx), value = TRUE, fixed = FALSE))
-  pattern <- c(pattern, "Total")
+  pattern <- c(all_of(pattern), "Total")
   for (i in pattern) {Parasitism_Norm_OTUx[,i]<-Parasitism_Norm_OTUx[,i]*100/sum(Parasitism_Norm_OTUx[,i])}
   #Add Column Parasitism
   Parasitism_Norm_OTUx$Parasitism <- rep("Autres",each = nrow(Parasitism_Norm_OTUx))
@@ -2645,7 +3501,7 @@ dev.off()
   for (i in rownames(Parasitism_polarNorm_OTU)) {
     if (is.na(Parasitism_polarNorm_OTU[i,"label"]) == FALSE) { Parasitism_polarNorm_OTU[i,"label"] <- paste(Parasitism_polarNorm_OTU[i,"Parasitism"]," : ",Parasitism_polarNorm_OTU[i,"label"], sep = "")}}
   #Figure
-  pdf("Analyse-Composition-Rarefy/Composition/Analyse-polar-OTU-Parasitism(min)-Detail-Total-Norm-V4_095.pdf",width = 8.00,height = 8.00)
+  pdf("Composition/Analyse-polar-OTU-Parasitism(min)-Detail-Total-Norm.pdf",width = 8.00,height = 8.00)
   ax <- ggplot(Parasitism_polarNorm_OTU, mapping = aes(y= value, x = 2, fill = Parasitism), Rowv = NA, col = colMain, scale = "column") +
     geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
     geom_label_repel(aes(y = lab.ypos,label = label),color = "white",segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -2657,7 +3513,7 @@ dev.off()
   print(ax)
   dev.off()
   
-  pdf("Analyse-Composition-Rarefy/Composition/Analyse-polar-OTU-Parasitism(min)-Detail-Total-Norm-V4_095.pdf",width = 4.00,height = 4.00)
+  pdf("Composition/Analyse-polar-OTU-Parasitism(min)-Detail-Total-Norm.pdf",width = 4.00,height = 4.00)
   ax <- ggplot(Parasitism_polarNorm_OTU, mapping = aes(y= value, x = 2, fill = Parasitism), Rowv = NA, col = colMain, scale = "column") +
     geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
     geom_label_repel(aes(y = lab.ypos,label = label),size = 3, color = "white",segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -2669,7 +3525,7 @@ dev.off()
   print(ax)
   dev.off()
   
-  svglite("Analyse-Composition-Rarefy/Composition/Analyse-polar-OTU-Parasitism(min)-Detail-Total-Norm-V4_095.svg",width = 4.00,height = 4.00)
+  svglite("Composition/Analyse-polar-OTU-Parasitism(min)-Detail-Total-Norm.svg",width = 4.00,height = 4.00)
   ax <- ggplot(Parasitism_polarNorm_OTU, mapping = aes(y= value, x = 2, fill = Parasitism), Rowv = NA, col = colMain, scale = "column") +
     geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
     geom_label_repel(aes(y = lab.ypos,label = label),size =3, color = "white",segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +

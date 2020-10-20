@@ -1,5 +1,5 @@
 
-# ANALYSE DE MÉTABARCODING
+# **ANALYSE DE MÉTABARCODING**
 
 ## DATA
 
@@ -58,13 +58,115 @@ Ces répertoires ("AC","FO", etc) sont placés dans le répertoire "reads".
 	5. x coordinate on the tile : 17317
 	6. y coordinate on the tile : 1262
 
-
-## 1. TRI DES AMPLICONS V4 ET V9
+## Lancement rapide : Pre-process
 
 Une table contenant le nom ("AC", "FO", etc), la condition (DNOG, DJAP, etc) et la région (V4 ou V9) correspondant à chaque amplicon doit être réalisée.
 
 * Le Genoscope fournit la table suivante : "data-inf.txt".
-* Le répertoire "reads" et la table "data-inf.txt" sont placés dans le répertoire "Microstore-metabarcoding".
+* Le répertoire "reads" et la table "data-inf.txt" sont placés dans le répertoire "rawdata" situé dans "Microstore-metabarcoding".
+
+### 1. Pre-process et installation de PANAM
+
+Définir le répertoire : `cd Microstore-metabarcoding/script/`
+
+Lancer le script chargé de la mise en forme des reads et de l'installation de PANAM : `bash 0_Pre-process.sh`
+
+    WARNING : Une ligne dans panam2.pl doit être modifiée ! :
+    remplacer la ligne 169 : $panam_ini=$path_results."/panam.ini";
+    par : $panam_ini=$path_results.$ini; #GB200114
+
+### 2. Initialisation de PANAM
+
+Différents fichiers d'initialisation ".ini" sont créés (à partir du fichier "test2-panam2.ini" présent dans PANAM2 et correspondant au jeux de données utilisés) :
+    
+    * V4-panam2-095.ini (√)
+        Parameters :
+        * DOMAIN    eukaryota
+        * PATH_RESULTS    V4-result-095
+        * DEMUL_FOLDER    V4
+        * FORWARD_PRIMER_SEQUENCE    GTGYCAGCMGCCGCGGTA
+        * REVERSE_PRIMER_SEQUENCE    TTGGYRAATGCTTTCGC
+        * CLUSTERING_CUTOFF    0.95
+        * LOWER_SEQUENCE_LENGTH_CUTOF    200
+        * MAX_SEQUENCE_LENGTH    500
+        * MIN_OVERLAP_LENGTH    50
+        * MISMATCH_OVERLAP    0
+        * SCORE_FIX    0.90
+        * MERGE_SEQ    perfect_match
+
+    * V4-panam2-097.ini
+        Parameters :
+        * DOMAIN    eukaryota
+        * PATH_RESULTS    V4-result-097
+        * DEMUL_FOLDER    V4
+        * FORWARD_PRIMER_SEQUENCE    GTGYCAGCMGCCGCGGTA
+        * REVERSE_PRIMER_SEQUENCE    TTGGYRAATGCTTTCGC
+        * CLUSTERING_CUTOFF    0.97
+        * LOWER_SEQUENCE_LENGTH_CUTOF    200
+        * MAX_SEQUENCE_LENGTH    500
+        * MIN_OVERLAP_LENGTH    50
+        * MISMATCH_OVERLAP    0
+        * SCORE_FIX    0.90
+        * MERGE_SEQ    perfect_match
+
+    * V9-panam2-095.ini
+        Parameters :
+        * DOMAIN    eukaryota
+        * PATH_RESULTS    V9-result-095
+        * DEMUL_FOLDER    V9
+        * FORWARD_PRIMER_SEQUENCE    TTGTACACACCGCCC
+        * REVERSE_PRIMER_SEQUENCE    CCTTCYGCAGGTTCACCTAC
+        * CLUSTERING_CUTOFF    0.95
+        * LOWER_SEQUENCE_LENGTH_CUTOF    100
+        * MAX_SEQUENCE_LENGTH    300
+        * MIN_OVERLAP_LENGTH    50
+        * MISMATCH_OVERLAP    0
+        * SCORE_FIX    0.90
+        * MERGE_SEQ    perfect_match
+
+    * V9-panam2-097.ini (√)
+        Parameters :
+        * DOMAIN    eukaryota
+        * PATH_RESULTS    V9-result-097
+        * DEMUL_FOLDER    V9
+        * FORWARD_PRIMER_SEQUENCE    TTGTACACACCGCCC
+        * REVERSE_PRIMER_SEQUENCE    CCTTCYGCAGGTTCACCTAC
+        * CLUSTERING_CUTOFF    0.97
+        * LOWER_SEQUENCE_LENGTH_CUTOF    100
+        * MAX_SEQUENCE_LENGTH    300
+        * MIN_OVERLAP_LENGTH    50
+        * MISMATCH_OVERLAP    0
+        * SCORE_FIX    0.90
+        * MERGE_SEQ    perfect_match
+
+Ces fichiers d'initialisation ".ini" sont placés dans le répertoire "PANAM2"
+
+### 3. ANALYSES PANAM 
+
+Pour lancer PANAM2 : `cd ../dataPANAM/PANAM2`
+
+* V4 avec seuil de clusterisation = 0.95 : `nohup perl panam2.pl -ini V4-panam2-095.ini > V4-095.out`
+
+* V4 avec seuil de clusterisation = 0.97 : `nohup perl panam2.pl -ini V4-panam2-097.ini > V4-097.out`
+
+* V4 avec seuil de clusterisation = 0.95 : `nohup perl panam2.pl -ini V4-panam2-095-pear.ini > V4-095-pear.out`
+
+* V9 avec seuil de clusterisation = 0.95 : `nohup perl panam2.pl -ini V9-panam2-095.ini > V9-095.out`
+
+* V9 avec seuil de clusterisation = 0.97 : `nohup perl panam2.pl -ini V9-panam2-097.ini > V9-097.out`
+
+* V9 avec seuil de clusterisation = 0.97 : `nohup perl panam2.pl -ini V9-panam2-097-pear.ini > V9-097-pear.out`
+
+
+
+## Etape par étape et vérification
+
+### 1. TRI DES AMPLICONS V4 ET V9
+
+Une table contenant le nom ("AC", "FO", etc), la condition (DNOG, DJAP, etc) et la région (V4 ou V9) correspondant à chaque amplicon doit être réalisée.
+
+* Le Genoscope fournit la table suivante : "data-inf.txt".
+* Le répertoire "reads" et la table "data-inf.txt" sont placés dans le répertoire "rawdata" situé dans "Microstore-metabarcoding".
 
 Définir le répertoire : `cd Microstore-metabarcoding/`
 
@@ -81,15 +183,15 @@ Cette information est alors modifiée manuellement dans la table "sortV4-V9" :  
 
 Finalement, le tri (V4 vs V9) est réalisé avec le script "1_sortV4-9.sh" : `cd ../script ; bash 1_sort_V4-9.sh`
 
-## 2. CONCATÉNER LES AMPLICONS RÉALISÉS À TRAVERS DEUX FLOW CELLS
+### 2. CONCATÉNER LES AMPLICONS RÉALISÉS À TRAVERS DEUX FLOW CELLS
 
 Certains amplicons sont représentés par plusieurs fichiers de reads R1 et plusieurs fichiers de reads R2 car ils ont été séquencés avec plusieurs flow cells. Ces fichiers doivent être concaténés afin de n'avoir qu'un seul fichier de reads R1 et un seul fichier de reads R2 : `bash 2_concate.sh`
 
-## 3. PRÉPARATION DU RÉPERTOIRE "dataPANAM"
+### 3. PRÉPARATION DU RÉPERTOIRE "dataPANAM"
 
 Afin de débuter les analyses, les reads V4 et V9 sont copiés dans un répertoire "dataPANAM" :  `bash 3_sort.sh`
 
-## 4. RE-IDENTIFICATION DES READS POUR PANAM
+### 4. RE-IDENTIFICATION DES READS POUR PANAM
 
 PANAM utilise la nomenclature suivante : "x_y_R1_z.fastq.gz" et "x_y_R2_z.fastq(.gz)". Il est alors nécessaire de renommer les reads.
 
@@ -101,7 +203,7 @@ Les reads sont renommés grâce au script "4_rawdata-rename.sh" : `bash 4_rawdat
 
 PS : les reads seront zippés ultérieurement pour être utilisés dans PANAM.
 
-## 5. VÉRIFICATION AVEC VSEARCH (ÉTAPE OPTIONNELLE)
+### 5. VÉRIFICATION AVEC VSEARCH (ÉTAPE OPTIONNELLE)
 
 * **Nécessite vsearch**
 
@@ -110,7 +212,7 @@ Avant de lancer PANAM, la présence des primers utilisés ainsi que le "merging"
 * Longueur maximale des reads : **-fastq_maxmergelen**
 * Longueur minimale des reads : **-fastq_minlen**
 
-### Reads V4 
+#### Reads V4 
 
 Paramètres d'assemblage :
 * Longueur maximale V4 : **500pb**
@@ -141,7 +243,7 @@ Pour cette étape, les primers suivants sont recherchés :
 
 Les statistiques sont visibles dans le fichier "V4-primer.out" présent dans le répertoire "V4-testPrimer".
 
-### V9 Reads
+#### V9 Reads
 
 Paramètres d'assemblage :
 * Longueur maximale V9 : **300pb**
@@ -172,7 +274,7 @@ Pour cette étape, les primers suivants sont recherchés :
 
 Les statistiques sont visibles dans le fichier "V9-primer.out" présent dans le répertoire "V9-testPrimer".
 
-## 6. INSTALLATION ET INITIALISATION DE PANAM 
+### 6. INSTALLATION ET INITIALISATION DE PANAM 
 
 Installation de PANAM dans le répertoire "dataPANAM"  : 
 
@@ -182,7 +284,7 @@ Installation de PANAM dans le répertoire "dataPANAM"  :
 
 `chmod 777 bd_ssrna`
 
-    WARNING : Une ligne dans panam.pl doit être modifiée ! :
+    WARNING : Une ligne dans panam2.pl doit être modifiée ! :
     remplacer la ligne 169 : $panam_ini=$path_results."/panam.ini";
     par : $panam_ini=$path_results.$ini; #GB200114
 
@@ -252,7 +354,7 @@ Différents fichiers d'initialisation ".ini" sont créés (à partir du fichier 
 
 Ces fichiers d'initialisation ".ini" sont placés dans le répertoire "PANAM2"
 
-## 7. ANALYSES PANAM 
+### 7. ANALYSES PANAM 
 
 Pour lancer PANAM2 : `cd PANAM2`
 
@@ -260,20 +362,42 @@ Pour lancer PANAM2 : `cd PANAM2`
 
 * V4 avec seuil de clusterisation = 0.97 : `nohup perl panam2.pl -ini V4-panam2-097.ini > V4-097.out`
 
+* V4 avec seuil de clusterisation = 0.95 : `nohup perl panam2.pl -ini V4-panam2-095-pear.ini > V4-095-pear.out`
+
 * V9 avec seuil de clusterisation = 0.95 : `nohup perl panam2.pl -ini V9-panam2-095.ini > V9-095.out`
 
 * V9 avec seuil de clusterisation = 0.97 : `nohup perl panam2.pl -ini V9-panam2-097.ini > V9-097.out`
 
-## 8. ANALYSES R (Utilisées ici sur les données V4-095 (seuil de clusterisation fixé à 0.95%))
+* V9 avec seuil de clusterisation = 0.97 : `nohup perl panam2.pl -ini V9-panam2-097-pear.ini > V9-097-pear.out`
+
+## 8. ANALYSES R
 
 * **Nécessite R version 3.6.3**
 
 Un environnement conda est alors créé afin d'installer R 3.6.3 : `cd ../../script ; conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
 
-Un script permet d'installer les dépendences nécessaires aux analyses : `Rscript Install_dependencies.R`
+Un script permet d'installer les dépendences nécessaires aux analyses : `Rscript 7_Install_dependencies.R`
 
-Une première analyse est réalisée afin de tester la différence entre amplicons d'un même duplicat : `Rscript Auto-analyse_AFC_OTUonly.R`
+### Analyse des duplicats
 
-L'analyse de composition et d'abondance est réalisée avec un second script : `Rscript Script-Composition-OTU-Rarefy.R`
+Une première analyse est réalisée afin de tester la différence entre amplicons d'un même duplicat : `Rscript 8_Analyse_Duplicat_AFC.R input output`
 
-Les résultats d'analyses se trouvent dans le répertoire "Analyse-Composition-Rarefy"
+for exemple : `Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
+
+Renseigner Infos (Région / Rarecurve).
+
+**PS : pour exécuter le script en nohup** : `nohup Rscript 8_Analyse_Duplicat_AFC.R input output region(V4 or V9) rarecurve(yes or no)`
+
+for exemple : `nohup Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Analyse_Duplicat.out`
+
+### Analyse de composition
+
+L'analyse de composition et d'abondance est réalisée avec un second script : `Rscript 9_Composition_Rarefy.R input output`
+
+par exemple :  `Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
+
+Renseigner Infos  (Région / Rarecurve).
+
+**PS : pour exécuter le script en nohup** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) rarecurve(yes or no)`
+
+for exemple : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Composition_Rarefy.out`
