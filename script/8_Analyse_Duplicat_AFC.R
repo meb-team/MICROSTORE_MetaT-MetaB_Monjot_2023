@@ -115,7 +115,7 @@ quickRareCurve <- function (x, step = 1, sample, xlab = "Sequences",
   lty <- rep(lty, length.out = nr)
   # parallel mclapply
   # set number of cores
-  mc <- getOption("mc.cores", ifelse(max.cores, detectCores(), nCores))
+  mc <- getOption("mc.cores", ifelse(max.cores, detectCores()/2, nCores))
   message(paste("Using ", mc, " cores"))
   out <- mclapply(seq_len(nr), mc.cores = mc, function(i) {
     n <- seq(1, tot[i], by = step)
@@ -294,7 +294,7 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   colraw$color_Rep <- rep("black", time = nrow(colraw))
   for (w in rownames(colraw)) {
     if (colraw[w,"Replicats"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
-  pdf("Nopool/Rarecurve-Rep-Rarefy.pdf",width = 5.00,height = 5.00)
+  pdf("Rarecurve/Nopool/Rarecurve-Rep-Rarefy.pdf",width = 5.00,height = 5.00)
   curve_d <- quickRareCurve(rarecurve, col = colraw$color_Rep, cex = 0.6)
   legend("topleft", inset=.02, title="Replicat",
          c("Rep1","Rep2"), fill = c("#EEA236CC","black"), horiz=TRUE, cex=0.6)
