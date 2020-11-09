@@ -40,13 +40,15 @@ if [ $region == "V4" ]
 then
 ## Boucle for
     cd ..
-    if [ $(ls dataPANAM/ | grep "V4-testPrimer" | wc -l) == 1 ]
+    result=$(echo 'V4-testPrimer_'$assembler)
+    echo $result
+    if [ $(ls dataPANAM | grep $result | wc -l) \> 0 ]
     then
-    rm -r dataPANAM/V4-testPrimer
+    rm -r dataPANAM/$result
     fi
-    cp -r dataPANAM/PANAM2/V4 dataPANAM/V4-testPrimer
-    gunzip dataPANAM/V4-testPrimer/*
-    for f in $(echo dataPANAM/V4-testPrimer)
+    cp -r dataPANAM/PANAM2/V4 dataPANAM/$result
+    gunzip dataPANAM/$result/*
+    for f in $(echo dataPANAM/$result)
     do
         for fichier in $(ls $f/*_R1_*.fastq)
         do
@@ -99,13 +101,15 @@ if [ $region == "V9" ]
 then
     ## Boucle for
     cd ..
-    if [ $(ls dataPANAM/ | grep "V9-testPrimer" | wc -l) == 1 ]
+    result=$(echo 'V9-testPrimer_'$assembler)
+    echo $result
+    if [ $(ls dataPANAM/ | grep $result | wc -l) \> 0 ]
     then
-    rm -r dataPANAM/V9-testPrimer
+    rm -r dataPANAM/$result
     fi
-    cp -r dataPANAM/PANAM2/V9 dataPANAM/V9-testPrimer
-    gunzip dataPANAM/V9-testPrimer/*
-    for f in $(echo dataPANAM/V9-testPrimer)
+    cp -r dataPANAM/PANAM2/V9 dataPANAM/$result
+    gunzip dataPANAM/$result/*
+    for f in $(echo dataPANAM/$result)
     do
         for fichier in $(ls $f/*_R1_*.fastq)
         do

@@ -4,7 +4,7 @@
 ## DATA
 
 The paired end reads (R1 and R2) are placed in a directory identified by the name of the corresponding amplicon: "AC" for example.
-These directories ("AC", "FO", etc.) are placed in the "reads" directory.
+These directories ("AC", "FO", etc.) are placed in the "reads" directory in "rawdata".
 
 	*******************************
 		Sampling nomenclature
@@ -170,9 +170,9 @@ A first analysis is carried out in order to test the difference between amplicon
 
 for exemple: `Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Enter Info (Region / Rarecurve).
+Enter Info (Region / 0.0005filter).
 
-**PS : to execute script silently** : `nohup Rscript 8_Analyse_Duplicat_AFC.R input output region(V4 or V9) rarecurve(yes or no)`
+**PS : to execute script silently** : `nohup Rscript 8_Analyse_Duplicat_AFC.R input output region(V4 or V9) 0.0005 filter(yes or no)`
 
 for example : `nohup Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Analyse_Duplicat.out`
 
@@ -182,8 +182,20 @@ The composition and abundance analysis is performed with a second script: `Rscri
 
 for example :  `Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Enter Info (Region / Rarecurve).
+Enter Info (Region / mode / Group[optional] / 0.0005filter / Taxonomy).
 
-**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) rarecurve(yes or no)`
+**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) mode(Superphylum or Phylum) Phylum(Fungi, Alveolata, etc)[optional] 0.0005filter(yes or no) Taxonomy(NN, LCA, or Best_HIT)`
 
-for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Composition_Rarefy.out`
+for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 Phylum Alveolata yes LCA > V4-095_Composition_Rarefy.out`
+
+#### C. Rarefaction curves and diversity indices
+
+Rarefaction curves and diversity indices can be calculated using a third script : `Rscript 10_Calcul_Rarecurve.R input output`
+
+for example :  `Rscript 10_Calcul_Rarecurve.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
+
+Enter Info (Region / 0.0005filter).
+
+**PS : to execute script silently** : `nohup Rscript 10_Calcul_Rarecurve.R input output region(V4 or V9) 0.0005filter(yes or no)`
+
+for example : `nohup Rscript 10_Calcul_Rarecurve.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Composition_Rarefy.out`

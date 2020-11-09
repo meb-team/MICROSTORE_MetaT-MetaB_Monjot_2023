@@ -40,7 +40,7 @@ mv NGmerge ../
 
 ## Install fastxtend
 cd ..
-tar -xvf fastxtend.tar
+tar -xvf fastxtend-0.0.13.1.tar
 mv fastxtend-0.0.13.1/bin/fastx_mergepairs ./
 
 ##

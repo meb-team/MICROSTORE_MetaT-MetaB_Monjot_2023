@@ -6,16 +6,19 @@
 # /_/    \_\_| |_| |_|\___/|_| |_| |\___/ \__|
 #                               _/ |
 #                              |__/
+# !/usr/bin/env Rscript
 # XX/XX/XXXX
 #
-# Script Composition
-
+# Script Duplicat
 # Set directory, input, output and import packages -----------------------------------------------------------
-#!/usr/bin/env Rscript
-# Rscript 8_Analyse_Duplicat_AFC.R V4 ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch
-#output <- "Analyse-Composition-Rarefy-V4"
-#input <- "../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt"
-#region <- "V4"
+#
+#output <- "Analyse-Composition-Rarefy-V9-097-199-NOfilter-Total"
+#input <- "../dataPANAM/PANAM2/V9-result-097-199/OTU_distribution_tax.txt"
+#region <- "V9"
+#sortop <- "no"
+#Taxonomy <- "NN"
+
+#
 args = commandArgs(trailingOnly=TRUE)
 
 if (length(args)==2) {
@@ -31,10 +34,7 @@ region <- args[3]
 output <- args[2]
 input <- args[1]
 
-# Import packages ---------------------------------------------------------
-#if (!require("pacman")) {install.packages("pacman", repos="http://cran.rstudio.com/")}
-#pacman::p_load("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","gplots","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
-
+# Import packages and create result directory ---------------------------------------------------------
 pkg <- c("parallel","ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
 lapply(pkg, require, character.only = TRUE)
 input <- paste("..",input, sep = "/")
@@ -47,7 +47,7 @@ system("mkdir Figure-Sum")
 system("mkdir AFC-Duplicat")
 system("mkdir Composition")
 system("mkdir HistOnly")
-system("mkdir AFC-Parasite")
+system("mkdir AFC-Distribution")
 system("mkdir TableOnly")
 system("mkdir Biplot")
 system("mkdir Rarecurve")
@@ -57,9 +57,6 @@ system("mkdir Diversity")
 system("mkdir Diversity/Nopool")
 system("mkdir Diversity/Pool")
 
-
-# Input OTU Table ---------------------------------------------------------
-tableVinput <- read.csv(file = input, sep = "\t")
 
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {
@@ -90,276 +87,85 @@ theme_unique_dark <- function (base_size = 12, base_family = "") {
   ret
 } 
 
-# quickRareCurve fonction -------------------------------------------------
-quickRareCurve <- function (x, step = 1, sample, xlab = "Sequences",
-                            ylab = "OTUs", label = TRUE, col, lty, max.cores = T, nCores = 1, ...)
-{
-  require(parallel)
-  x <- as.matrix(x)
-  if (!identical(all.equal(x, round(x)), TRUE))
-    stop("function accepts only integers (counts)")
-  if (missing(col))
-    col <- par("col")
-  if (missing(lty))
-    lty <- par("lty")
-  tot <- rowSums(x) # calculates library sizes
-  S <- specnumber(x) # calculates n species for each sample
-  if (any(S <= 0)) {
-    message("empty rows removed")
-    x <- x[S > 0, , drop = FALSE]
-    tot <- tot[S > 0]
-    S <- S[S > 0]
-  } # removes any empty rows
-  nr <- nrow(x) # number of samples
-  col <- rep(col, length.out = nr)
-  lty <- rep(lty, length.out = nr)
-  # parallel mclapply
-  # set number of cores
-  mc <- getOption("mc.cores", ifelse(max.cores, detectCores()/2, nCores))
-  message(paste("Using ", mc, " cores"))
-  out <- mclapply(seq_len(nr), mc.cores = mc, function(i) {
-    n <- seq(1, tot[i], by = step)
-    if (n[length(n)] != tot[i])
-      n <- c(n, tot[i])
-    drop(rarefy(x[i, ], n))
-  })
-  Nmax <- sapply(out, function(x) max(attr(x, "Subsample")))
-  Smax <- sapply(out, max)
-  plot(c(1, max(Nmax)), c(1, max(Smax)), xlab = xlab, ylab = ylab,
-       type = "n", ...)
-  if (!missing(sample)) {
-    abline(v = sample)
-    rare <- sapply(out, function(z) approx(x = attr(z, "Subsample"),
-                                           y = z, xout = sample, rule = 1)$y)
-    abline(h = rare, lwd = 0.5)
-  }
-  for (ln in seq_along(out)) {
-    N <- attr(out[[ln]], "Subsample")
-    lines(N, out[[ln]], col = col[ln], lty = lty[ln], ...)
-  }
-  if (label) {
-    ordilabel(cbind(tot, S), labels = rownames(x), ...)
-  }
-  invisible(out)
+# Input OTU Table ---------------------------------------------------------
+tableVinput <- read.csv(file = input, sep = "\t")
+##0.0005% filter
+if (length(args)==2) {
+  cat("Should I filter 0.0005% of total OTUs (yes or no) ? : ");
+  sortop <- readLines("stdin",n=1);
+  cat("You entered")
+  str(sortop);
+  cat( "\n" )}
+if (length(args)==4) {
+  sortop <- args[4]
 }
 
+if (sortop == "yes") {
+  amplicon <- grep(pattern = "OSTA", colnames(tableVinput), value = TRUE)
+  tableVinput$SUM <- rowSums(tableVinput %>% select(all_of(amplicon)))
+  tableVinput <- tableVinput %>% filter(SUM > 0.0005*sum(tableVinput$SUM)/100)
+  tableVinput <- tableVinput %>% select(-"SUM")
+}
 # Prepare data inf --------------------------------------------------------
-infdataini <- read.table(file = "../../rawdata/data-inf.txt", sep = "\t", header = FALSE, col.names = c("row","Id","Conditions","Technologies","Regions"))
-infdataini <- infdataini %>% select(-"row")
+infdataini <- read.table(file = "../../rawdata/data-inf.txt", sep = "\t", header = FALSE,row.names = "row", col.names = c("row","Id","Condition","Technologie","Region"))
 infdataini$Rep <- rep("_1", each = nrow(infdataini))
 infdataini$Variable <- paste(infdataini$Condition,infdataini$Rep, sep = "")
-infdataini <- infdataini %>% select(-"Rep",-"Conditions")
-infdataini <- separate(infdataini, Variable, c("Conditions","Dates","Replicats"), sep = "_")
-x <- 0
-for (i in infdataini$Replicats) { 
-  x <- x+1
-  if (i == "01") infdataini[x,6] <- "1"
-  if (i == "02") infdataini[x,6] <- "2"
+infdataini <- infdataini %>% select(-"Rep",-"Condition")
+infdataini <- separate(infdataini, Variable, c("Condition","Date","Replicat"), sep = "_")
+for (i in row.names(infdataini)) { 
+  if (infdataini[i,"Replicat"] == "01") infdataini[i,"Replicat"] <- "1"
+  if (infdataini[i,"Replicat"] == "02") infdataini[i,"Replicat"] <- "2"
 }
 infdataini$OSTA <- rep("OSTA", each = nrow(infdataini))
 infdataini$Variable <- paste(infdataini$Id,infdataini$OSTA, sep = "")
 infdataini <- infdataini %>% select(-"Id",-"OSTA")
-infdataini <- separate(infdataini, Variable, c("Cin","Variable"), sep = "_")
+infdataini <- separate(infdataini, Variable, c("Cin","Amplicon"), sep = "_")
 infdataini <- infdataini %>% select(-"Cin")
 
-# FR sample (V9 in reality and not V4)
-for (i in row.names(infdataini)) { if (infdataini[i,"Variable"] == "FROSTA") { infdataini[i,"Regions"] <- "V9"}}
-for (i in row.names(infdataini)) { if (infdataini[i,"Variable"] == "FROSTA") { infdataini[i,"Technologies"] <- "Miseq"}}
+## FR sample (V9 in reality and not V4)
+for (i in row.names(infdataini)) { if (infdataini[i,"Amplicon"] == "FROSTA") { infdataini[i,"Region"] <- "V9"}}
+for (i in row.names(infdataini)) { if (infdataini[i,"Amplicon"] == "FROSTA") { infdataini[i,"Technologie"] <- "Miseq"}}
 
-# Prepare sample_df
-infdataini[infdataini == "DJOG"] <- "D;J;O;G"
-infdataini[infdataini == "DJOP"] <- "D;J;O;P"
-infdataini[infdataini == "DJAG"] <- "D;J;A;G"
-infdataini[infdataini == "DJAP"] <- "D;J;A;P"
-infdataini[infdataini == "DNOG"] <- "D;N;O;G"
-infdataini[infdataini == "DNOP"] <- "D;N;O;P"
-infdataini[infdataini == "DNAG"] <- "D;N;A;G"
-infdataini[infdataini == "DNAP"] <- "D;N;A;P"
+## Prepare sample_df
+infdataini <- separate(infdataini, Condition, c("empty","ADN","Cycle","Zone","Fraction"),sep = "")
+infdataini <- infdataini %>% select(-"empty")
 infdataini<-as.data.frame(infdataini)
-infdataini <- separate(infdataini, Conditions, c("ADN","Jour_Nuit","Oxique_Anoxique","Grande_Petite"),sep = ";")
-pattern <- c("Variable","Technologies","Regions","ADN","Jour_Nuit","Oxique_Anoxique","Grande_Petite","Dates","Replicats")
-samples_df <- infdataini[,all_of(pattern)]
-samples_df$Conditions <- paste(samples_df$ADN,samples_df$Jour_Nuit,samples_df$Oxique_Anoxique,samples_df$Grande_Petite, sep = "")
-colnames(samples_df) <- c("sample","Technologies","Regions","ADN","Cycle","Fraction-Oxygène","Fraction-Taille","Dates","Replicats","Conditions")
-w <- 0
-for (i in samples_df$Cycle) { w <- w +1
-if (i == "J") { samples_df[w,"Cycle"] <- "Jour"}
-if (i == "N") { samples_df[w,"Cycle"] <- "Nuit"}}
-w <- 0
-for (i in samples_df$`Fraction-Oxygène`) { w <- w +1
-if (i == "O") { samples_df[w,"Fraction-Oxygène"] <- "Oxique"}
-if (i == "A") { samples_df[w,"Fraction-Oxygène"] <- "Anoxique"}}
-w <- 0
-for (i in samples_df$`Fraction-Taille`) { w <- w +1
-if (i == "G") { samples_df[w,"Fraction-Taille"] <- "Grande"}
-if (i == "P") { samples_df[w,"Fraction-Taille"] <- "Petite"}}
+col <- c("Amplicon","Technologie","Region","ADN","Cycle","Zone","Fraction","Date","Replicat")
+samples_df <- infdataini[,all_of(col)]
+samples_df$Condition <- paste(samples_df$ADN,samples_df$Cycle,samples_df$Zone,samples_df$Fraction, sep = "")
+for (i in row.names(samples_df)) {
+  if (samples_df[i,"Cycle"] == "J") { samples_df[i,"Cycle"] <- "Jour"}
+  if (samples_df[i,"Cycle"] == "N") { samples_df[i,"Cycle"] <- "Nuit"}
+  if (samples_df[i,"Zone"] == "O") { samples_df[i,"Zone"] <- "Oxique"}
+  if (samples_df[i,"Zone"] == "A") { samples_df[i,"Zone"] <- "Anoxique"}
+  if (samples_df[i,"Fraction"] == "G") { samples_df[i,"Fraction"] <- "Grande"}
+  if (samples_df[i,"Fraction"] == "P") { samples_df[i,"Fraction"] <- "Petite"}}
+
 
 # Select V4 or V9 ---------------------------------------------------------
-samples_df<-filter(samples_df, Regions == region)
+samples_df<-filter(samples_df, Region == region)
 
 # Prepare  Object -------------------------------------------------
-  # Rarefy ---------------------------------------------------------------------
-pattern <- c(grep(pattern = "OSTA", colnames(tableVinput), value = FALSE, fixed = FALSE))
-otu_mat <- tableVinput %>% select(OTU_Id,all_of(pattern))
-row.names(otu_mat) <- otu_mat$OTU_Id
-otu_mat <- otu_mat %>% select(-OTU_Id)
-otu_mat[,] <- lapply(otu_mat[,], as.numeric)
-otu_matx <- t(otu_mat)
-sequence_mat_rare <- t(Rarefy(otu_matx)$otu.tab.rff)
+  # Prepare seq_mat and Pool (seq_mat and seq_mat_pool) ---------------------------------------------------------------------
+## Prepare otu_mat
+amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
+seq_mat <- tableVinput %>% select(all_of(amplicon))
+seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,all_of(amplicon)], as.numeric)
 
+  # Rarefy (seq_mat_pool_rare) ---------------------------------------------------------------------
+seq_matt <- t(seq_mat)
+seq_mat_rare <- as.data.frame(t(Rarefy(seq_matt)$otu.tab.rff)) ## Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
+rm(seq_matt)
+  # Prepare otu_mat (otu_mat, otu_mat_pool and otu_mat_pool_rare) ------------------------------------------------------------------
+## otu_mat
+otu_mat <- seq_mat
+amplicon <- c(grep(pattern = "OSTA", colnames(seq_mat), value = TRUE))
+otu_mat[,all_of(amplicon)][otu_mat[,all_of(amplicon)] != 0] <- 1
+## otu_mat_rare
+otu_mat_rare <- seq_mat_rare
+amplicon <- c(grep(pattern = "OSTA", colnames(otu_mat_rare), value = TRUE))
+otu_mat_rare[,all_of(amplicon)][otu_mat_rare[,all_of(amplicon)] != 0] <- 1
 
-  # PA-AB ------------------------------------------------------------------
-otu_mat_rare<- sequence_mat_rare
-pattern <- c(grep(pattern = "OSTA", colnames(otu_mat_rare), value = FALSE, fixed = FALSE))
-otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
-
-#Stat Rarefy
-  #Sequence
-  avRarefyS <- as.data.frame(colSums(otu_mat))
-  apRarefyS <- as.data.frame(colSums(sequence_mat_rare))
-  statRarefy <- cbind(avRarefyS,apRarefyS)
-  #OTU
-  otu_mat_uniq <- otu_mat
-  otu_mat_uniq[otu_mat_uniq != 0] <- 1
-  avRarefyO <- as.data.frame(colSums(otu_mat_uniq))
-  apRarefyO <- as.data.frame(colSums(otu_mat_rare))
-  statRarefy <- cbind(statRarefy,avRarefyO,apRarefyO)
-  statRarefy["Total",]<-colSums(statRarefy)
-  colnames(statRarefy) <- c("avRarefy-Sequence","apRarefy-Sequence","avRarefy-OTU","apRarefy-OTU")
-  write.table(statRarefy, file = "TableOnly/StatRarefy_withDuplicat.txt", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
-  
-  
-  # Rarecurve ---------------------------------------------------------------
-  #rarecurveop <- readline(prompt="Should I calculate the rarefaction curves (yes or no) ? : ")
-  if (length(args)==2) {
-  cat("Should I calculate the rarefaction curves (yes or no) (It takes a lot of time and resources) ? : ");
-  rarecurveop <- readLines("stdin",n=1);
-  cat("You entered")
-  str(rarecurveop);
-  cat( "\n" )}
-  if (length(args)==4) {
-    rarecurveop <- args[4]
-  }
-  
-  
-  if (rarecurveop == "yes") {
-  #rarecurve Rarefy
-  rarecurve <- t(sequence_mat_rare)
-  pdf("Rarecurve/Nopool/Rarecurve-Rarefy.pdf",width = 5.00,height = 5.00)
-  curve <- quickRareCurve(rarecurve, col = "black", cex = 0.6)
-  dev.off()
-  #rarecurve all
-  #rarecurve_all <- t(colSums(rarecurve))
-  #rownames(rarecurve_all) <- "sum"
-  #pdf("Rarecurve/Nopool/Rarecurve-all-Rarefy.pdf",width = 5.00,height = 5.00)
-  #curve <- quickRareCurve(rarecurve_all, col = "black", cex = 0.6)
-  #dev.off()
-  #Color
-  colraw <- as.data.frame(rownames(rarecurve))
-  colnames(colraw) <- "sample"
-  row.names(colraw) <- colraw[,"sample"]
-  for (x in row.names(colraw)) {
-    colraw[x,1:10] <- samples_df %>% filter(sample == x)}
-  #Color Cycle
-  colraw$color_cycle <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Cycle-Rarefy.pdf",width = 5.00,height = 5.00)
-  curve_a <- quickRareCurve(rarecurve, col = colraw$color_cycle, cex = 0.6)
-  legend("topleft", inset=.02, title="Day/Night cycle",
-         c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
-  print(curve_a)
-  dev.off()
-  #Color Oxygène
-  colraw$color_Ox <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Ox-Rarefy.pdf",width = 5.00,height = 5.00)
-  curve_b <- quickRareCurve(rarecurve, col = colraw$color_Ox, cex = 0.6)
-  legend("topleft", inset=.02, title="Fraction Ox/Anox",
-         c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
-  print(curve_b)
-  dev.off()
-  #Color Taille
-  colraw$color_Size <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Size-Rarefy.pdf",width = 5.00,height = 5.00)
-  curve_c <- quickRareCurve(rarecurve, col = colraw$color_Size, cex = 0.6)
-  legend("topleft", inset=.02, title="Fraction Taille",
-         c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
-  print(curve_c)
-  dev.off()
-  #Color Replicat
-  colraw$color_Rep <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Replicats"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Rep-Rarefy.pdf",width = 5.00,height = 5.00)
-  curve_d <- quickRareCurve(rarecurve, col = colraw$color_Rep, cex = 0.6)
-  legend("topleft", inset=.02, title="Replicat",
-         c("Rep1","Rep2"), fill = c("#EEA236CC","black"), horiz=TRUE, cex=0.6)
-  print(curve_d)
-  dev.off()
-  
-  #rarecurve no-rarefy
-  rawcurve <- otu_matx
-  pdf("Rarecurve/Nopool/Rarecurve-Raw.pdf",width = 5.00,height = 5.00)
-  curve <- quickRareCurve(rawcurve, col = "black", cex = 0.6)
-  dev.off()
-  #rarecurve all
-  #rawcurve_all <- t(colSums(rawcurve))
-  #rownames(rawcurve_all) <- "sum"
-  #pdf("Rarecurve/Nopool/Rarecurve-all-Raw.pdf",width = 5.00,height = 5.00)
-  #curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
-  #dev.off()
-  #Color
-  colraw <- as.data.frame(rownames(rawcurve))
-  colnames(colraw) <- "sample"
-  w <- 0
-  for (x in colraw[,"sample"]) { w <- w+1
-  colraw[w,1:10] <- subset(samples_df, sample == x)}
-  #Color Cycle
-  colraw$color_cycle <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Cycle-Rawdata.pdf", width = 5.00, height = 5.00)
-  curve_a <- quickRareCurve(rawcurve, col = colraw$color_cycle, cex = 0.6)
-  legend("topleft", inset=.02, title="Day/Night cycle",
-         c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
-  print(curve_a)
-  dev.off()
-  #Color Oxygène
-  colraw$color_Ox <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Ox-Rawdata.pdf", width = 5.00, height = 5.00)
-  curve_b <- quickRareCurve(rawcurve, col = colraw$color_Ox, cex = 0.6)
-  legend("topleft", inset=.02, title="Fraction Ox/Anox",
-         c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
-  print(curve_b)
-  dev.off()
-  #Color Taille
-  colraw$color_Size <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Size-Rawdata.pdf", width = 5.00, height = 5.00)
-  curve_c <- quickRareCurve(rawcurve, col = colraw$color_Size, cex = 0.6)
-  legend("topleft", inset=.02, title="Fraction Taille",
-         c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
-  print(curve_c)
-  dev.off()
-  #Color Replicat
-  colraw$color_Rep <- rep("black", time = nrow(colraw))
-  for (w in rownames(colraw)) {
-    if (colraw[w,"Replicats"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Rep-Rawdata.pdf",width = 5.00,height = 5.00)
-  curve_d <- quickRareCurve(rawcurve, col = colraw$color_Rep, cex = 0.6)
-  legend("topleft", inset=.02, title="Replicat",
-         c("Rep1","Rep2"), fill = c("#EEA236CC","black"), horiz=TRUE, cex=0.6)
-  print(curve_d)
-  dev.off()
-  }
-  
 # OTU ---------------------------------------------------------------------
   # AFC Plot ----------------------------------------------------------------
   dt <- as.data.frame(otu_mat_rare)
@@ -371,7 +177,7 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   coord <- p$coord
   coord <- as.data.frame(coord)
   coord$sample <- row.names(coord)
-  data <- merge(x = coord, y = samples_df, by= "sample")
+  data <- merge(x = coord, y = samples_df, by.x = "sample", by.y = "Amplicon")
   fviz_screeplot (res.ca, addlabels = TRUE, ylim = c(0, 50))
   
   Xseq <- fviz_screeplot (res.ca, addlabels = TRUE, ylim = c(0, 50))
@@ -381,13 +187,13 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   
   # Plot AFC ----------------------------------------------------------------
     # Overview* -------------------------------------------------------------------
-  pdf("AFC-Duplicat/Analyse-OTU.pdf",width = 16.00,height = 9.00)
-  a <- ggplot(data, aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 2) + 
+  svglite("AFC-Duplicat/Analyse-OTU.svg",width = 10.00,height = 6.00)
+  a <- ggplot(data, aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 2) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    facet_grid(~Dates, switch = "x") + theme_bw() +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 2.5, segment.size = 0,segment.color = "black", alpha = 0.8) +
-    geom_polygon(aes(color = Conditions)) +
+    facet_grid(~Date, switch = "x") + theme_bw() +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 2.5, segment.size = 0,segment.color = "black", alpha = 0.8) +
+    geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -400,11 +206,11 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-OTU-04.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "04"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "04"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -412,16 +218,16 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-OTU-06.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "06"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "06"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -429,16 +235,16 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-OTU-09.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "09"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "09"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -446,16 +252,16 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-OTU-11.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "11"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "11"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -463,14 +269,14 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
 
 # Sequence ---------------------------------------------------------------------
   # AFC Plot ----------------------------------------------------------------
-  dt <- as.data.frame(sequence_mat_rare)
+  dt <- as.data.frame(seq_mat_rare)
   res.ca <- CA (dt, graph = FALSE,ncp = 2 )
   pdf("AFC-Duplicat/AFC_Seq.pdf",width = 16.00,height = 9.00)
   fviz_ca_col(res.ca, repel = TRUE, col.col = "lightgreen") + theme_unique_dark()
@@ -479,7 +285,7 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   coord <- p$coord
   coord <- as.data.frame(coord)
   coord$sample <- row.names(coord)
-  data <- merge(x = coord, y = samples_df, by= "sample")
+  data <- merge(x = coord, y = samples_df, by.x = "sample", by.y = "Amplicon")
   fviz_screeplot (res.ca, addlabels = TRUE, ylim = c(0, 50))
   
   Xseq <- fviz_screeplot (res.ca, addlabels = TRUE, ylim = c(0, 50))
@@ -489,13 +295,13 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   
   # Plot AFC ----------------------------------------------------------------
     # Overview* -------------------------------------------------------------------
-  pdf("AFC-Duplicat/Analyse-Seq.pdf",width = 16.00,height = 9.00)
-  a <- ggplot(data, aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 2) + 
+  svglite("AFC-Duplicat/Analyse-Seq.svg",width = 10.00,height = 6.00)
+  a <- ggplot(data, aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 2) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    facet_grid(~Dates, switch = "x") + theme_bw() +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 2.5, segment.size = 0,segment.color = "black", alpha = 0.8) +
-    geom_polygon(aes(color = Conditions)) +
+    facet_grid(~Date, switch = "x") + theme_bw() +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 2.5, segment.size = 0,segment.color = "black", alpha = 0.8) +
+    geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -508,11 +314,11 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-Seq-04.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "04"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "04"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -520,16 +326,16 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-Seq-06.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "06"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "06"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -537,16 +343,16 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-Seq-09.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "09"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "09"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -554,16 +360,16 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
   svglite("AFC-Duplicat/Analyse-Seq-11.svg",width = 8.00,height = 6.00)
-  a <- ggplot(data %>% filter(Dates == "11"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Conditions, shape = Dates), size = 3) + 
+  a <- ggplot(data %>% filter(Date == "11"), aes(y = `Dim 1`, x = `Dim 2`)) + geom_point(aes(color = Condition, shape = Date), size = 3) + 
     geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
     geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
-    geom_label_repel(aes(label = sample,fill = Conditions), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
-    #geom_polygon(aes(color = Conditions)) +
+    geom_label_repel(aes(label = sample,fill = Condition), color = 'white',size = 4, segment.size = 0.5,segment.color = "black", alpha = 0.8) +
+    #geom_polygon(aes(color = Condition)) +
     theme(axis.title = element_text(face="bold", size=12), 
           axis.text.x = element_text(angle=90, size=10, hjust = 1, vjust=0.5), 
           title = element_text(face="bold", size=14),
@@ -571,7 +377,7 @@ otu_mat_rare[,all_of(pattern)][otu_mat_rare[,all_of(pattern)] != 0] <- 1
           legend.position = "right",
           legend.text = element_text(size=10)) +
     labs(x=Dim1Seq,y=Dim2Seq) +
-    guides(shape = FALSE, color = FALSE) + labs(color = "Conditions")
+    guides(shape = FALSE, color = FALSE) + labs(color = "Condition")
   print(a)
   dev.off()
   
