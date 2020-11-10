@@ -560,12 +560,12 @@ if ( data_seq[i,"Fraction"] == 1) { data_seq[i,"Fraction"] <- "Petite"}
 if ( data_seq[i,"Fraction"] == 2) { data_seq[i,"Fraction"] <- "Grande"}
 if ( data_seq[i,"Fraction"] == 3) { data_seq[i,"Fraction"] <- "Communs"}}
 #Date
+data_seq <- merge(x = data_seq, y = Date_seq, by = "OTU_Id")
 data_seq04 <- data_seq %>% filter(Total04 != 0) %>% select(-Total06,-Total09,-Total11)
 data_seq06 <- data_seq %>% filter(Total06 != 0) %>% select(-Total04,-Total09,-Total11)
 data_seq09 <- data_seq %>% filter(Total09 != 0) %>% select(-Total04,-Total06,-Total11)
 data_seq11 <- data_seq %>% filter(Total11 != 0) %>% select(-Total04,-Total06,-Total09)
 
-#data_seq <- merge(x = data_seq, y = Date_seq, by = "OTU_Id")
 #data_seq$Avril <- 0
 #data_seq$Juin <- 0
 #data_seq$Septembre <- 0
