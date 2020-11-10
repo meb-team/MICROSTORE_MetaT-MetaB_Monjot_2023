@@ -2070,7 +2070,7 @@ for (i in rownames(Polar_seq)) {
 for (i in rownames(Polar_seq)) {
   if (is.na(Polar_seq[i,"label"]) == FALSE) { Polar_seq[i,"label"] <- paste(Polar_seq[i,"Division"]," : ",Polar_seq[i,"label"], sep = "")}}
 ##Figure
-svglite("Composition/Polar-Total-seq.pdf",width = 4.00,height = 4.00)
+svglite("Composition/Polar-Total-seq.svg",width = 4.00,height = 4.00)
 ax <- ggplot(Polar_seq, mapping = aes(y= Total, x = 2, fill = Division), Rowv = NA, col = colMain, scale = "column") +
   geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
   geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -2101,7 +2101,7 @@ for (i in rownames(Polar_otu)) {
 for (i in rownames(Polar_otu)) {
   if (is.na(Polar_otu[i,"label"]) == FALSE) { Polar_otu[i,"label"] <- paste(Polar_otu[i,"Division"]," : ",Polar_otu[i,"label"], sep = "")}}
 ##Figure
-svglite("Composition/Polar-Total-otu.pdf",width = 4.00,height = 4.00)
+svglite("Composition/Polar-Total-otu.svg",width = 4.00,height = 4.00)
 bx <- ggplot(Polar_otu, mapping = aes(y= Total, x = 2, fill = Division), Rowv = NA, col = colMain, scale = "column") +
   geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
   geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
