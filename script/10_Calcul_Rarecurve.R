@@ -12,12 +12,10 @@
 
 # Set directory, input, output and import packages -----------------------------------------------------------
 #
-#output <- "Analyse-Composition-Rarefy-V4-095-199-NOfilter-Total"
+#output <- "Analyse-Composition-Rarefy-V4-095-199-NOfilter-Eukaryota"
 #input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
-#Taxonomy <- "NN"
-#Mode <- "Superphylum"
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -184,47 +182,47 @@ colraw <- as.data.frame(rownames(rawcurve))
 colnames(colraw) <- "sample"
 w <- 0
 for (x in colraw[,"sample"]) { w <- w+1
-colraw[w,1:10] <- subset(samples_df, sample == x)}
+colraw[w,1:10] <- subset(samples_df, Amplicon == x)}
 #Color Cycle
 colraw$color_cycle <- rep("black", time = nrow(colraw))
 for (w in rownames(colraw)) {
   if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
 pdf("Rarecurve/Nopool/Rarecurve-Cycle-Rawdata.pdf", width = 5.00, height = 5.00)
 curve_a <- quickRareCurve(rawcurve, col = colraw$color_cycle, cex = 0.6)
-legend("topleft", inset=.02, title="Day/Night cycle",
+legend("topleft", inset=.02, title="Cycle",
        c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
 print(curve_a)
 dev.off()
 #Color Oxygène
 colraw$color_Ox <- rep("black", time = nrow(colraw))
 for (w in rownames(colraw)) {
-  if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
-pdf("Rarecurve/Nopool/Rarecurve-Ox-Rawdata.pdf", width = 5.00, height = 5.00)
+  if (colraw[w,"Zone"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
+pdf("Rarecurve/Nopool/Rarecurve-Zone-Rawdata.pdf", width = 5.00, height = 5.00)
 curve_b <- quickRareCurve(rawcurve, col = colraw$color_Ox, cex = 0.6)
-legend("topleft", inset=.02, title="Fraction Ox/Anox",
+legend("topleft", inset=.02, title="Zone",
        c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
 print(curve_b)
 dev.off()
 #Color Taille
 colraw$color_Size <- rep("black", time = nrow(colraw))
 for (w in rownames(colraw)) {
-  if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
-pdf("Rarecurve/Nopool/Rarecurve-Size-Rawdata.pdf", width = 5.00, height = 5.00)
+  if (colraw[w,"Fraction"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
+pdf("Rarecurve/Nopool/Rarecurve-Fraction-Rawdata.pdf", width = 5.00, height = 5.00)
 curve_c <- quickRareCurve(rawcurve, col = colraw$color_Size, cex = 0.6)
-legend("topleft", inset=.02, title="Fraction Taille",
+legend("topleft", inset=.02, title="Fraction",
        c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
 print(curve_c)
 dev.off()
 #Color Replicat
 colraw$color_Rep <- rep("black", time = nrow(colraw))
 for (w in rownames(colraw)) {
-  if (colraw[w,"Replicats"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
+  if (colraw[w,"Replicat"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
 pdf("Rarecurve/Nopool/Rarecurve-Rep-Rawdata.pdf",width = 5.00,height = 5.00)
 curve_d <- quickRareCurve(rawcurve, col = colraw$color_Rep, cex = 0.6)
 legend("topleft", inset=.02, title="Replicat",
        c("Rep1","Rep2"), fill = c("#EEA236CC","black"), horiz=TRUE, cex=0.6)
 print(curve_d)
-dev.off()No
+dev.off()
 
 
     # Rare --------------------------------------------------------------------
@@ -243,41 +241,41 @@ dev.off()No
   colnames(colraw) <- "sample"
   row.names(colraw) <- colraw[,"sample"]
   for (x in row.names(colraw)) {
-    colraw[x,1:10] <- samples_df %>% filter(sample == x)}
+    colraw[x,1:10] <- samples_df %>% filter(Amplicon == x)}
   #Color Cycle
   colraw$color_cycle <- rep("black", time = nrow(colraw))
   for (w in rownames(colraw)) {
     if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
   pdf("Rarecurve/Nopool/Rarecurve-Cycle-Rarefy.pdf",width = 5.00,height = 5.00)
   curve_a <- quickRareCurve(rarecurve, col = colraw$color_cycle, cex = 0.6)
-  legend("topleft", inset=.02, title="Day/Night cycle",
+  legend("topleft", inset=.02, title="Cycle",
          c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
   print(curve_a)
   dev.off()
   #Color Oxygène
   colraw$color_Ox <- rep("black", time = nrow(colraw))
   for (w in rownames(colraw)) {
-    if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Ox-Rarefy.pdf",width = 5.00,height = 5.00)
+    if (colraw[w,"Zone"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
+  pdf("Rarecurve/Nopool/Rarecurve-Zone-Rarefy.pdf",width = 5.00,height = 5.00)
   curve_b <- quickRareCurve(rarecurve, col = colraw$color_Ox, cex = 0.6)
-  legend("topleft", inset=.02, title="Fraction Ox/Anox",
+  legend("topleft", inset=.02, title="Zone",
          c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
   print(curve_b)
   dev.off()
   #Color Taille
   colraw$color_Size <- rep("black", time = nrow(colraw))
   for (w in rownames(colraw)) {
-    if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
-  pdf("Rarecurve/Nopool/Rarecurve-Size-Rarefy.pdf",width = 5.00,height = 5.00)
+    if (colraw[w,"Fraction"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
+  pdf("Rarecurve/Nopool/Rarecurve-Fraction-Rarefy.pdf",width = 5.00,height = 5.00)
   curve_c <- quickRareCurve(rarecurve, col = colraw$color_Size, cex = 0.6)
-  legend("topleft", inset=.02, title="Fraction Taille",
+  legend("topleft", inset=.02, title="Fraction",
          c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
   print(curve_c)
   dev.off()
   #Color Replicat
   colraw$color_Rep <- rep("black", time = nrow(colraw))
   for (w in rownames(colraw)) {
-    if (colraw[w,"Replicats"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
+    if (colraw[w,"Replicat"] == 1) { colraw[w,"color_Rep"] <- "#EEA236CC"}}
   pdf("Rarecurve/Nopool/Rarecurve-Rep-Rarefy.pdf",width = 5.00,height = 5.00)
   curve_d <- quickRareCurve(rarecurve, col = colraw$color_Rep, cex = 0.6)
   legend("topleft", inset=.02, title="Replicat",
@@ -1009,34 +1007,34 @@ dev.off()No
     colnames(colraw) <- "sample"
     w <- 0
     for (x in colraw[,"sample"]) { w <- w+1
-    colraw[w,1:10] <- subset(samples_df, sample == x)}
+    colraw[w,1:10] <- subset(samples_df, Amplicon == x)}
     #Color Cycle
     colraw$color_cycle <- rep("black", time = nrow(colraw))
     for (w in rownames(colraw)) {
       if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
     pdf("Rarecurve/Pool/Rarecurve-Cycle-Rawdata.pdf", width = 5.00, height = 5.00)
     curve_a <- quickRareCurve(seq_mat_poolt, col = colraw$color_cycle, cex = 0.6)
-    legend("topleft", inset=.02, title="Day/Night cycle",
+    legend("topleft", inset=.02, title="Cycle",
            c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
     print(curve_a)
     dev.off()
     #Color Oxygène
     colraw$color_Ox <- rep("black", time = nrow(colraw))
     for (w in rownames(colraw)) {
-      if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
-    pdf("Rarecurve/Pool/Rarecurve-Ox-Rawdata.pdf", width = 5.00, height = 5.00)
+      if (colraw[w,"Zone"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
+    pdf("Rarecurve/Pool/Rarecurve-Zone-Rawdata.pdf", width = 5.00, height = 5.00)
     curve_b <- quickRareCurve(seq_mat_poolt, col = colraw$color_Ox, cex = 0.6)
-    legend("topleft", inset=.02, title="Fraction Ox/Anox",
+    legend("topleft", inset=.02, title="Zone",
            c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
     print(curve_b)
     dev.off()
     #Color Taille
     colraw$color_Size <- rep("black", time = nrow(colraw))
     for (w in rownames(colraw)) {
-      if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
-    pdf("Rarecurve/Pool/Rarecurve-Size-Rawdata.pdf", width = 5.00, height = 5.00)
+      if (colraw[w,"Fraction"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
+    pdf("Rarecurve/Pool/Rarecurve-Fraction-Rawdata.pdf", width = 5.00, height = 5.00)
     curve_c <- quickRareCurve(seq_mat_poolt, col = colraw$color_Size, cex = 0.6)
-    legend("topleft", inset=.02, title="Fraction Taille",
+    legend("topleft", inset=.02, title="Fraction",
            c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
     print(curve_c)
     dev.off()
@@ -1060,34 +1058,34 @@ dev.off()No
     colnames(colraw) <- "sample"
     w <- 0
     for (x in colraw[,"sample"]) { w <- w+1
-    colraw[w,1:10] <- subset(samples_df, sample == x)}
+    colraw[w,1:10] <- subset(samples_df, Amplicon == x)}
     #Color Cycle
     colraw$color_cycle <- rep("black", time = nrow(colraw))
     for (w in rownames(colraw)) {
       if (colraw[w,"Cycle"] == "Jour") { colraw[w,"color_cycle"] <- "#D43F3AFF"}}
     pdf("Rarecurve/Pool/Rarecurve-Cycle-Rarefy.pdf", width = 5.00, height = 5.00)
     curve_a <- quickRareCurve(rarecurve, col = colraw$color_cycle, cex = 0.6)
-    legend("topleft", inset=.02, title="Day/Night cycle",
+    legend("topleft", inset=.02, title="Cycle",
            c("Day","Night"), fill = c("#D43F3AFF","black"), horiz=TRUE, cex=0.6)
     print(curve_a)
     dev.off()
     #Color Oxygène
     colraw$color_Ox <- rep("black", time = nrow(colraw))
     for (w in rownames(colraw)) {
-      if (colraw[w,"Fraction-Oxygène"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
-    pdf("Rarecurve/Pool/Rarecurve-Ox-Rarefy.pdf", width = 5.00, height = 5.00)
+      if (colraw[w,"Zone"] == "Oxique") { colraw[w,"color_Ox"] <- "#46B8DAFF"}}
+    pdf("Rarecurve/Pool/Rarecurve-Zone-Rarefy.pdf", width = 5.00, height = 5.00)
     curve_b <- quickRareCurve(rarecurve, col = colraw$color_Ox, cex = 0.6)
-    legend("topleft", inset=.02, title="Fraction Ox/Anox",
+    legend("topleft", inset=.02, title="Zone",
            c("Oxique","Anoxique"), fill = c("#46B8DAFF","black"), horiz=TRUE, cex=0.6)
     print(curve_b)
     dev.off()
     #Color Taille
     colraw$color_Size <- rep("black", time = nrow(colraw))
     for (w in rownames(colraw)) {
-      if (colraw[w,"Fraction-Taille"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
-    pdf("Rarecurve/Pool/Rarecurve-Size-Rarefy.pdf", width = 5.00, height = 5.00)
+      if (colraw[w,"Fraction"] == "Petite") { colraw[w,"color_Size"] <- "#5CB85CFF"}}
+    pdf("Rarecurve/Pool/Rarecurve-Fraction-Rarefy.pdf", width = 5.00, height = 5.00)
     curve_c <- quickRareCurve(rarecurve, col = colraw$color_Size, cex = 0.6)
-    legend("topleft", inset=.02, title="Fraction Taille",
+    legend("topleft", inset=.02, title="Fraction",
            c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
     print(curve_c)
     dev.off()
