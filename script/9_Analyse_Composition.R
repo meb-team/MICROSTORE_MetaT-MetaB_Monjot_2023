@@ -12,7 +12,7 @@
 # Script Composition
 # Set directory, input and output -----------------------------------------------------------
 #
-#output <- "Analyse-Composition-Rarefy-V4-095-199-NOfilter-Total"
+#output <- "Composition-V4-095-199-NOfilter-NN-Total"
 #input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
@@ -35,7 +35,7 @@ output <- args[2]
 input <- args[1]
 
 # Import package and palette -----------------------------------------------------------
-pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
+pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap")
 lapply(pkg, require, character.only = TRUE)
 
 palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
@@ -357,6 +357,40 @@ H <- ggplot(statRarefy, aes(y = `avRarefy-OTU`, x = Fusion)) + geom_boxplot() + 
 H <- H + theme(legend.position="none")
 print(H)
 dev.off()  
+  # Taxonomy statistics -----------------------------------------------------
+##Create Tax stat table
+tax_table <- tableVinput %>% select(all_of(Taxonomy))
+tax_table$OTU_Id <- row.names(tax_table)
+tax_table <- separate(tax_table, all_of(Taxonomy), c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
+tax_table[tax_table == ""] <- NA
+tax_table[tax_table == " "] <- NA
+tax_table_TF <- as.data.frame(is.na(tax_table))
+for (level in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species")) {
+  assign(paste("count", level, sep = "_"), nrow(as.data.frame(tax_table_TF[,level][tax_table_TF[,level] == FALSE])))}
+tax_stat <- as.data.frame(c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species")) ; colnames(tax_stat) <- "Level"
+tax_stat$Affiliated <- c(count_Domain,count_Superphylum,count_Phylum,count_Class,count_Order,count_Family,count_Genus,count_Species)
+
+tax_stat$Not_affiliated <- nrow(tableVinput) - tax_stat$Affiliated
+tax_stat <- melt(tax_stat, id = "Level")
+## Plot
+tax_stat$Level <- factor(tax_stat$Level , levels=c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"))
+tax_stat$variable <- factor(tax_stat$variable , levels=c("Not_affiliated","Affiliated"))
+
+#
+svglite("Figure-Sum/Stat-Taxo.svg",width = 9.00,height = 5.00)
+tax_plot <- ggplot(tax_stat, mapping = aes(x= Level, y = value, fill = variable, color = variable ,linetype = variable), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  scale_fill_manual(values = alpha(c("#1212ff","#1212ff"), c(0.25,0.5))) +
+  geom_label(aes(y = value + 0.07*max(value),label = paste(value," OTUs","\n", round(value*100/nrow(tableVinput),1)," %",sep =""), color = variable, alpha = variable),size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_color_manual(values = c("#0000FF00","black")) +
+  scale_alpha_manual(values = c(0,0.5)) +
+  scale_linetype_manual(values = c("blank","dashed")) +
+  guides(fill=guide_legend("Affiliation"), color = FALSE, linetype = FALSE) +
+  labs(x="Level",y="OTUs (%)") +
+  theme(legend.title = element_text(face="bold"),
+        axis.title = element_text(color = "black", face = "bold"))
+print(tax_plot)
+dev.off()
+
 # Create sort Condition pattern -------------------------------------------
 #Cycle
 CycleJour <- samples_df %>% filter(Cycle == "Jour") %>% filter(Replicat == 1)
