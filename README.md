@@ -94,36 +94,6 @@ Different initialization files (".ini") are created (from the "test2-panam2.ini"
         * SCORE_FIX    0.90
         * MERGE_SEQ    perfect_match
 
-    * V4-panam2-097.ini
-        Parameters :
-        * DOMAIN    eukaryota
-        * PATH_RESULTS    V4-result-097
-        * DEMUL_FOLDER    V4
-        * FORWARD_PRIMER_SEQUENCE    GTGYCAGCMGCCGCGGTA
-        * REVERSE_PRIMER_SEQUENCE    TTGGYRAATGCTTTCGC
-        * CLUSTERING_CUTOFF    0.97
-        * LOWER_SEQUENCE_LENGTH_CUTOF    200
-        * MAX_SEQUENCE_LENGTH    500
-        * MIN_OVERLAP_LENGTH    50
-        * MISMATCH_OVERLAP    0
-        * SCORE_FIX    0.90
-        * MERGE_SEQ    perfect_match
-
-    * V9-panam2-095.ini
-        Parameters :
-        * DOMAIN    eukaryota
-        * PATH_RESULTS    V9-result-095
-        * DEMUL_FOLDER    V9
-        * FORWARD_PRIMER_SEQUENCE    TTGTACACACCGCCC
-        * REVERSE_PRIMER_SEQUENCE    CCTTCYGCAGGTTCACCTAC
-        * CLUSTERING_CUTOFF    0.95
-        * LOWER_SEQUENCE_LENGTH_CUTOF    100
-        * MAX_SEQUENCE_LENGTH    300
-        * MIN_OVERLAP_LENGTH    50
-        * MISMATCH_OVERLAP    0
-        * SCORE_FIX    0.90
-        * MERGE_SEQ    perfect_match
-
     * V9-panam2-097.ini (√)
         Parameters :
         * DOMAIN    eukaryota
@@ -148,10 +118,6 @@ Before run PANAM2 : `cd ../dataPANAM/PANAM2`
 Then run PANAM2:
 
 * V4 with clustering threshold = 0.95: `nohup perl panam2.pl -ini V4-panam2-095.ini > V4-095.out`
-
-* V4 with clustering threshold = 0.97: `nohup perl panam2.pl -ini V4-panam2-097.ini > V4-097.out`
-
-* V9 with clustering threshold = 0.95: `nohup perl panam2.pl -ini V9-panam2-095.ini > V9-095.out`
 
 * V9 with clustering threshold = 0.97: `nohup perl panam2.pl -ini V9-panam2-097.ini > V9-097.out`
 
