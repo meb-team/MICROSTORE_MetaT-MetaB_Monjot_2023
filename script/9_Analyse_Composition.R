@@ -368,13 +368,13 @@ tax_table_TF <- as.data.frame(is.na(tax_table))
 for (level in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species")) {
   assign(paste("count", level, sep = "_"), nrow(as.data.frame(tax_table_TF[,level][tax_table_TF[,level] == FALSE])))}
 tax_stat <- as.data.frame(c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species")) ; colnames(tax_stat) <- "Level"
-tax_stat$Affiliated <- c(count_Domain,count_Superphylum,count_Phylum,count_Class,count_Order,count_Family,count_Genus,count_Species)
+tax_stat$Count <- c(count_Domain,count_Superphylum,count_Phylum,count_Class,count_Order,count_Family,count_Genus,count_Species)
 
-tax_stat$Not_affiliated <- nrow(tableVinput) - tax_stat$Affiliated
+tax_stat$No_affiliate <- nrow(tableVinput) - tax_stat$Count
 tax_stat <- melt(tax_stat, id = "Level")
 ## Plot
 tax_stat$Level <- factor(tax_stat$Level , levels=c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"))
-tax_stat$variable <- factor(tax_stat$variable , levels=c("Not_affiliated","Affiliated"))
+tax_stat$variable <- factor(tax_stat$variable , levels=c("No_affiliate","Count"))
 
 #
 svglite("Figure-Sum/Stat-Taxo.svg",width = 9.00,height = 5.00)
@@ -391,6 +391,40 @@ tax_plot <- ggplot(tax_stat, mapping = aes(x= Level, y = value, fill = variable,
 print(tax_plot)
 dev.off()
 
+  # OTU distribution statistics ---------------------------------------------
+## Raw
+amplicon <- c(grep(pattern = "OSTA", colnames(seq_mat), value = TRUE))
+OTU_stat_raw <- as.data.frame(rowSums(seq_mat %>% select(all_of(amplicon)))) ; colnames(OTU_stat_raw) <- "OTU Abuncance"
+OTU_stat_raw$type <- "Raw"
+## Raw_Pool
+amplicon <- c(grep(pattern = "OSTA", colnames(seq_mat_pool), value = TRUE))
+OTU_stat_pool <- as.data.frame(rowSums(seq_mat_pool %>% select(all_of(amplicon)))) ; colnames(OTU_stat_pool) <- "OTU Abuncance"
+OTU_stat_pool$type <- "Raw_Pool"
+## Rarefy_Pool
+amplicon <- c(grep(pattern = "OSTA", colnames(seq_mat_pool_rare), value = TRUE))
+OTU_stat_pool_rare <- as.data.frame(rowSums(seq_mat_pool_rare %>% select(all_of(amplicon)))) ; colnames(OTU_stat_pool_rare) <- "OTU Abuncance"
+OTU_stat_pool_rare$type <- "Rarefy_Pool"
+## rbind
+OTU_stat <- rbind(OTU_stat_raw,OTU_stat_pool,OTU_stat_pool_rare)
+## x scale
+w <- 0
+i <- 1
+while ( i < max(OTU_stat$`OTU Abuncance`)) { print (i) 
+  w <- c(w,i)
+  i <- i*4}
+## plot
+OTU_stat$type <- factor(OTU_stat$type , levels=c("Raw","Raw_Pool","Rarefy_Pool"))
+svglite("Figure-Sum/OTU-Stat.svg",width = 10.00,height = 5.00)
+ggplot(OTU_stat, aes(x = `OTU Abuncance`)) +facet_grid(.~type) + 
+  stat_bin(binwidth = 1,color = "white", fill = "#1212ff", alpha = 0.5) +
+  scale_y_continuous() +
+  scale_x_continuous(trans = log2_trans(),breaks = w) +
+  labs(y="OTU #") +
+  theme(legend.title = element_text(face="bold"),
+        axis.title = element_text(color = "black", face = "bold"),
+        strip.text.x = element_text(color = "black", face = "bold", size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+dev.off()
 # Create sort Condition pattern -------------------------------------------
 #Cycle
 CycleJour <- samples_df %>% filter(Cycle == "Jour") %>% filter(Replicat == 1)
