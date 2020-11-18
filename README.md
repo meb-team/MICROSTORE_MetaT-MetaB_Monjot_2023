@@ -150,7 +150,7 @@ for example :  `Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095
 
 Enter Info (region / mode / group[optional] / 0.0005filter / taxonomy / rarefy).
 
-**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) 0.0005filter(yes or no) Taxonomy(NN, LCA, or Best_HIT) rarefy(yes or no) mode(Superphylum or Phylum) Phylum(Fungi, Alveolata, etc)[optional]`
+**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) 0.0005filter(yes or no) taxonomy(NN, LCA, or Best_HIT) rarefy(yes or no) mode(Superphylum or Phylum) phylum(Fungi, Alveolata, etc)[optional]`
 
 for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes Phylum Alveolata > V4-095_Analyse_Composition.out`
 
@@ -160,7 +160,7 @@ Rarefaction curves and diversity indices can be calculated using a third script 
 
 for example :  `Rscript 10_Calcul_Rarecurve.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Enter Info (Region / 0.0005filter).
+Enter Info (region / 0.0005filter).
 
 **PS : to execute script silently** : `nohup Rscript 10_Calcul_Rarecurve.R input output region(V4 or V9) 0.0005filter(yes or no)`
 
