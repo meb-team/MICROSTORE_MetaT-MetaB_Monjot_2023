@@ -136,11 +136,11 @@ A first analysis is carried out in order to test the difference between amplicon
 
 for exemple: `Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Enter Info (Region / 0.0005filter).
+Enter Info (region / 0.0005filter / rarefy).
 
-**PS : to execute script silently** : `nohup Rscript 8_Analyse_Duplicat_AFC.R input output region(V4 or V9) 0.0005 filter(yes or no)`
+**PS : to execute script silently** : `nohup Rscript 8_Analyse_Duplicat_AFC.R input output region(V4 or V9) 0.0005 filter(yes or no) rarefy(yes or no)`
 
-for example : `nohup Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Analyse_Duplicat.out`
+for example : `nohup Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes yes > V4-095_Analyse_Duplicat.out`
 
 #### B. Composition Analysis
 
@@ -148,11 +148,11 @@ The composition and abundance analysis is performed with a second script: `Rscri
 
 for example :  `Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Enter Info (Region / mode / Group[optional] / 0.0005filter / Taxonomy).
+Enter Info (region / mode / group[optional] / 0.0005filter / taxonomy / rarefy).
 
-**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) mode(Superphylum or Phylum) Phylum(Fungi, Alveolata, etc)[optional] 0.0005filter(yes or no) Taxonomy(NN, LCA, or Best_HIT)`
+**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) 0.0005filter(yes or no) Taxonomy(NN, LCA, or Best_HIT) rarefy(yes or no) mode(Superphylum or Phylum) Phylum(Fungi, Alveolata, etc)[optional]`
 
-for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 Phylum Alveolata yes LCA > V4-095_Composition_Rarefy.out`
+for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes Phylum Alveolata > V4-095_Analyse_Composition.out`
 
 #### C. Rarefaction curves and diversity indices
 
