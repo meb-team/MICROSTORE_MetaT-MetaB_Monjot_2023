@@ -12,11 +12,11 @@
 
 cd ..
 # Format table "data-inf.txt" :
-cd rawdata ; cat data-inf.txt | awk -F"\t" '{ print $2"_"$3"_"$5 }' | awk -F"_" '{ print $2"_"$3"_"$NF }' | cut -c1-10 | awk -F"_" '{ print $1"_"$2"_"$3"_" }' > sortV4-V9
+cd rawdata ; cat data-inf.txt | awk -F"\t" '{ print $2"_"$3"_1_"$5 }' | awk -F"_" '{ print $2"_"$3"_"$4"_"$5"_"$NF }' | sed 's/_01_/_1_/g' | sed 's/_02_/_2_/g' | cut -c1-15 | awk -F"_" '{ print $1"_"$2"_"$3"_"$5"_"$4"_" }' > sortV4-V9
 
 # Modify FR sample (V4 -> V9) :
-sed -i 's/FR_DJAG_V4/FR_DJAG_V9/g' sortV4-V9
-    ## Sur mac : sed -i "" 's/FR_DJAG_V4/FR_DJAG_V9/g' sortV4-V9
+sed -i 's/FR_DJAG_09_V4_1_/FR_DJAG_09_V9_1_/g' sortV4-V9
+    ## Sur mac : sed -i "" 's/FR_DJAG_09_1_V4_/FR_DJAG_09_1_V9_/g' sortV4-V9
 
 # 1_Sort_V4_V9
 ## Sort and Compress Reads
@@ -25,7 +25,7 @@ mkdir ../V9/
 mkdir ../V4/
 for i in $(ls)
 do
-    f=$(grep ^"$i" ../sortV4-V9 | cut -d"_" -f3)
+    f=$(grep ^"$i" ../sortV4-V9 | cut -d"_" -f4)
     tar -cvf $i.tar $i/
     if [ $f == "V9" ]
     then
@@ -99,8 +99,6 @@ do
     done
 rm -r -f rawdata/$V
 done
-
-
 
 # 4_Rename rawdata
 ## Rename reads
