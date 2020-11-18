@@ -6,10 +6,10 @@
 # /_/    \_\_| |_| |_|\___/|_| |_| |\___/ \__|
 #                               _/ |
 #                              |__/
+# !/usr/bin/env Rscript
 # XX/XX/XXXX
 #
-# Script Composition
-
+# Script Rarecurve
 # Set directory, input, output and import packages -----------------------------------------------------------
 #
 #output <- "Analyse-Composition-Rarefy-V4-095-199-NOfilter-Eukaryota"

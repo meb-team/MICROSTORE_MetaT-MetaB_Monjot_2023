@@ -6,12 +6,13 @@
 # /_/    \_\_| |_| |_|\___/|_| |_| |\___/ \__|
 #                               _/ |
 #                              |__/
+# !/usr/bin/env Rscript
 # XX/XX/XXXX
 #
-# Import packages
-
+# Install dependencies in conda environment 
 # Set directory and import package -----------------------------------------------------------
 system("conda install -y -c bioconda r-factominer ; conda install -y -c conda-forge r-factoextra ; conda install -y -c r r-reshape2 ; conda install -y -c conda-forge r-ggpubr ; conda install -y -c conda-forge r-hrbrthemes ; conda install -y -c conda-forge r-svglite")
+system("conda install -y -c conda-forge imagemagick")
 
 setwd("..")
 install.packages("parallel", repos="http://cran.rstudio.com/")

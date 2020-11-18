@@ -48,7 +48,7 @@ if (dir.exists("../result") == FALSE) { dir.create("../result") }
 if (dir.exists(output) == FALSE) { dir.create(output) }
 if (dir.exists(output) == TRUE) { setwd(output) }
 
-#Enter mode and Group to study
+# Enter mode and Group to study -------------------------------------------
 
 if (length(args)==2) {
   cat("Enter mode (Superphylum or Phylum) : ");
@@ -56,8 +56,8 @@ if (length(args)==2) {
   cat("You entered")
   str(Mode);
   cat( "\n" )}
-if (length(args)==6) {
-  Mode <- args[6]
+if (length(args)==7) {
+  Mode <- args[7]
 }
 if (Mode == "Phylum") {
   cat("Enter Phylum (Fungi, Alveolata, etc) : ");
@@ -65,8 +65,8 @@ if (Mode == "Phylum") {
   cat("You entered")
   str(Group);
   cat( "\n" )}
-if (length(args)==7) {
-  Group <- args[7]
+if (length(args)==8) {
+  Group <- args[8]
 }
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {
@@ -229,11 +229,25 @@ for (h in tblcx[,"Amplicon.x"] ) {
   }}
 
   # Rarefy (seq_mat_pool_rare) ---------------------------------------------------------------------
+##Rarefy yes or no
+if (length(args)==2) {
+  cat("Should I rarefy global data (yes or no) ? : ");
+  RarefyYoN <- readLines("stdin",n=1);
+  cat("You entered")
+  str(RarefyYoN);
+  cat( "\n" )}
+if (length(args)==6) {
+  RarefyYoN <- args[6]
+}
+if (RarefyYoN == "yes") {
 seq_mat_poolt <- seq_mat_pool %>% select(-"Taxonomy")
 seq_mat_poolt <- t(seq_mat_poolt)
 seq_mat_pool_rare <- as.data.frame(t(Rarefy(seq_mat_poolt)$otu.tab.rff)) ## Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
 rm(seq_mat_poolt)
 for (i in row.names(seq_mat_pool_rare)) { seq_mat_pool_rare[i,"Taxonomy"] <- seq_mat_pool[i,"Taxonomy"]}
+}
+if (RarefyYoN == "no") { seq_mat_pool_rare <- seq_mat_pool }
+
   # Prepare otu_mat (otu_mat, otu_mat_pool and otu_mat_pool_rare) ------------------------------------------------------------------
 ## otu_mat
 otu_mat <- seq_mat

@@ -146,17 +146,31 @@ for (i in row.names(samples_df)) {
 samples_df<-filter(samples_df, Region == region)
 
 # Prepare  Object -------------------------------------------------
-  # Prepare seq_mat and Pool (seq_mat and seq_mat_pool) ---------------------------------------------------------------------
-## Prepare otu_mat
+  # Prepare seq_mat (seq_mat) ---------------------------------------------------------------------
+## seq_mat
 amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
 seq_mat <- tableVinput %>% select(all_of(amplicon))
 seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,all_of(amplicon)], as.numeric)
 
-  # Rarefy (seq_mat_pool_rare) ---------------------------------------------------------------------
-seq_matt <- t(seq_mat)
-seq_mat_rare <- as.data.frame(t(Rarefy(seq_matt)$otu.tab.rff)) ## Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
-rm(seq_matt)
-  # Prepare otu_mat (otu_mat, otu_mat_pool and otu_mat_pool_rare) ------------------------------------------------------------------
+  # Rarefy (seq_mat_rare) ---------------------------------------------------------------------
+##Rarefy yes or no
+if (length(args)==2) {
+  cat("Should I rarefy global data (yes or no) ? : ");
+  RarefyYoN <- readLines("stdin",n=1);
+  cat("You entered")
+  str(RarefyYoN);
+  cat( "\n" )}
+if (length(args)==5) {
+  RarefyYoN <- args[5]
+}
+if (RarefyYoN == "yes") {
+  seq_matt <- t(seq_mat)
+  seq_mat_rare <- as.data.frame(t(Rarefy(seq_matt)$otu.tab.rff)) ## Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
+  rm(seq_matt)
+}
+if (RarefyYoN == "no") { seq_mat_rare <- seq_mat }
+
+  # Prepare otu_mat (otu_mat and otu_mat_rare) ------------------------------------------------------------------
 ## otu_mat
 otu_mat <- seq_mat
 amplicon <- c(grep(pattern = "OSTA", colnames(seq_mat), value = TRUE))
