@@ -49,39 +49,29 @@ done
 # 2_Concate amplicons generated through differents flow-cells
 ## Decompress and concate
 cd ..
-for h in $(echo V*)
+for h in V4 V9
 do
     echo $h
     for f in $(ls $h)
     do
+        echo $f
         gunzip $h/$f/*.fastq.gz
         i=$(ls $h/$f | wc -l)
-        if [ $i \> 2 ]
-        then
-            
-            echo $f
-            echo $i
-            for x in $(ls $h/$f)
-            do
-                n=$(echo $h/$f/$x | awk -F"_" '{ print $2 }')
-                echo $n
-                o=$(echo $h/$f/$x | awk -F"_" '{ print $3 }')
-                echo $o
-                g=$(echo $h/$f/$x | awk -F"_" '{ print $4 }')
-                echo $g
-                p=$(echo $h/$f/$x | awk -F"." '{ print $2 }' | cut -d"_" -f1)
-                echo $p
-                cat $h/$f/CIN_"$n"_"$o"_1_*.*_clean.fastq > $h/$f/CIN_"$n"_"$o"_1_CONCATE-"$p"_clean.fastq
-                echo "$h/$f/CIN_"$n"_"$o"_1_CONCATE-"$p"_clean.fastq"
-                cat $h/$f/CIN_"$n"_"$o"_2_*.*_clean.fastq > $h/$f/CIN_"$n"_"$o"_2_CONCATE-"$p"_clean.fastq
-                echo "$h/$f/CIN_"$n"_"$o"_2_CONCATE-"$p"_clean.fastq"
-            done
-            for x in $(ls $h/$f)
-            do
-                rm $h/$f/CIN_*_1_*.*_clean.fastq
-                rm $h/$f/CIN_*_2_*.*_clean.fastq
-            done
-        fi
+        echo $i
+        for x in $(ls $h/$f)
+        do
+            echo $x
+            if [ $i \> 2 ]
+            then
+            n=$(echo $h/$f/$x | awk -F"_" '{ print $2 }')
+            o=$(echo $h/$f/$x | awk -F"_" '{ print $3 }')
+            g=$(echo $h/$f/$x | awk -F"_" '{ print $4 }')
+            p=$(echo $h/$f/$x | awk -F"." '{ print $2 }' | cut -d"_" -f1)
+            cellid=$(echo $h/$f/$x | awk -F"." '{ print $1 }' | cut -d"_" -f5)
+            cat $h/$f/"CIN_"$n"_"$o"_"$g"_"$cellid"."$p"_clean.fastq" >> $h/$f/"CIN_"$n"_"$o"_"$g"_CONCATE-"$p"_clean.fastq"
+            rm $h/$f/"CIN_"$n"_"$o"_"$g"_"$cellid"."$p"_clean.fastq"
+            fi
+        done
     done
 done
 
@@ -112,12 +102,68 @@ do
     done
 done
 
-# 5_Install PANAM2
+# 5_ Pooling
+## sort R1 and R2
+cd dataPANAM/
+for V in V4 V9
+do
+    mkdir $V'_pooling'
+    mkdir $V'_pooling'/R1
+    mkdir $V'_pooling'/R2
+    cp $V/*R1*.fastq $V'_pooling'/R1/
+    cp $V/*R2*.fastq $V'_pooling'/R2/
+done
+## detect and pool duplicat
+for V in V4_pooling V9_pooling
+do
+    if [ $V == "V4_pooling" ]
+    then
+    ID=2
+    else
+    ID=1
+    fi
+    for R in R1 R2
+    do
+        for file in $(ls $V/$R/ | awk -F"OSTA" '{ print $1"_" }')
+        do
+            if [ $(cat ../rawdata/sortV4-V9 | grep $file | awk -F"_" '{ print $5 }') == 2 ]
+            then
+            duplicat=$(cat ../rawdata/sortV4-V9 | grep $file | awk -F"_" '{ print $2"_"$3"_"$4 }')
+            duplicatx=$(cat ../rawdata/sortV4-V9 |  grep $duplicat | awk -F"_" '{ print $1 }')
+            duplicatx1=$(echo $duplicatx | awk -F" " '{ print $1 }')
+            duplicatx2=$(echo $duplicatx | awk -F" " '{ print $2 }')
+            echo $duplicatx1
+            echo $duplicatx2
+            echo $duplicatx
+            cat $V/$R/$duplicatx2"OSTA_"$ID"_"$R"_clean.fastq" >> $V/$R/$duplicatx1"OSTA_"$ID"_"$R"_clean.fastq"
+            rm $V/$R/$duplicatx2"OSTA_"$ID"_"$R"_clean.fastq"
+            fi
+        done
+    done
+done
+## bind R1 and R2
+for V in V4_pooling V9_pooling
+do
+    for R in R1 R2
+    do
+        mv $V/$R/* $V/
+        rm -rf $V/$R/
+    done
+done
+    
+# 6_Install PANAM2
 cd dataPANAM ; git clone https://github.com/panammeb/PANAM2.git
 cd PANAM2 ; perl setup.pl
 chmod 777 bd_ssrna
 
 # Move and compress Reads in PANAM2 directory
-cd .. ; mv V4 PANAM2/V4 ; gzip PANAM2/V4/*.fastq ; mv V9 PANAM2/V9 ; gzip PANAM2/V9/*.fastq
+cd ..
+for file in V4 V9 V4_pooling V9_pooling
+do
+    echo $file
+    mv $file PANAM2/$file ; gzip PANAM2/$file/*.fastq
+done
 
 echo Pre-process completed !
+    
+    
