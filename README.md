@@ -73,9 +73,9 @@ Define current directory: `cd Microstore-metabarcoding/script/`
 
 A conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
 
-A script is used to install the dependencies necessary for the analyzes: `Rscript 7_Install_dependencies.R`
+A script is used to install the dependencies necessary for the analyzes: `Rscript 0_Install_dependencies.R`
 
-Run script responsible for formatting reads and installing PANAM2: `bash 0_Pre-process.sh`
+Run script responsible for formatting reads and installing PANAM2: `bash 1_Pre-process.sh`
 
     WARNING : one line in panam2.pl must be modified ! :
     replace line 169 : $panam_ini=$path_results."/panam.ini";
@@ -143,15 +143,15 @@ for example : `nohup Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-res
 
 #### B. Composition Analysis
 
-The composition and abundance analysis is performed with a second script: `Rscript 9_Composition_Rarefy.R input output`
+The composition and abundance analysis is performed with a second script: `Rscript 9_Analyse_Composition.R input output`
 
-for example :  `Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
+for example :  `Rscript 9_Analyse_Composition.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
 Enter Info (region / mode / group[optional] / 0.0005filter / taxonomy / unify /rarefy).
 
-**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) 0.0005filter(yes or no) taxonomy(NN, LCA, or Best_HIT) unify(yes or no) rarefy(yes or no) mode(Superphylum or Phylum) phylum(Fungi, Alveolata, etc)[optional]`
+**PS : to execute script silently** : `nohup Rscript 9_Analyse_Composition.R input output region(V4 or V9) 0.0005filter(yes or no) taxonomy(NN, LCA, or Best_HIT) unify(yes or no) rarefy(yes or no) mode(Superphylum or Phylum) phylum(Fungi, Alveolata, etc)[optional]`
 
-for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes yes Phylum Alveolata > V4-095_Analyse_Composition.out`
+for example : `nohup Rscript 9_Analyse_Composition.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes yes Phylum Alveolata > V4-095_Analyse_Composition.out`
 
 #### C. Rarefaction curves and diversity indices
 
