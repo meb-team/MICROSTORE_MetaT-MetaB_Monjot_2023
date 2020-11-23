@@ -13,6 +13,7 @@
 # Set directory and import package -----------------------------------------------------------
 system("conda install -y -c bioconda r-factominer ; conda install -y -c conda-forge r-factoextra ; conda install -y -c r r-reshape2 ; conda install -y -c conda-forge r-ggpubr ; conda install -y -c conda-forge r-hrbrthemes ; conda install -y -c conda-forge r-svglite")
 system("conda install -y -c conda-forge imagemagick")
+system("conda install -y -c bioconda bioconductor-phyloseq")
 
 setwd("..")
 install.packages("parallel", repos="http://cran.rstudio.com/")
@@ -25,12 +26,19 @@ install.packages("ggsci", repos="http://cran.rstudio.com/")
 install.packages("scales", repos="http://cran.rstudio.com/")
 install.packages("varhandle", repos="http://cran.rstudio.com/")
 install.packages("treemap", repos="http://cran.rstudio.com/")
+## PANAM dependencies
+install.packages("vegan", repos="http://cran.rstudio.com/")
+install.packages("picante", repos="http://cran.rstudio.com/")
+install.packages("cluster", repos="http://cran.rstudio.com/")
+install.packages("MASS", repos="http://cran.rstudio.com/")
+#install.packages("BiocManager", repos="http://cran.rstudio.com/")
+#BiocManager::install("phyloseq")
 
 defaultW <- getOption("warn") 
 options(warn = -1) 
-dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite")
+dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite","vegan","picante","cluster","MASS","phyloseq")
 check <- dependencies %in% rownames(installed.packages())
-ok <- as.logical(c(TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE))
-if (check == ok) {message("Dependencies installed")}
+ok <- as.logical(c(TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE))
+if (check == ok) {message("Dependencies installed !")}
 options(warn = defaultW)
 

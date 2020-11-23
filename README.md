@@ -65,9 +65,15 @@ A table containing the name ("AC", "FO", etc.), the condition (DNOG, DJAP, etc.)
 * Genoscope provides the following table: "data-inf.txt".
 * The "reads" directory and the "data-inf.txt" table are placed in the "rawdata" directory located in "Microstore-metabarcoding".
 
-### 1. Pre-process and PANAM2 instalation
+### 1. Pre-process and PANAM2 installation
 
 Define current directory: `cd Microstore-metabarcoding/script/`
+
+* **Requires R version 3.6.3**
+
+A conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
+
+A script is used to install the dependencies necessary for the analyzes: `Rscript 7_Install_dependencies.R`
 
 Run script responsible for formatting reads and installing PANAM2: `bash 0_Pre-process.sh`
 
@@ -113,24 +119,17 @@ These initialization files are placed in the "PANAM2" directory
 
 ### 3. PANAM2 ANALYSIS
 
-Before run PANAM2 : `cd ../dataPANAM/PANAM2`
-
-Then run PANAM2:
+Run PANAM2 :
 
 * V4 with clustering threshold = 0.95: `nohup perl panam2.pl -ini V4-panam2-095.ini > V4-095.out`
 
 * V9 with clustering threshold = 0.97: `nohup perl panam2.pl -ini V9-panam2-097.ini > V9-097.out`
 
-
 ### 4. R ANALYSIS
 
-* **Requires R version 3.6.3**
-
-A conda environment is created to install R 3.6.3: `cd ../../script ; conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
-
-A script is used to install the dependencies necessary for the analyzes: `Rscript 7_Install_dependencies.R`
-
 #### A. Duplicate analysis
+
+First, return in script directory : `cd ../../script`
 
 A first analysis is carried out in order to test the difference between amplicons of the same duplicate: `Rscript 8_Analyse_Duplicat_AFC.R input output`
 
@@ -148,11 +147,11 @@ The composition and abundance analysis is performed with a second script: `Rscri
 
 for example :  `Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Enter Info (region / mode / group[optional] / 0.0005filter / taxonomy / rarefy).
+Enter Info (region / mode / group[optional] / 0.0005filter / taxonomy / unify /rarefy).
 
-**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) 0.0005filter(yes or no) taxonomy(NN, LCA, or Best_HIT) rarefy(yes or no) mode(Superphylum or Phylum) phylum(Fungi, Alveolata, etc)[optional]`
+**PS : to execute script silently** : `nohup Rscript 9_Composition_Rarefy.R input output region(V4 or V9) 0.0005filter(yes or no) taxonomy(NN, LCA, or Best_HIT) unify(yes or no) rarefy(yes or no) mode(Superphylum or Phylum) phylum(Fungi, Alveolata, etc)[optional]`
 
-for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes Phylum Alveolata > V4-095_Analyse_Composition.out`
+for example : `nohup Rscript 9_Composition_Rarefy.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes yes Phylum Alveolata > V4-095_Analyse_Composition.out`
 
 #### C. Rarefaction curves and diversity indices
 

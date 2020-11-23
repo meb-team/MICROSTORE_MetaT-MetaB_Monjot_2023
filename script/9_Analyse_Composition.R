@@ -12,12 +12,14 @@
 # Script Composition
 # Set directory, input and output -----------------------------------------------------------
 #
-#output <- "Composition-V4-095-199-NOfilter-NN-Total"
-#input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
+#output <- "Composition-V4-Unify-095-199-noFilter-yesRarefy-NN-Eukaryota"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
 #Taxonomy <- "NN"
 #Mode <- "Superphylum"
+#RarefyYoN <- "yes"
+#UnifyYoN <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -38,9 +40,12 @@ input <- args[1]
 pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap")
 lapply(pkg, require, character.only = TRUE)
 
-palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
-show_col(palette)
+#palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
+#show_col(palette)
 #palette <- c("#D43F3ACC","#EEA236CC","#AD002ACC","#46B8DACC","#357EBDCC","#9632B8CC","#B8B8B8CC","#00468BCC","#ED0000CC","#42B540CC","#0099B4CC","#925E9FCC")
+palette <- c("#EEA236CC","#AD002ACC","#00468BCC","#0099B4CC","#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#9632B8CC","#EFC000CC","#D43F3ACC","#5CB85CCC","#46B8DACC","#FF7F0ECC","#925E9FCC","#B8B8B8CC")
+show_col(palette)
+
 
 input <- paste("..",input, sep = "/")
 output <- paste("../result",output, sep = "/")
@@ -48,16 +53,30 @@ if (dir.exists("../result") == FALSE) { dir.create("../result") }
 if (dir.exists(output) == FALSE) { dir.create(output) }
 if (dir.exists(output) == TRUE) { setwd(output) }
 
+system("mkdir Figure-Sum")
+system("mkdir AFC-Duplicat")
+system("mkdir Composition")
+system("mkdir HistOnly")
+system("mkdir AFC-Distribution")
+system("mkdir TableOnly")
+system("mkdir Biplot")
+system("mkdir Rarecurve")
+system("mkdir Rarecurve/Nopool")
+system("mkdir Rarecurve/Pool")
+system("mkdir Diversity")
+system("mkdir Diversity/Nopool")
+system("mkdir Diversity/Pool")
+
 # Enter mode and Group to study -------------------------------------------
 
 if (length(args)==2) {
-  cat("Enter mode (Superphylum or Phylum) : ");
+  cat("Enter mode (Superphylum or Phylum or Class) : ");
   Mode <- readLines("stdin",n=1);
   cat("You entered")
   str(Mode);
   cat( "\n" )}
-if (length(args)==7) {
-  Mode <- args[7]
+if (length(args)==8) {
+  Mode <- args[8]
 }
 if (Mode == "Phylum") {
   cat("Enter Phylum (Fungi, Alveolata, etc) : ");
@@ -65,8 +84,17 @@ if (Mode == "Phylum") {
   cat("You entered")
   str(Group);
   cat( "\n" )}
-if (length(args)==8) {
-  Group <- args[8]
+if (length(args)==9) {
+  Group <- args[9]
+}
+if (Mode == "Class") {
+  cat("Enter Class (Bacillariophyta, Synurophyceae, etc) : ");
+  Group <- readLines("stdin",n=1);
+  cat("You entered")
+  str(Group);
+  cat( "\n" )}
+if (length(args)==9) {
+  Group <- args[9]
 }
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {
@@ -216,7 +244,17 @@ Amplicon_without_duplicat <- c(tblcx[,"Amplicon.x"][which(is.na(tblcx[,"Amplicon
 for (i in row.names(tblcx)) { if (is.na(tblcx[i,"Amplicon.y"]) == TRUE) { tblcx[i,"Amplicon.y"] <- tblcx[i,"Amplicon.x"]}}
 for (i in row.names(tblcx)) { if (is.na(tblcx[i,"Replicat.y"]) == TRUE) { tblcx[i,"Replicat.y"] <- tblcx[i,"Replicat.x"]}}
 
-## Pool
+## Unify
+if (length(args)==2) {
+  cat("Should I unify duplicat (yes or no) ? : ");
+  UnifyYoN <- readLines("stdin",n=1);
+  cat("You entered")
+  str(UnifyYoN);
+  cat( "\n" )}
+if (length(args)==6) {
+  UnifyYoN <- args[6]
+}
+if (UnifyYoN == "yes") {
 seq_mat_pool <- as.data.frame(x=seq_mat[,"Taxonomy"],row.names = row.names(seq_mat))
 colnames(seq_mat_pool) <- "Taxonomy"
 for (h in tblcx[,"Amplicon.x"] ) {
@@ -227,6 +265,11 @@ for (h in tblcx[,"Amplicon.x"] ) {
     if (seq_mat[r,h] * seq_mat[r,f] == 0) { seq_mat_pool[r,h] <- round((seq_mat[r,h]+seq_mat[r,f]))}
     if (seq_mat[r,h] * seq_mat[r,f] != 0) { seq_mat_pool[r,h] <- round((seq_mat[r,h]+seq_mat[r,f])/2)}
   }}
+}
+if (UnifyYoN == "no") { 
+  seq_mat_pool <- seq_mat 
+  samples_df <- samples_df %>% filter(Replicat == 1)
+}
 
   # Rarefy (seq_mat_pool_rare) ---------------------------------------------------------------------
 ##Rarefy yes or no
@@ -236,8 +279,8 @@ if (length(args)==2) {
   cat("You entered")
   str(RarefyYoN);
   cat( "\n" )}
-if (length(args)==6) {
-  RarefyYoN <- args[6]
+if (length(args)==7) {
+  RarefyYoN <- args[7]
 }
 if (RarefyYoN == "yes") {
 seq_mat_poolt <- seq_mat_pool %>% select(-"Taxonomy")
@@ -384,11 +427,11 @@ for (level in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus"
 tax_stat <- as.data.frame(c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species")) ; colnames(tax_stat) <- "Level"
 tax_stat$Count <- c(count_Domain,count_Superphylum,count_Phylum,count_Class,count_Order,count_Family,count_Genus,count_Species)
 
-tax_stat$No_affiliate <- nrow(tableVinput) - tax_stat$Count
+tax_stat$`Not affiliated` <- nrow(tableVinput) - tax_stat$Count
 tax_stat <- melt(tax_stat, id = "Level")
 ## Plot
 tax_stat$Level <- factor(tax_stat$Level , levels=c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"))
-tax_stat$variable <- factor(tax_stat$variable , levels=c("No_affiliate","Count"))
+tax_stat$variable <- factor(tax_stat$variable , levels=c("Not affiliated","Count"))
 
 #
 svglite("Figure-Sum/Stat-Taxo.svg",width = 9.00,height = 5.00)
@@ -733,12 +776,19 @@ data_seq_tax <- data_seq
 taxo <- tableVinput %>% select(all_of(Taxonomy)) ; taxo$OTU_Id <- row.names(taxo)
 data_seq_tax <- merge(x = data_seq_tax, y =  taxo, by = "OTU_Id")
 data_seq_tax <- separate(data_seq_tax, all_of(Taxonomy),c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
+data_seq_tax[data_seq_tax == ""] <- NA
+data_seq_tax[data_seq_tax == " "] <- NA
+data_seq_tax[is.na(data_seq_tax) == TRUE] <- "Not Affiliated"
 
+if (Mode == "Class") {
+  data_seq_tax <- data_seq_tax %>% filter(Phylum == all_of(Group))
+  data_seq_tax$Division <- data_seq_tax$Class }
 if (Mode == "Phylum") {
 data_seq_tax <- data_seq_tax %>% filter(Superphylum == all_of(Group))
-data_seq_tax$Division <- paste(data_seq_tax$Domain, data_seq_tax$Superphylum, data_seq_tax$Phylum,sep=";")}
+data_seq_tax$Division <- data_seq_tax$Phylum }
 if (Mode == "Superphylum") {
-data_seq_tax$Division <- paste(data_seq_tax$Domain, data_seq_tax$Superphylum,sep=";")}
+data_seq_tax$Division <- data_seq_tax$Superphylum }
+
     # All_2018 ----------------------------------------------------------
 ##Figure Cycles
 aCycle <- ggplot(data_seq_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
@@ -1032,11 +1082,18 @@ data_otu_tax <- data_otu
 taxo <- tableVinput %>% select(all_of(Taxonomy)) ; taxo$OTU_Id <- row.names(taxo)
 data_otu_tax <- merge(x = data_otu_tax, y =  taxo, by = "OTU_Id")
 data_otu_tax <- separate(data_otu_tax, all_of(Taxonomy),c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
+data_otu_tax[data_otu_tax == ""] <- NA
+data_otu_tax[data_otu_tax == " "] <- NA
+data_otu_tax[is.na(data_otu_tax) == TRUE] <- "Not Affiliated"
+
+if (Mode == "Class") {
+  data_otu_tax <- data_otu_tax %>% filter(Phylum == all_of(Group))
+  data_otu_tax$Division <- data_otu_tax$Class }
 if (Mode == "Phylum") {
 data_otu_tax <- data_otu_tax %>% filter(Superphylum == all_of(Group))
-data_otu_tax$Division <- paste(data_otu_tax$Domain, data_otu_tax$Superphylum, data_otu_tax$Phylum,sep=";")}
+data_otu_tax$Division <- data_otu_tax$Phylum }
 if (Mode == "Superphylum") {
-data_otu_tax$Division <- paste(data_otu_tax$Domain, data_otu_tax$Superphylum,sep=";")}
+data_otu_tax$Division <- data_otu_tax$Superphylum }
     # All_2018 ----------------------------------------------------------
 ##Figure Cycles
 iCycle <- ggplot(data_otu_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +

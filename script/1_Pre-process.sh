@@ -102,21 +102,21 @@ do
     done
 done
 
-# 5_ Pooling
+# 5_ Unify
 ## sort R1 and R2
 cd dataPANAM/
 for V in V4 V9
 do
-    mkdir $V'_pooling'
-    mkdir $V'_pooling'/R1
-    mkdir $V'_pooling'/R2
-    cp $V/*R1*.fastq $V'_pooling'/R1/
-    cp $V/*R2*.fastq $V'_pooling'/R2/
+    mkdir $V'-unified'
+    mkdir $V'-unified'/R1
+    mkdir $V'-unified'/R2
+    cp $V/*R1*.fastq $V'-unified'/R1/
+    cp $V/*R2*.fastq $V'-unified'/R2/
 done
-## detect and pool duplicat
-for V in V4_pooling V9_pooling
+## detect and unify duplicat
+for V in V4-unified V9-unified
 do
-    if [ $V == "V4_pooling" ]
+    if [ $V == "V4-unified" ]
     then
     ID=2
     else
@@ -129,12 +129,13 @@ do
             if [ $(cat ../rawdata/sortV4-V9 | grep $file | awk -F"_" '{ print $5 }') == 2 ]
             then
             duplicat=$(cat ../rawdata/sortV4-V9 | grep $file | awk -F"_" '{ print $2"_"$3"_"$4 }')
-            duplicatx=$(cat ../rawdata/sortV4-V9 |  grep $duplicat | awk -F"_" '{ print $1 }')
-            duplicatx1=$(echo $duplicatx | awk -F" " '{ print $1 }')
-            duplicatx2=$(echo $duplicatx | awk -F" " '{ print $2 }')
+            duplicatx1=$(cat ../rawdata/sortV4-V9 |  grep $duplicat | grep "_1_" | awk -F"_" '{ print $1 }')
+            duplicatx2=$(cat ../rawdata/sortV4-V9 |  grep $duplicat | grep "_2_" | awk -F"_" '{ print $1 }')
+            #duplicatx1=$(echo $duplicatx | awk -F" " '{ print $1 }')
+            #duplicatx2=$(echo $duplicatx | awk -F" " '{ print $2 }')
             echo $duplicatx1
             echo $duplicatx2
-            echo $duplicatx
+            #echo $duplicatx
             cat $V/$R/$duplicatx2"OSTA_"$ID"_"$R"_clean.fastq" >> $V/$R/$duplicatx1"OSTA_"$ID"_"$R"_clean.fastq"
             rm $V/$R/$duplicatx2"OSTA_"$ID"_"$R"_clean.fastq"
             fi
@@ -142,7 +143,7 @@ do
     done
 done
 ## bind R1 and R2
-for V in V4_pooling V9_pooling
+for V in V4-unified V9-unified
 do
     for R in R1 R2
     do
@@ -152,13 +153,13 @@ do
 done
     
 # 6_Install PANAM2
-cd dataPANAM ; git clone https://github.com/panammeb/PANAM2.git
+git clone https://github.com/panammeb/PANAM2.git
 cd PANAM2 ; perl setup.pl
 chmod 777 bd_ssrna
 
 # Move and compress Reads in PANAM2 directory
 cd ..
-for file in V4 V9 V4_pooling V9_pooling
+for file in V4 V9 V4-unified V9-unified
 do
     echo $file
     mv $file PANAM2/$file ; gzip PANAM2/$file/*.fastq
