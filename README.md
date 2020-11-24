@@ -69,13 +69,9 @@ A table containing the name ("AC", "FO", etc.), the condition (DNOG, DJAP, etc.)
 
 Define current directory: `cd Microstore-metabarcoding/script/`
 
-* **Requires R version 3.6.3**
-
-A conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
-
-A script is used to install the dependencies necessary for the analyzes: `Rscript 0_Install_dependencies.R`
-
 Run script responsible for formatting reads and installing PANAM2: `bash 1_Pre-process.sh`
+
+PANAM2 is installed in dataPANAM directory : `cd ../dataPANAM/PANAM2`
 
     WARNING : one line in panam2.pl must be modified ! :
     replace line 169 : $panam_ini=$path_results."/panam.ini";
@@ -127,9 +123,15 @@ Run PANAM2 :
 
 ### 4. R ANALYSIS
 
-#### A. Duplicate analysis
-
 First, return in script directory : `cd ../../script`
+
+* **Requires R version 3.6.3**
+
+A conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
+
+A script is used to install the dependencies necessary for the analyzes: `Rscript 7_Install_dependencies.R`
+
+#### A. Duplicate analysis
 
 A first analysis is carried out in order to test the difference between amplicons of the same duplicate: `Rscript 8_Analyse_Duplicat_AFC.R input output`
 
