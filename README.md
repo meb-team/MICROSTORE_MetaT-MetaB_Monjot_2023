@@ -128,8 +128,9 @@ Return in script directory : `cd ../../script`
 
 * **Requires R version 3.6.3**
 
-Miniconda is downloaded and installed : `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
-`bash Miniconda3-latest-Linux-x86_64.sh`
+Miniconda is downloaded:  `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
+
+and installed: `bash Miniconda3-latest-Linux-x86_64.sh`
 
 In a new terminal, a conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
 
