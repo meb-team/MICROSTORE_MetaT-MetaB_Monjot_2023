@@ -1,10 +1,11 @@
-
 # **MÉTABARCODING ANALYSIS**
+
+**This is a workflow to process the metabarcoding sequencing data from the Microstore project (2018).**
 
 ## DATA
 
 The paired end reads (R1 and R2) are placed in a directory identified by the name of the corresponding amplicon: "AC" for example.
-These directories ("AC", "FO", etc.) are placed in the "reads" directory in "rawdata".
+These directories ("AC", "FO", etc.) are placed in "reads" directory.
 
 	*******************************
 		Sampling nomenclature
@@ -60,7 +61,7 @@ These directories ("AC", "FO", etc.) are placed in the "reads" directory in "raw
 
 ## Pre-process
 
-A table containing the name ("AC", "FO", etc.), the condition (DNOG, DJAP, etc.) and the region (V4 or V9) corresponding to each amplicon must be produced.
+A table containing the name ("AC", "FO", etc.), the condition (DNOG, DJAP, etc.), the date (04, 06, 09 or 11), the region (V4 or V9) and replicate ID (1 or 2) corresponding to each amplicon must be produced.
 
 * Genoscope provides the following table: "data-inf.txt".
 * The "reads" directory and the "data-inf.txt" table are placed in the "rawdata" directory located in "Microstore-metabarcoding".
@@ -123,11 +124,14 @@ Run PANAM2 :
 
 ### 4. R ANALYSIS
 
-First, return in script directory : `cd ../../script`
+Return in script directory : `cd ../../script`
 
 * **Requires R version 3.6.3**
 
-A conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
+Miniconda is downloaded and installed : `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
+`bash Miniconda3-latest-Linux-x86_64.sh`
+
+In a new terminal, a conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
 
 A script is used to install the dependencies necessary for the analyzes: `Rscript 7_Install_dependencies.R`
 
