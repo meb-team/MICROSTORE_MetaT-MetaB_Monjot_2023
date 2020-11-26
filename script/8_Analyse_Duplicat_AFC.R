@@ -27,7 +27,7 @@ region <- readLines("stdin",n=1);
 cat("You entered")
 str(region);
 cat( "\n" )}
-if (length(args)==4) {
+if (length(args)>2) {
 region <- args[3]
 }
 
@@ -96,7 +96,7 @@ if (length(args)==2) {
   cat("You entered")
   str(sortop);
   cat( "\n" )}
-if (length(args)==4) {
+if (length(args)>2) {
   sortop <- args[4]
 }
 
@@ -160,7 +160,7 @@ if (length(args)==2) {
   cat("You entered")
   str(RarefyYoN);
   cat( "\n" )}
-if (length(args)==5) {
+if (length(args)>2) {
   RarefyYoN <- args[5]
 }
 if (RarefyYoN == "yes") {

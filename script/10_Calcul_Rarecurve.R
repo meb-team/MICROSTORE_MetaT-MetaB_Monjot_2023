@@ -16,6 +16,7 @@
 #input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
+rarecurvecolor <- no
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -25,7 +26,7 @@ region <- readLines("stdin",n=1);
 cat("You entered")
 str(region);
 cat( "\n" )}
-if (length(args)==4) {
+if (length(args)>2) {
 region <- args[3]
 }
 
@@ -106,7 +107,7 @@ if (length(args)==2) {
   cat("You entered")
   str(sortop);
   cat( "\n" )}
-if (length(args)==4) {
+if (length(args)>2) {
   sortop <- args[4]
 }
 
@@ -159,7 +160,7 @@ samples_df<-filter(samples_df, Region == region)
 amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
 seq_mat <- tableVinput %>% select(all_of(amplicon))
 seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,all_of(amplicon)], as.numeric)
-  ## Rarefy (seq_mat_pool_rare) -----------------------------------------------------------------------
+  ## Rarefy (seq_mat_rare) -----------------------------------------------------------------------
 seq_matt <- seq_mat
 seq_matt <- t(seq_matt)
 seq_mat_rare <- as.data.frame(t(Rarefy(seq_matt)$otu.tab.rff)) ## Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
@@ -177,6 +178,7 @@ dev.off()
 #pdf("Rarecurve/Nopool/Rarecurve-all-Raw.pdf",width = 5.00,height = 5.00)
 #curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
 #dev.off()
+if (rarecurvecolor == "yes") {
 #Color
 colraw <- as.data.frame(rownames(rawcurve))
 colnames(colraw) <- "sample"
@@ -223,7 +225,7 @@ legend("topleft", inset=.02, title="Replicat",
        c("Rep1","Rep2"), fill = c("#EEA236CC","black"), horiz=TRUE, cex=0.6)
 print(curve_d)
 dev.off()
-
+}
 
     # Rare --------------------------------------------------------------------
   rarecurve <- t(seq_mat_rare)
@@ -236,6 +238,7 @@ dev.off()
   #pdf("Rarecurve/Nopool/Rarecurve-all-Rarefy.pdf",width = 5.00,height = 5.00)
   #curve <- quickRareCurve(rarecurve_all, col = "black", cex = 0.6)
   #dev.off()
+  if (rarecurvecolor == "yes") {
   #Color
   colraw <- as.data.frame(rownames(rarecurve))
   colnames(colraw) <- "sample"
@@ -282,7 +285,7 @@ dev.off()
          c("Rep1","Rep2"), fill = c("#EEA236CC","black"), horiz=TRUE, cex=0.6)
   print(curve_d)
   dev.off()
-
+  }
   ## Diversity Raw ---------------------------------------------------------------
     # Shannon -----------------------------------------------------------------
   Div_Table <- samples_df
@@ -957,6 +960,17 @@ dev.off()
   
   
 # Prepare Object Pool-------------------------------------------------
+  ## Unify
+  if (length(args)==2) {
+    cat("Should I unify duplicat (yes or no) ? : ");
+    UnifyYoN <- readLines("stdin",n=1);
+    cat("You entered")
+    str(UnifyYoN);
+    cat( "\n" )}
+  if (length(args)>2) {
+    UnifyYoN <- args[5]
+  }
+  if (UnifyYoN == "yes") {
   ## Prepare seq_mat and Pool (seq_mat and seq_mat_pool) ---------------------------------------------------------------------
   ## Prepare otu_mat
   amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
@@ -1002,6 +1016,7 @@ dev.off()
     #pdf("Rarecurve/Pool/Rarecurve-all-Raw.pdf",width = 5.00,height = 5.00)
     #curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
     #dev.off()
+    if (rarecurvecolor == "yes") {
     #Color
     colraw <- as.data.frame(rownames(seq_mat_poolt))
     colnames(colraw) <- "sample"
@@ -1038,7 +1053,7 @@ dev.off()
            c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
     print(curve_c)
     dev.off()
-    
+    }
     # Rare --------------------------------------------------------------------
     #rarecurve
     rarecurve <- t(seq_mat_pool_rare)
@@ -1052,7 +1067,7 @@ dev.off()
     #pdf("Rarecurve/Pool/Rarecurve-all-Rarefy.pdf",width = 5.00,height = 5.00)
     #curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
     #dev.off()
-    
+    if (rarecurvecolor == "yes") {
     #Color
     colraw <- as.data.frame(rownames(rarecurve))
     colnames(colraw) <- "sample"
@@ -1089,7 +1104,7 @@ dev.off()
            c("Petite","Grande"), fill = c("#5CB85CFF","black"), horiz=TRUE, cex=0.6)
     print(curve_c)
     dev.off()
-
+    }
   ## Diversity Raw ---------------------------------------------------------------
     # Shannon -----------------------------------------------------------------
   Div_Table <- samples_df
@@ -1764,3 +1779,4 @@ dev.off()
   
   
   
+  }

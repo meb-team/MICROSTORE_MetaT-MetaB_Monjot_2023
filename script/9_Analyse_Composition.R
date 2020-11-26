@@ -29,7 +29,7 @@ if (length(args)==2) {
   cat("You entered")
   str(region);
   cat( "\n" )}
-if (length(args)==4) {
+if (length(args)>2) {
   region <- args[3]
 }
 
@@ -75,26 +75,29 @@ if (length(args)==2) {
   cat("You entered")
   str(Mode);
   cat( "\n" )}
-if (length(args)==8) {
+if (length(args)>2) {
   Mode <- args[8]
 }
+
 if (Mode == "Phylum") {
-  cat("Enter Phylum (Fungi, Alveolata, etc) : ");
-  Group <- readLines("stdin",n=1);
-  cat("You entered")
-  str(Group);
-  cat( "\n" )}
-if (length(args)==9) {
-  Group <- args[9]
+  if (length(args)==2) {
+    cat("Enter Phylum (Fungi, Alveolata, etc) : ");
+    Group <- readLines("stdin",n=1);
+    cat("You entered")
+    str(Group);
+    cat( "\n" )}
+  if (length(args)>2) {
+    Group <- args[9]}
 }
 if (Mode == "Class") {
-  cat("Enter Class (Bacillariophyta, Synurophyceae, etc) : ");
-  Group <- readLines("stdin",n=1);
-  cat("You entered")
-  str(Group);
-  cat( "\n" )}
-if (length(args)==9) {
-  Group <- args[9]
+  if (length(args)==2) {
+    cat("Enter Class (Bacillariophyta, Synurophyceae, etc) : ");
+    Group <- readLines("stdin",n=1);
+    cat("You entered")
+    str(Group);
+    cat( "\n" )}
+  if (length(args)>2) {
+    Group <- args[9]}
 }
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {
@@ -162,7 +165,7 @@ if (length(args)==2) {
   cat("You entered")
   str(sortop);
   cat( "\n" )}
-if (length(args)==4) {
+if (length(args)>2) {
   sortop <- args[4]
 }
 
@@ -224,7 +227,7 @@ if (length(args)==2) {
   cat("You entered")
   str(Taxonomy);
   cat( "\n" )}
-if (length(args)==5) {
+if (length(args)>2) {
   Taxonomy <- args[5]
 }
 
@@ -251,7 +254,7 @@ if (length(args)==2) {
   cat("You entered")
   str(UnifyYoN);
   cat( "\n" )}
-if (length(args)==6) {
+if (length(args)>2) {
   UnifyYoN <- args[6]
 }
 if (UnifyYoN == "yes") {
@@ -279,7 +282,7 @@ if (length(args)==2) {
   cat("You entered")
   str(RarefyYoN);
   cat( "\n" )}
-if (length(args)==7) {
+if (length(args)>2) {
   RarefyYoN <- args[7]
 }
 if (RarefyYoN == "yes") {
