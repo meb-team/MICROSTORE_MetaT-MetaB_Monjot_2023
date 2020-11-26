@@ -12,12 +12,13 @@
 # Script Composition
 # Set directory, input and output -----------------------------------------------------------
 #
-#output <- "Composition-V4-Unify-095-199-noFilter-yesRarefy-NN-Eukaryota"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-199/OTU_distribution_tax.txt"
+#output <- "Composition-V4-095-Vsearch215-Filterno-Unifyno-Rarefyyes-NN-Fungi"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
 #Taxonomy <- "NN"
-#Mode <- "Superphylum"
+#Mode <- "Phylum"
+#Group <- "Fungi"
 #RarefyYoN <- "yes"
 #UnifyYoN <- "no"
 #
@@ -37,7 +38,7 @@ output <- args[2]
 input <- args[1]
 
 # Import package and palette -----------------------------------------------------------
-pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap")
+pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram")
 lapply(pkg, require, character.only = TRUE)
 
 #palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
@@ -54,18 +55,13 @@ if (dir.exists(output) == FALSE) { dir.create(output) }
 if (dir.exists(output) == TRUE) { setwd(output) }
 
 system("mkdir Figure-Sum")
-system("mkdir AFC-Duplicat")
 system("mkdir Composition")
 system("mkdir HistOnly")
 system("mkdir AFC-Distribution")
 system("mkdir TableOnly")
 system("mkdir Biplot")
-system("mkdir Rarecurve")
-system("mkdir Rarecurve/Nopool")
-system("mkdir Rarecurve/Pool")
-system("mkdir Diversity")
-system("mkdir Diversity/Nopool")
-system("mkdir Diversity/Pool")
+system("mkdir Venn")
+
 
 # Enter mode and Group to study -------------------------------------------
 
@@ -1386,6 +1382,189 @@ print(Novembre_plot)
 dev.off()  
 
 
+# Venn diagramm -----------------------------------------------------------
+futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
+  # Cycle
+  CycleVenn <- venn.diagram(x = list(data_otu_tax %>% filter(Jour == 1) %>% select(OTU_Id) %>% unlist(), data_otu_tax %>% filter(Nuit == 2) %>% select(OTU_Id) %>% unlist()), 
+                            category.names = c("Jour" , "Nuit"),
+                            filename = NULL,
+                            compression = "lzw",
+                            lwd = 1,
+                            main = "OTUs",
+                            col=c("#440154ff", '#21908dff'),
+                            fill = c(alpha("#440154ff",0.3), alpha('#21908dff',0.3)),
+                            cex = 0.5,
+                            main.fontfamily = "sans",
+                            main.fontface = "bold",
+                            fontfamily = "sans",
+                            cat.cex = 0.6,
+                            cat.default.pos = "outer",
+                            cat.pos = c(-35,35),
+                            cat.fontfamily = "sans",
+                            cat.fontface = "bold",
+                            cat.col = c("#440154ff", '#21908dff'))
+  ggsave(CycleVenn, file="Venn/Cycle.svg", device = "svg", width = 3, height = 3)
+  # Zone
+  ZoneVenn <- venn.diagram(x = list(data_otu_tax %>% filter(Oxique == 1) %>% select(OTU_Id) %>% unlist(), data_otu_tax %>% filter(Anoxique == 2) %>% select(OTU_Id) %>% unlist()),
+                          category.names = c("Oxique" , "Anoxique"),
+                          filename = NULL,
+                          compression = "lzw",
+                          lwd = 1,
+                          main = "OTUs",
+                          col=c("#440154ff", '#21908dff'),
+                          fill = c(alpha("#440154ff",0.3), alpha('#21908dff',0.3)),
+                          cex = 0.5,
+                          main.fontfamily = "sans",
+                          main.fontface = "bold",
+                          fontfamily = "sans",
+                          cat.cex = 0.6,
+                          cat.default.pos = "outer",
+                          cat.pos = c(-35,35),
+                          cat.fontfamily = "sans",
+                          cat.fontface = "bold",
+                          cat.col = c("#440154ff", '#21908dff'))
+  ggsave(ZoneVenn, file="Venn/Zone.svg", device = "svg", width = 3, height = 3)
+  # Fraction
+  FractionVenn <- venn.diagram(x = list(data_otu_tax %>% filter(Petite == 1) %>% select(OTU_Id) %>% unlist(), data_otu_tax %>% filter(Grande == 2) %>% select(OTU_Id) %>% unlist()),
+                           category.names = c("Petite" , "Grande"),
+                           filename = NULL,
+                           compression = "lzw",
+                           lwd = 1,
+                           main = "OTUs",
+                           col=c("#440154ff", '#21908dff'),
+                           fill = c(alpha("#440154ff",0.3), alpha('#21908dff',0.3)),
+                           cex = 0.5,
+                           main.fontfamily = "sans",
+                           main.fontface = "bold",
+                           fontfamily = "sans",
+                           cat.cex = 0.6,
+                           cat.default.pos = "outer",
+                           cat.pos = c(-35,35),
+                           cat.fontfamily = "sans",
+                           cat.fontface = "bold",
+                           cat.col = c("#440154ff", '#21908dff'))
+  ggsave(FractionVenn, file="Venn/Fraction.svg", device = "svg", width = 3, height = 3)
+  # Date
+  DateVenn <- venn.diagram(x = list(data_otu_tax %>% filter(Total04 == 1) %>% select(OTU_Id) %>% unlist(), data_otu_tax %>% filter(Total06 == 1) %>% select(OTU_Id) %>% unlist(),data_otu_tax %>% filter(Total09 == 1) %>% select(OTU_Id) %>% unlist(),data_otu_tax %>% filter(Total11 == 1) %>% select(OTU_Id) %>% unlist()),
+                               category.names = c("Avril","Juin","Septembre","Novembre"),
+                               filename = NULL,
+                               compression = "lzw",
+                               lwd = 1,
+                               main = "OTUs",
+                               col=c("#440154ff", "#638fb4ff", "#0062b4ff",'#21908dff'),
+                               fill = c(alpha("#440154ff",0.3), alpha('#638fb4ff',0.3), alpha('#0062b4ff',0.3),alpha('#21908dff',0.3)),
+                               cex = 0.5,
+                               main.fontfamily = "sans",
+                               main.fontface = "bold",
+                               fontfamily = "sans",
+                               cat.cex = 0.6,
+                               cat.default.pos = "outer",
+                               #cat.pos = c(-35,35),
+                               cat.fontfamily = "sans",
+                               cat.fontface = "bold",
+                               cat.col = c("#440154ff", "#638fb4ff", "#0062b4ff",'#21908dff'))
+  ggsave(DateVenn, file="Venn/Date.svg", device = "svg", width = 3, height = 3)
+  
+
+# Prepare Functionnal affiliation -----------------------------------------
+  tax_table_funtion <- tax_table
+  tax_table_funtion$Function <- "unclassed"
+  #Superphylum
+  Division_Superphylum <- unique(tax_table_funtion$Superphylum)
+  Division_Fungi <- unique(tax_table_funtion %>% filter(Superphylum == "Fungi") %>% select(Phylum))
+    Division_Dikarya <- unique(tax_table_funtion %>% filter(Phylum == "Dikarya") %>% select(Class))
+    Division_Fungi_incertae_sedis <- unique(tax_table_funtion %>% filter(Phylum == "Fungi incertae sedis") %>% select(Class))
+  Division_Alveolata <- unique(tax_table_funtion %>% filter(Superphylum == "Alveolata") %>% select(Phylum))
+    Division_Dinophyceae <- unique(tax_table_funtion %>% filter(Phylum == "Dinophyceae") %>% select(Class))
+      Division_Peridiniales <- unique(tax_table_funtion %>% filter(Class == "Peridiniales") %>% select(Order))
+      Division_Lophodiniales <- unique(tax_table_funtion %>% filter(Class == "Lophodiniales") %>% select(Order))
+        Division_Lophodiniaceae <- unique(tax_table_funtion %>% filter(Order == "Lophodiniaceae") %>% select(Genus))
+  Division_Stramenopiles <- unique(tax_table_funtion %>% filter(Superphylum == "Stramenopiles") %>% select(Phylum))
+    Division_Labyrinthulida <- unique(tax_table_funtion %>% filter(Phylum == "Labyrinthulida") %>% select(Class))
+      Division_Thraustochytriidae <- unique(tax_table_funtion %>% filter(Class == "Thraustochytriidae") %>% select(Order))
+    Division_Chrysophyceae <- unique(tax_table_funtion %>% filter(Phylum == "Chrysophyceae") %>% select(Class))
+    Division_PX_clade <- unique(tax_table_funtion %>% filter(Phylum == "PX clade") %>% select(Class))
+  Division_Rhizaria <- unique(tax_table_funtion %>% filter(Superphylum == "Rhizaria") %>% select(Phylum))
+    Division_Cercozoa <- unique(tax_table_funtion %>% filter(Phylum == "Cercozoa") %>% select(Class))
+  Division_Euglenozoa <- unique(tax_table_funtion %>% filter(Superphylum == "Euglenozoa") %>% select(Phylum))
+    Division_Euglenida <- unique(tax_table_funtion %>% filter(Phylum == "Euglenida") %>% select(Class))
+    Division_Kinetoplastida <- unique(tax_table_funtion %>% filter(Phylum == "Kinetoplastida") %>% select(Class))
+  
+  for (i in row.names(tax_table_funtion)) {
+    if ( tax_table_funtion[i,"Superphylum"] == "Alveolata") {
+      if ( tax_table_funtion[i,"Phylum"] == "Ciliophora") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "Dinophyceae") {
+        if ( tax_table_funtion[i,"Class"] == "Peridiniales") {
+          if ( tax_table_funtion[i,"Order"] == "Peridiniaceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+        }
+        if ( tax_table_funtion[i,"Class"] == "Gonyaulacales") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+        if ( tax_table_funtion[i,"Class"] == "Lophodiniales") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      }
+      if ( tax_table_funtion[i,"Phylum"] == "Apicomplexa") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Perkinsea") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+    }
+    if ( tax_table_funtion[i,"Superphylum"] == "Fungi") {
+      if ( tax_table_funtion[i,"Phylum"] == "Chytridiomycota") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Dikarya") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      if ( tax_table_funtion[i,"Phylum"] == "Zygomycota_1 et rel.") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      if ( tax_table_funtion[i,"Phylum"] == "Cryptomycota") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Fungi incertae sedis") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      if ( tax_table_funtion[i,"Phylum"] == "Nucleariidae and Fonticula group") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "Rhizophydium clade") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Ascomycota") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      if ( tax_table_funtion[i,"Phylum"] == "Blastocladiomycota") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+    }
+    if ( tax_table_funtion[i,"Superphylum"] == "Viridiplantae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Stramenopiles") {
+      if ( tax_table_funtion[i,"Phylum"] == "Synurophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Bacillariophyta") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Labyrinthulida") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      if ( tax_table_funtion[i,"Phylum"] == "MAST-3") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "Bicosoecida") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "Chrysophyceae") { tax_table_funtion[i,"Function"] <- "uncertain" }
+      if ( tax_table_funtion[i,"Phylum"] == "Oomycetes") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      if ( tax_table_funtion[i,"Phylum"] == "MAST-2") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "Pirsonia") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Dictyochophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Eustigmatophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      if ( tax_table_funtion[i,"Phylum"] == "MAST-12") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "MAST-1") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "PX clade") {
+        if ( tax_table_funtion[i,"Class"] == "Phaeophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+        if ( tax_table_funtion[i,"Class"] == "Xanthophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      }
+      if ( tax_table_funtion[i,"Phylum"] == "Raphidophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      if ( tax_table_funtion[i,"Phylum"] == "Bolidophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+    }
+    if ( tax_table_funtion[i,"Superphylum"] == "Rhizaria") {
+      if ( tax_table_funtion[i,"Phylum"] == "Cercozoa") { tax_table_funtion[i,"Function"] <- "uncertain" }
+    }
+    if ( tax_table_funtion[i,"Superphylum"] == "Choanoflagellida") { tax_table_funtion[i,"Function"] <- "Consumer" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Cryptophyta") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Haptophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Parabasalia") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Euglenozoa") {
+      if ( tax_table_funtion[i,"Phylum"] == "Euglenida") {
+        if ( tax_table_funtion[i,"Class"] == "Rhabdomonadales") { tax_table_funtion[i,"Function"] <- "Consumer" }
+        if ( tax_table_funtion[i,"Class"] == "Euglenales") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+      }
+      if ( tax_table_funtion[i,"Phylum"] == "Kinetoplastida") {
+        if ( tax_table_funtion[i,"Class"] == "Trypanosomatidae") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+      }
+    }
+    if ( tax_table_funtion[i,"Superphylum"] == "Diplomonadida") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Ichthyosporea") { tax_table_funtion[i,"Function"] <- "Parasitic" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Heterolobosea") { tax_table_funtion[i,"Function"] <- "Consumer" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Amoebozoa") { tax_table_funtion[i,"Function"] <- "Consumer" }
+    if ( tax_table_funtion[i,"Superphylum"] == "Rhodophyta") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
+  } 
+    
+  nrow(tax_table_funtion %>% filter(Function != "unclassed"))*100/nrow(tax_table_funtion)
+  nrow(tax_table_funtion %>% filter(Function == "Parasitic"))*100/nrow(tax_table_funtion)
+  nrow(tax_table_funtion %>% filter(Function == "Phototrophic"))*100/nrow(tax_table_funtion)
+  nrow(tax_table_funtion %>% filter(Function == "Consumer"))*100/nrow(tax_table_funtion)
+  nrow(tax_table_funtion %>% filter(Function == "uncertain"))*100/nrow(tax_table_funtion)
+  
 # HIST  --------------------------------------------------------------------
   # OTU ONLY ---------------------------------------------------------------------
     # Cycles -------------------------------------------------------------------

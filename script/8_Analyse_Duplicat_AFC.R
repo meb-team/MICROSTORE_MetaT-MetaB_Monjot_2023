@@ -43,20 +43,7 @@ if (dir.exists("../result") == FALSE) { dir.create("../result") }
 if (dir.exists(output) == FALSE) { dir.create(output) }
 if (dir.exists(output) == TRUE) { setwd(output) }
 
-system("mkdir Figure-Sum")
 system("mkdir AFC-Duplicat")
-system("mkdir Composition")
-system("mkdir HistOnly")
-system("mkdir AFC-Distribution")
-system("mkdir TableOnly")
-system("mkdir Biplot")
-system("mkdir Rarecurve")
-system("mkdir Rarecurve/Nopool")
-system("mkdir Rarecurve/Pool")
-system("mkdir Diversity")
-system("mkdir Diversity/Nopool")
-system("mkdir Diversity/Pool")
-
 
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {

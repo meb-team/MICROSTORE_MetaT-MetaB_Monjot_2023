@@ -26,6 +26,7 @@ install.packages("ggsci", repos="http://cran.rstudio.com/")
 install.packages("scales", repos="http://cran.rstudio.com/")
 install.packages("varhandle", repos="http://cran.rstudio.com/")
 install.packages("treemap", repos="http://cran.rstudio.com/")
+install.packages("VennDiagram", repos="http://cran.rstudio.com/")
 ## PANAM dependencies
 #install.packages("vegan", repos="http://cran.rstudio.com/")
 #install.packages("picante", repos="http://cran.rstudio.com/")
@@ -35,7 +36,7 @@ install.packages("treemap", repos="http://cran.rstudio.com/")
 #BiocManager::install("phyloseq")
 
 #dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite","vegan","picante","cluster","MASS","phyloseq")
-dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite")
+dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","VennDiagram","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite")
 check <- as.logical(dependencies %in% rownames(installed.packages()))
 ok <- as.logical(rep(TRUE, each = length(dependencies)))
 w <- 0

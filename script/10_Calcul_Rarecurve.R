@@ -45,6 +45,13 @@ if (dir.exists("../result") == FALSE) { dir.create("../result") }
 if (dir.exists(output) == FALSE) { dir.create(output) }
 if (dir.exists(output) == TRUE) { setwd(output) }
 
+system("mkdir Rarecurve")
+system("mkdir Rarecurve/Nopool")
+system("mkdir Rarecurve/Pool")
+system("mkdir Diversity")
+system("mkdir Diversity/Nopool")
+system("mkdir Diversity/Pool")
+
 # quickRareCurve fonction -------------------------------------------------
 quickRareCurve <- function (x, step = 1, sample, xlab = "Sequences",
                             ylab = "OTUs", label = TRUE, col, lty, max.cores = T, nCores = 1, ...)
