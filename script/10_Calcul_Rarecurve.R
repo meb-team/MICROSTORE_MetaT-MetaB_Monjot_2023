@@ -16,7 +16,7 @@
 #input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
-rarecurvecolor <- no
+rarecurvecolor <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
 
