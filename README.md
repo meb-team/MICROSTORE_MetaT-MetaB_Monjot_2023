@@ -172,6 +172,6 @@ For example:
 
 ### 3. R processing
 
-Run R workflow: `R_process.sh file.ini`
+Run R workflow: `bash R_process.sh file.ini`
 
 Results are generated in "result" file.
