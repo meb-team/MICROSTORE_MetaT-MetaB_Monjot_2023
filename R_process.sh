@@ -9,6 +9,9 @@
 # 25/11/2020
 #
 #!/bin/bash
+PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
+source $PATHCONDA'/etc/profile.d/conda.sh'
+conda activate REnv
 
 if [ $(echo $1 | grep "." |wc -l ) == 1 ]
 then
@@ -35,7 +38,7 @@ DIVISION=$(cat $inifile | grep "DIVISION" | awk -F"\t" '{ print $2 }')
 fi
 echo "Division: "$DIVISION
 FILTER=$(cat $inifile | grep "FILTER" | awk -F"\t" '{ print $2 }')
-echo "Bockulich filter: "$FILTER
+echo "Bokulich filter: "$FILTER
 TAXONOMY=$(cat $inifile | grep "TAXONOMY" | awk -F"\t" '{ print $2 }')
 echo "Taxonomy mode: "$TAXONOMY
 UNIFY=$(cat $inifile | grep "UNIFY" | awk -F"\t" '{ print $2 }')

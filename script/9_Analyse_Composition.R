@@ -44,7 +44,7 @@ lapply(pkg, require, character.only = TRUE)
 #palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
 #show_col(palette)
 #palette <- c("#D43F3ACC","#EEA236CC","#AD002ACC","#46B8DACC","#357EBDCC","#9632B8CC","#B8B8B8CC","#00468BCC","#ED0000CC","#42B540CC","#0099B4CC","#925E9FCC")
-palette <- c("#EEA236CC","#AD002ACC","#00468BCC","#0099B4CC","#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#9632B8CC","#EFC000CC","#D43F3ACC","#5CB85CCC","#46B8DACC","#FF7F0ECC","#925E9FCC","#B8B8B8CC")
+palette <- c("#AD002ACC","#EEA236CC","#00468BCC","#0099B4CC","#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#9632B8CC","#EFC000CC","#D43F3ACC","#FF7F0ECC","#46B8DACC","#5CB85CCC","#925E9FCC","#B8B8B8CC")
 show_col(palette)
 
 
@@ -54,11 +54,12 @@ if (dir.exists("../result") == FALSE) { dir.create("../result") }
 if (dir.exists(output) == FALSE) { dir.create(output) }
 if (dir.exists(output) == TRUE) { setwd(output) }
 
-system("mkdir Figure-Sum")
+system("mkdir Stat-Analyse")
 system("mkdir Composition")
-system("mkdir HistOnly")
+system("mkdir Hist-Taxomy")
+system("mkdir Hist-Function")
 system("mkdir AFC-Distribution")
-system("mkdir TableOnly")
+system("mkdir Table")
 system("mkdir Biplot")
 system("mkdir Venn")
 
@@ -336,7 +337,7 @@ OTUap <- OTUap %>% filter(OTU_Id != "Uniq")
 ### Final
 statRarefy["Total","avRarefy-OTU"] <- nrow(OTUav)
 statRarefy["Total","apRarefy-OTU"] <- nrow(OTUap)
-write.table(statRarefy, file = "TableOnly/StatRarefy_withoutDuplicat.txt", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(statRarefy, file = "Table/StatRarefy_withoutDuplicat.txt", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
 
   # Sum files ---------------------------------------------------------------
 ## Rarefaction stat Fig
@@ -347,7 +348,7 @@ amplicon <- c(grep(pattern = "OSTA", colnames(OTUap), value = TRUE))
 statRarefyOTU <- melt(statRarefyOTU[all_of(amplicon),], id = "Echantillon")
 my_comp <- list(c("OUI","NON"))
 
-svglite("Figure-Sum/Stat-Rarefy.svg",width = 3.00,height = 4.00)
+svglite("Stat-Analyse/Stat-Rarefy.svg",width = 3.00,height = 4.00)
 R <- ggplot(statRarefyOTU, aes(y = value, x = variable)) + geom_boxplot() + geom_point(aes(color = Echantillon), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(statRarefyOTU$value)+0.12*max(statRarefyOTU$value)) +
@@ -369,7 +370,7 @@ statRarefy[Amplicon_without_duplicat,"Fusion"] <- "NON"
 statRarefy$Echantillon <- rownames(statRarefy)
 my_comp <- list(c("OUI","NON"))
 ### OTU après Rarefy
-svglite("Figure-Sum/Analyse-SumApRare-OTU.svg",width = 3.00,height = 4.00)
+svglite("Stat-Analyse/Analyse-SumApRare-OTU.svg",width = 3.00,height = 4.00)
 J <- ggplot(statRarefy, aes(y = `apRarefy-OTU`, x = Fusion)) + geom_boxplot() + geom_point(aes(color = Echantillon), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(statRarefy$`apRarefy-OTU`)+0.12*max(statRarefy$`apRarefy-OTU`)) +
@@ -384,7 +385,7 @@ J <- J + theme(legend.position="none")
 print(J)
 dev.off()  
 ### Séquence avant Rarefy
-svglite("Figure-Sum/Analyse-SumAvRare-Sequences.svg",width = 3.00,height = 4.00)
+svglite("Stat-Analyse/Analyse-SumAvRare-Sequences.svg",width = 3.00,height = 4.00)
 G <- ggplot(statRarefy, aes(y = `avRarefy-Sequence`, x = Fusion)) + geom_boxplot() + geom_point(aes(color = Echantillon), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(statRarefy$`avRarefy-Sequence`)+0.12*max(statRarefy$`avRarefy-Sequence`)) +
@@ -399,7 +400,7 @@ G <- G + theme(legend.position="none")
 print(G)
 dev.off()  
 ### OTU avant Rarefy
-svglite("Figure-Sum/Analyse-SumAvRare-OTU.svg",width = 3.00,height = 4.00)
+svglite("Stat-Analyse/Analyse-SumAvRare-OTU.svg",width = 3.00,height = 4.00)
 H <- ggplot(statRarefy, aes(y = `avRarefy-OTU`, x = Fusion)) + geom_boxplot() + geom_point(aes(color = Echantillon), size = 2.5) + 
   stat_compare_means(method="wilcox.test", paired = FALSE, label = "p.signif", comparisons = my_comp) +
   stat_compare_means(method="wilcox.test", label.y = max(statRarefy$`avRarefy-OTU`)+0.12*max(statRarefy$`avRarefy-OTU`)) +
@@ -433,7 +434,7 @@ tax_stat$Level <- factor(tax_stat$Level , levels=c("Domain","Superphylum","Phylu
 tax_stat$variable <- factor(tax_stat$variable , levels=c("Not affiliated","Count"))
 
 #
-svglite("Figure-Sum/Stat-Taxo.svg",width = 9.00,height = 5.00)
+svglite("Stat-Analyse/Stat-Taxo.svg",width = 9.00,height = 5.00)
 tax_plot <- ggplot(tax_stat, mapping = aes(x= Level, y = value, fill = variable, color = variable ,linetype = variable), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
   scale_fill_manual(values = alpha(c("#1212ff","#1212ff"), c(0.25,0.5))) +
   geom_label(aes(y = value + 0.07*max(value),label = paste(value," OTUs","\n", round(value*100/nrow(tableVinput),1)," %",sep =""), color = variable, alpha = variable),size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
@@ -470,7 +471,7 @@ while ( i < max(OTU_stat$`OTU Abuncance`)) { print (i)
   i <- i*4}
 ## plot
 OTU_stat$type <- factor(OTU_stat$type , levels=c("Raw","Raw_Pool","Rarefy_Pool"))
-svglite("Figure-Sum/OTU-Stat.svg",width = 10.00,height = 5.00)
+svglite("Stat-Analyse/OTU-Stat.svg",width = 10.00,height = 5.00)
 ggplot(OTU_stat, aes(x = `OTU Abuncance`)) +facet_grid(.~type) + 
   stat_bin(binwidth = 1,color = "white", fill = "#1212ff", alpha = 0.5) +
   scale_y_continuous() +
@@ -1469,27 +1470,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
 # Prepare Functionnal affiliation -----------------------------------------
   tax_table_funtion <- tax_table
   tax_table_funtion$Function <- "unclassed"
-  #Superphylum
-  Division_Superphylum <- unique(tax_table_funtion$Superphylum)
-  Division_Fungi <- unique(tax_table_funtion %>% filter(Superphylum == "Fungi") %>% select(Phylum))
-    Division_Dikarya <- unique(tax_table_funtion %>% filter(Phylum == "Dikarya") %>% select(Class))
-    Division_Fungi_incertae_sedis <- unique(tax_table_funtion %>% filter(Phylum == "Fungi incertae sedis") %>% select(Class))
-  Division_Alveolata <- unique(tax_table_funtion %>% filter(Superphylum == "Alveolata") %>% select(Phylum))
-    Division_Dinophyceae <- unique(tax_table_funtion %>% filter(Phylum == "Dinophyceae") %>% select(Class))
-      Division_Peridiniales <- unique(tax_table_funtion %>% filter(Class == "Peridiniales") %>% select(Order))
-      Division_Lophodiniales <- unique(tax_table_funtion %>% filter(Class == "Lophodiniales") %>% select(Order))
-        Division_Lophodiniaceae <- unique(tax_table_funtion %>% filter(Order == "Lophodiniaceae") %>% select(Genus))
-  Division_Stramenopiles <- unique(tax_table_funtion %>% filter(Superphylum == "Stramenopiles") %>% select(Phylum))
-    Division_Labyrinthulida <- unique(tax_table_funtion %>% filter(Phylum == "Labyrinthulida") %>% select(Class))
-      Division_Thraustochytriidae <- unique(tax_table_funtion %>% filter(Class == "Thraustochytriidae") %>% select(Order))
-    Division_Chrysophyceae <- unique(tax_table_funtion %>% filter(Phylum == "Chrysophyceae") %>% select(Class))
-    Division_PX_clade <- unique(tax_table_funtion %>% filter(Phylum == "PX clade") %>% select(Class))
-  Division_Rhizaria <- unique(tax_table_funtion %>% filter(Superphylum == "Rhizaria") %>% select(Phylum))
-    Division_Cercozoa <- unique(tax_table_funtion %>% filter(Phylum == "Cercozoa") %>% select(Class))
-  Division_Euglenozoa <- unique(tax_table_funtion %>% filter(Superphylum == "Euglenozoa") %>% select(Phylum))
-    Division_Euglenida <- unique(tax_table_funtion %>% filter(Phylum == "Euglenida") %>% select(Class))
-    Division_Kinetoplastida <- unique(tax_table_funtion %>% filter(Phylum == "Kinetoplastida") %>% select(Class))
-  
+  # Identifier --------------------------------------------------------------
   for (i in row.names(tax_table_funtion)) {
     if ( tax_table_funtion[i,"Superphylum"] == "Alveolata") {
       if ( tax_table_funtion[i,"Phylum"] == "Ciliophora") { tax_table_funtion[i,"Function"] <- "Consumer" }
@@ -1524,11 +1505,11 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
       if ( tax_table_funtion[i,"Phylum"] == "Chrysophyceae") { tax_table_funtion[i,"Function"] <- "uncertain" }
       if ( tax_table_funtion[i,"Phylum"] == "Oomycetes") { tax_table_funtion[i,"Function"] <- "Parasitic" }
       if ( tax_table_funtion[i,"Phylum"] == "MAST-2") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "MAST-12") { tax_table_funtion[i,"Function"] <- "Consumer" }
+      if ( tax_table_funtion[i,"Phylum"] == "MAST-1") { tax_table_funtion[i,"Function"] <- "Consumer" }
       if ( tax_table_funtion[i,"Phylum"] == "Pirsonia") { tax_table_funtion[i,"Function"] <- "Parasitic" }
       if ( tax_table_funtion[i,"Phylum"] == "Dictyochophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
       if ( tax_table_funtion[i,"Phylum"] == "Eustigmatophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
-      if ( tax_table_funtion[i,"Phylum"] == "MAST-12") { tax_table_funtion[i,"Function"] <- "Consumer" }
-      if ( tax_table_funtion[i,"Phylum"] == "MAST-1") { tax_table_funtion[i,"Function"] <- "Consumer" }
       if ( tax_table_funtion[i,"Phylum"] == "PX clade") {
         if ( tax_table_funtion[i,"Class"] == "Phaeophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
         if ( tax_table_funtion[i,"Class"] == "Xanthophyceae") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
@@ -1558,12 +1539,849 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
     if ( tax_table_funtion[i,"Superphylum"] == "Amoebozoa") { tax_table_funtion[i,"Function"] <- "Consumer" }
     if ( tax_table_funtion[i,"Superphylum"] == "Rhodophyta") { tax_table_funtion[i,"Function"] <- "Phototrophic" }
   } 
-    
-  nrow(tax_table_funtion %>% filter(Function != "unclassed"))*100/nrow(tax_table_funtion)
-  nrow(tax_table_funtion %>% filter(Function == "Parasitic"))*100/nrow(tax_table_funtion)
-  nrow(tax_table_funtion %>% filter(Function == "Phototrophic"))*100/nrow(tax_table_funtion)
-  nrow(tax_table_funtion %>% filter(Function == "Consumer"))*100/nrow(tax_table_funtion)
-  nrow(tax_table_funtion %>% filter(Function == "uncertain"))*100/nrow(tax_table_funtion)
+  tax_table_funtion <- tax_table_funtion %>% select(OTU_Id,Function)
+  
+  # HIST-Function  --------------------------------------------------------------------
+    # OTU ONLY ---------------------------------------------------------------------
+    data_otu_function <- merge(data_otu_tax,tax_table_funtion, by = "OTU_Id")
+      # Cycle -------------------------------------------------------------------
+    ## Jour
+  onlyJourOTU <- data_otu_function %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Function)
+  row.names(onlyJourOTU) <- onlyJourOTU$OTU_Id ; onlyJourOTU <- onlyJourOTU %>% select(-OTU_Id)
+  onlyJourOTU <- onlyJourOTU %>% group_by(Function) %>% summarise_all(sum)
+  onlyJourOTU$TotalJour <- onlyJourOTU$TotalJour*100/sum(onlyJourOTU$TotalJour)
+  onlyJourOTU <- onlyJourOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+  onlyJourOTU$label <- paste(round(onlyJourOTU$TotalJour,1), "%", sep = "")
+  for (i in rownames(onlyJourOTU)) {
+    if (onlyJourOTU[i,"label"] == "0%") { onlyJourOTU[i,"label"] <- NA}}
+  for (i in rownames(onlyJourOTU)) {
+    if (is.na(onlyJourOTU[i,"label"]) == FALSE) { onlyJourOTU[i,"label"] <- paste(onlyJourOTU[i,"Function"]," : ",onlyJourOTU[i,"label"], sep = "")}}
+  onlyJourOTU$Cycle<- rep("Jour", each = nrow(onlyJourOTU))
+  ## Nuit
+  onlyNuitOTU <- data_otu_function %>% filter(Cycle == "Nuit") %>% select(OTU_Id,TotalNuit,Function)
+  row.names(onlyNuitOTU)<-onlyNuitOTU$OTU_Id ; onlyNuitOTU <- onlyNuitOTU %>% select(-OTU_Id)
+  onlyNuitOTU <- onlyNuitOTU %>% group_by(Function) %>% summarise_all(sum)
+  onlyNuitOTU$TotalNuit <- onlyNuitOTU$TotalNuit*100/sum(onlyNuitOTU$TotalNuit)
+  onlyNuitOTU <- onlyNuitOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+  onlyNuitOTU$label <- paste(round(onlyNuitOTU$TotalNuit,1), "%", sep = "")
+  for (i in rownames(onlyNuitOTU)) {
+    if (onlyNuitOTU[i,"label"] == "0%") { onlyNuitOTU[i,"label"] <- NA}}
+  for (i in rownames(onlyNuitOTU)) {
+    if (is.na(onlyNuitOTU[i,"label"]) == FALSE) { onlyNuitOTU[i,"label"] <- paste(onlyNuitOTU[i,"Function"]," : ",onlyNuitOTU[i,"label"], sep = "")}}
+  onlyNuitOTU$Cycle<- rep("Nuit", each = nrow(onlyNuitOTU))
+  ## Cycle
+  colnames(onlyJourOTU)[2]  <- "value"
+  onlyJourOTU$Sum <- rep(0, each = nrow(onlyJourOTU))
+  onlyJourOTU$Count <- rep(0, each = nrow(onlyJourOTU))
+  for (i in onlyJourOTU$Function) { onlyJourOTU$Count[which(onlyJourOTU$Function == i)] <- nrow(data_otu_function %>% filter(Cycle == "Jour") %>% filter(Function == i))}
+  onlyJourOTU$Sum <- sum(onlyJourOTU$Count)
+  colnames(onlyNuitOTU)[2]  <- "value"
+  onlyNuitOTU$Sum <- rep(0, each = nrow(onlyNuitOTU))
+  onlyNuitOTU$Count <- rep(0, each = nrow(onlyNuitOTU))
+  for (i in onlyNuitOTU$Function) { onlyNuitOTU$Count[which(onlyNuitOTU$Function == i)] <- nrow(data_otu_function %>% filter(Cycle == "Nuit") %>% filter(Function == i))}
+  onlyNuitOTU$Sum <- sum(onlyNuitOTU$Count)
+  onlyCycleOTU <- rbind(onlyJourOTU,onlyNuitOTU)
+  #Figure
+  az <- ggplot(onlyCycleOTU, mapping = aes(y= value, x = Cycle, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+  legendOTU <- get_legend(az)
+  az <- az + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
+  print(az)
+  
+  
+      # Zone -------------------------------------------------------------------
+  ## Oxique
+  onlyOxiqueOTU <- data_otu_function %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Function)
+  row.names(onlyOxiqueOTU)<-onlyOxiqueOTU$OTU_Id ; onlyOxiqueOTU <- onlyOxiqueOTU %>% select(-OTU_Id)
+  onlyOxiqueOTU <- onlyOxiqueOTU %>% group_by(Function) %>% summarise_all(sum)
+  onlyOxiqueOTU$TotalOxique <- onlyOxiqueOTU$TotalOxique*100/sum(onlyOxiqueOTU$TotalOxique)
+  onlyOxiqueOTU <- onlyOxiqueOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+  onlyOxiqueOTU$label <- paste(round(onlyOxiqueOTU$TotalOxique,1), "%", sep = "")
+  for (i in rownames(onlyOxiqueOTU)) {
+    if (onlyOxiqueOTU[i,"label"] == "0%") { onlyOxiqueOTU[i,"label"] <- NA}}
+  for (i in rownames(onlyOxiqueOTU)) {
+    if (is.na(onlyOxiqueOTU[i,"label"]) == FALSE) { onlyOxiqueOTU[i,"label"] <- paste(onlyOxiqueOTU[i,"Function"]," : ",onlyOxiqueOTU[i,"label"], sep = "")}}
+  onlyOxiqueOTU$Zone<- rep("Oxique", each = nrow(onlyOxiqueOTU))
+  ## Anoxique
+  onlyAnoxiqueOTU <- data_otu_function %>% filter(Zone == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Function)
+  row.names(onlyAnoxiqueOTU)<-onlyAnoxiqueOTU$OTU_Id ; onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>% select(-OTU_Id)
+  onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>% group_by(Function) %>% summarise_all(sum)
+  onlyAnoxiqueOTU$TotalAnoxique <- onlyAnoxiqueOTU$TotalAnoxique*100/sum(onlyAnoxiqueOTU$TotalAnoxique)
+  onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+  onlyAnoxiqueOTU$label <- paste(round(onlyAnoxiqueOTU$TotalAnoxique,1), "%", sep = "")
+  for (i in rownames(onlyAnoxiqueOTU)) {
+    if (onlyAnoxiqueOTU[i,"label"] == "0%") { onlyAnoxiqueOTU[i,"label"] <- NA}}
+  for (i in rownames(onlyAnoxiqueOTU)) {
+    if (is.na(onlyAnoxiqueOTU[i,"label"]) == FALSE) { onlyAnoxiqueOTU[i,"label"] <- paste(onlyAnoxiqueOTU[i,"Function"]," : ",onlyAnoxiqueOTU[i,"label"], sep = "")}}
+  onlyAnoxiqueOTU$Zone<- rep("Anoxique", each = nrow(onlyAnoxiqueOTU))
+  ## Zone
+  colnames(onlyOxiqueOTU)[2]  <- "value"
+  onlyOxiqueOTU$Sum <- rep(0, each = nrow(onlyOxiqueOTU))
+  onlyOxiqueOTU$Count <- rep(0, each = nrow(onlyOxiqueOTU))
+  for (i in onlyOxiqueOTU$Function) { onlyOxiqueOTU$Count[which(onlyOxiqueOTU$Function == i)] <- nrow(data_otu_function %>% filter(Zone == "Oxique") %>% filter(Function == i))}
+  onlyOxiqueOTU$Sum <- sum(onlyOxiqueOTU$Count)
+  colnames(onlyAnoxiqueOTU)[2]  <- "value"
+  onlyAnoxiqueOTU$Sum <- rep(0, each = nrow(onlyAnoxiqueOTU))
+  onlyAnoxiqueOTU$Count <- rep(0, each = nrow(onlyAnoxiqueOTU))
+  for (i in onlyAnoxiqueOTU$Function) { onlyAnoxiqueOTU$Count[which(onlyAnoxiqueOTU$Function == i)] <- nrow(data_otu_function %>% filter(Zone == "Anoxique") %>% filter(Function == i))}
+  onlyAnoxiqueOTU$Sum <- sum(onlyAnoxiqueOTU$Count)
+  onlyZoneOTU <- rbind(onlyOxiqueOTU,onlyAnoxiqueOTU)
+  #Figure
+  bz <- ggplot(onlyZoneOTU, mapping = aes(y= value, x = Zone, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+  bz <- bz + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
+  print(bz)
+  
+      # Fraction -------------------------------------------------------------------
+  ## Petite
+  onlyPetiteOTU <- data_otu_function %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Function)
+  row.names(onlyPetiteOTU)<-onlyPetiteOTU$OTU_Id ; onlyPetiteOTU <- onlyPetiteOTU %>% select(-OTU_Id)
+  onlyPetiteOTU <- onlyPetiteOTU %>% group_by(Function) %>% summarise_all(sum)
+  onlyPetiteOTU$TotalPetite <- onlyPetiteOTU$TotalPetite*100/sum(onlyPetiteOTU$TotalPetite)
+  onlyPetiteOTU <- onlyPetiteOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+  onlyPetiteOTU$label <- paste(round(onlyPetiteOTU$TotalPetite,1), "%", sep = "")
+  for (i in rownames(onlyPetiteOTU)) {
+    if (onlyPetiteOTU[i,"label"] == "0%") { onlyPetiteOTU[i,"label"] <- NA}}
+  for (i in rownames(onlyPetiteOTU)) {
+    if (is.na(onlyPetiteOTU[i,"label"]) == FALSE) { onlyPetiteOTU[i,"label"] <- paste(onlyPetiteOTU[i,"Function"]," : ",onlyPetiteOTU[i,"label"], sep = "")}}
+  onlyPetiteOTU$Fraction<- rep("Petite", each = nrow(onlyPetiteOTU))
+  ## Grande
+  onlyGrandeOTU <- data_otu_function %>% filter(Fraction == "Grande") %>% select(OTU_Id,TotalGrande,Function)
+  row.names(onlyGrandeOTU)<-onlyGrandeOTU$OTU_Id
+  onlyGrandeOTU <- onlyGrandeOTU %>% select(-OTU_Id)
+  onlyGrandeOTU <- onlyGrandeOTU %>% group_by(Function) %>% summarise_all(sum)
+  onlyGrandeOTU$TotalGrande <- onlyGrandeOTU$TotalGrande*100/sum(onlyGrandeOTU$TotalGrande)
+  onlyGrandeOTU <- onlyGrandeOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+  onlyGrandeOTU$label <- paste(round(onlyGrandeOTU$TotalGrande,1), "%", sep = "")
+  for (i in rownames(onlyGrandeOTU)) {
+    if (onlyGrandeOTU[i,"label"] == "0%") { onlyGrandeOTU[i,"label"] <- NA}}
+  for (i in rownames(onlyGrandeOTU)) {
+    if (is.na(onlyGrandeOTU[i,"label"]) == FALSE) { onlyGrandeOTU[i,"label"] <- paste(onlyGrandeOTU[i,"Function"]," : ",onlyGrandeOTU[i,"label"], sep = "")}}
+  onlyGrandeOTU$Fraction<- rep("Grande", each = nrow(onlyGrandeOTU))
+  ## Fraction
+  colnames(onlyPetiteOTU)[2]  <- "value"
+  onlyPetiteOTU$Sum <- rep(0, each = nrow(onlyPetiteOTU))
+  onlyPetiteOTU$Count <- rep(0, each = nrow(onlyPetiteOTU))
+  for (i in onlyPetiteOTU$Function) { onlyPetiteOTU$Count[which(onlyPetiteOTU$Function == i)] <- nrow(data_otu_function %>% filter(Fraction == "Petite") %>% filter(Function == i))}
+  onlyPetiteOTU$Sum <- sum(onlyPetiteOTU$Count)
+  colnames(onlyGrandeOTU)[2]  <- "value"
+  onlyGrandeOTU$Sum <- rep(0, each = nrow(onlyGrandeOTU))
+  onlyGrandeOTU$Count <- rep(0, each = nrow(onlyGrandeOTU))
+  for (i in onlyGrandeOTU$Function) { onlyGrandeOTU$Count[which(onlyGrandeOTU$Function == i)] <- nrow(data_otu_function %>% filter(Fraction == "Grande") %>% filter(Function == i))}
+  onlyGrandeOTU$Sum <- sum(onlyGrandeOTU$Count)
+  onlyFractionOTU <- rbind(onlyPetiteOTU,onlyGrandeOTU)
+  #Figure
+  cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  cz <- cz + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
+  print(cz) 
+      # Coplot -------------------------------------------------------------------
+  svglite("Hist-Function/OTU-Function-only.svg",width = 10.00,height = 8.00)
+  b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+  print(b_plot)
+  dev.off()  
+    # OTU TOTAL---------------------------------------------------------------------
+    data_otu_function <- merge(data_otu_tax,tax_table_funtion, by = "OTU_Id")
+      # Cycle -------------------------------------------------------------------
+  ## Jour
+  totalJourOTU <- data_otu_function %>% select(OTU_Id,TotalJour,Function)
+  row.names(totalJourOTU)<-totalJourOTU$OTU_Id ; totalJourOTU <- totalJourOTU %>% select(-OTU_Id)
+  totalJourOTU <- totalJourOTU %>% group_by(Function) %>% summarise_all(sum)
+  totalJourOTU$TotalJour <- totalJourOTU$TotalJour*100/sum(totalJourOTU$TotalJour)
+  totalJourOTU <- totalJourOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+  totalJourOTU$label <- paste(round(totalJourOTU$TotalJour,1), "%", sep = "")
+  for (i in rownames(totalJourOTU)) {
+    if (totalJourOTU[i,"label"] == "0%") { totalJourOTU[i,"label"] <- NA}}
+  for (i in rownames(totalJourOTU)) {
+    if (is.na(totalJourOTU[i,"label"]) == FALSE) { totalJourOTU[i,"label"] <- paste(totalJourOTU[i,"Function"]," : ",totalJourOTU[i,"label"], sep = "")}}
+  totalJourOTU$Cycle<- rep("Jour", each = nrow(totalJourOTU))
+  ##Nuit
+  totalNuitOTU <- data_otu_function %>% select(OTU_Id,TotalNuit,Function)
+  row.names(totalNuitOTU)<-totalNuitOTU$OTU_Id ; totalNuitOTU <- totalNuitOTU %>% select(-OTU_Id)
+  totalNuitOTU <- totalNuitOTU %>% group_by(Function) %>% summarise_all(sum)
+  totalNuitOTU$TotalNuit <- totalNuitOTU$TotalNuit*100/sum(totalNuitOTU$TotalNuit)
+  totalNuitOTU <- totalNuitOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+  totalNuitOTU$label <- paste(round(totalNuitOTU$TotalNuit,1), "%", sep = "")
+  for (i in rownames(totalNuitOTU)) {
+    if (totalNuitOTU[i,"label"] == "0%") { totalNuitOTU[i,"label"] <- NA}}
+  for (i in rownames(totalNuitOTU)) {
+    if (is.na(totalNuitOTU[i,"label"]) == FALSE) { totalNuitOTU[i,"label"] <- paste(totalNuitOTU[i,"Function"]," : ",totalNuitOTU[i,"label"], sep = "")}}
+  totalNuitOTU$Cycle<- rep("Nuit", each = nrow(totalNuitOTU))
+  ##Cycle
+  colnames(totalJourOTU)[2]  <- "value"
+  totalJourOTU$Sum <- rep(0, each = nrow(totalJourOTU))
+  totalJourOTU$Count <- rep(0, each = nrow(totalJourOTU))
+  for (i in totalJourOTU$Function) { totalJourOTU$Count[which(totalJourOTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(TotalJour))}
+  totalJourOTU$Sum <- sum(totalJourOTU$Count)
+  colnames(totalNuitOTU)[2]  <- "value"
+  totalNuitOTU$Sum <- rep(0, each = nrow(totalNuitOTU))
+  totalNuitOTU$Count <- rep(0, each = nrow(totalNuitOTU))
+  for (i in totalNuitOTU$Function) { totalNuitOTU$Count[which(totalNuitOTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(TotalNuit))}
+  totalNuitOTU$Sum <- sum(totalNuitOTU$Count)
+  totalCycleOTU <- rbind(totalJourOTU,totalNuitOTU)
+  
+  #Figure
+  ay <- ggplot(totalCycleOTU, mapping = aes(y= value, x = Cycle, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette) + 
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  legendOTU <- get_legend(ay)
+  ay <- ay + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
+  print(ay)
+  
+      # Zone -------------------------------------------------------------------
+  ## Oxique
+  totalOxiqueOTU <- data_otu_function %>% select(OTU_Id,TotalOxique,Function)
+  row.names(totalOxiqueOTU)<-totalOxiqueOTU$OTU_Id ; totalOxiqueOTU <- totalOxiqueOTU %>% select(-OTU_Id)
+  totalOxiqueOTU <- totalOxiqueOTU %>% group_by(Function) %>% summarise_all(sum)
+  totalOxiqueOTU$TotalOxique <- totalOxiqueOTU$TotalOxique*100/sum(totalOxiqueOTU$TotalOxique)
+  totalOxiqueOTU <- totalOxiqueOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+  totalOxiqueOTU$label <- paste(round(totalOxiqueOTU$TotalOxique,1), "%", sep = "")
+  for (i in rownames(totalOxiqueOTU)) {
+    if (totalOxiqueOTU[i,"label"] == "0%") { totalOxiqueOTU[i,"label"] <- NA}}
+  for (i in rownames(totalOxiqueOTU)) {
+    if (is.na(totalOxiqueOTU[i,"label"]) == FALSE) { totalOxiqueOTU[i,"label"] <- paste(totalOxiqueOTU[i,"Function"]," : ",totalOxiqueOTU[i,"label"], sep = "")}}
+  totalOxiqueOTU$Zone<- rep("Oxique", each = nrow(totalOxiqueOTU))
+  ## Anoxique
+  totalAnoxiqueOTU <- data_otu_function %>% select(OTU_Id,TotalAnoxique,Function)
+  row.names(totalAnoxiqueOTU)<-totalAnoxiqueOTU$OTU_Id ; totalAnoxiqueOTU <- totalAnoxiqueOTU %>% select(-OTU_Id)
+  totalAnoxiqueOTU <- totalAnoxiqueOTU %>% group_by(Function) %>% summarise_all(sum)
+  totalAnoxiqueOTU$TotalAnoxique <- totalAnoxiqueOTU$TotalAnoxique*100/sum(totalAnoxiqueOTU$TotalAnoxique)
+  totalAnoxiqueOTU <- totalAnoxiqueOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+  totalAnoxiqueOTU$label <- paste(round(totalAnoxiqueOTU$TotalAnoxique,1), "%", sep = "")
+  for (i in rownames(totalAnoxiqueOTU)) {
+    if (totalAnoxiqueOTU[i,"label"] == "0%") { totalAnoxiqueOTU[i,"label"] <- NA}}
+  for (i in rownames(totalAnoxiqueOTU)) {
+    if (is.na(totalAnoxiqueOTU[i,"label"]) == FALSE) { totalAnoxiqueOTU[i,"label"] <- paste(totalAnoxiqueOTU[i,"Function"]," : ",totalAnoxiqueOTU[i,"label"], sep = "")}}
+  totalAnoxiqueOTU$Zone<- rep("Anoxique", each = nrow(totalAnoxiqueOTU))
+  ## Zone
+  colnames(totalOxiqueOTU)[2]  <- "value"
+  totalOxiqueOTU$Sum <- rep(0, each = nrow(totalOxiqueOTU))
+  totalOxiqueOTU$Count <- rep(0, each = nrow(totalOxiqueOTU))
+  for (i in totalOxiqueOTU$Function) { totalOxiqueOTU$Count[which(totalOxiqueOTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(TotalOxique))}
+  totalOxiqueOTU$Sum <- sum(totalOxiqueOTU$Count)
+  colnames(totalAnoxiqueOTU)[2]  <- "value"
+  totalAnoxiqueOTU$Sum <- rep(0, each = nrow(totalAnoxiqueOTU))
+  totalAnoxiqueOTU$Count <- rep(0, each = nrow(totalAnoxiqueOTU))
+  for (i in totalAnoxiqueOTU$Function) { totalAnoxiqueOTU$Count[which(totalAnoxiqueOTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(TotalAnoxique))}
+  totalAnoxiqueOTU$Sum <- sum(totalAnoxiqueOTU$Count)
+  totalZoneOTU <- rbind(totalOxiqueOTU,totalAnoxiqueOTU)
+  #Figure
+  by <- ggplot(totalZoneOTU, mapping = aes(y= value, x = Zone, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette) + 
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  by <- by + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
+  print(by)
+  
+      # Fraction -------------------------------------------------------------------
+  ## Petite
+  totalPetiteOTU <- data_otu_function %>% select(OTU_Id,TotalPetite,Function)
+  row.names(totalPetiteOTU)<-totalPetiteOTU$OTU_Id ; totalPetiteOTU <- totalPetiteOTU %>% select(-OTU_Id)
+  totalPetiteOTU <- totalPetiteOTU %>% group_by(Function) %>% summarise_all(sum)
+  totalPetiteOTU$TotalPetite <- totalPetiteOTU$TotalPetite*100/sum(totalPetiteOTU$TotalPetite)
+  totalPetiteOTU <- totalPetiteOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+  totalPetiteOTU$label <- paste(round(totalPetiteOTU$TotalPetite,1), "%", sep = "")
+  for (i in rownames(totalPetiteOTU)) {
+    if (totalPetiteOTU[i,"label"] == "0%") { totalPetiteOTU[i,"label"] <- NA}}
+  for (i in rownames(totalPetiteOTU)) {
+    if (is.na(totalPetiteOTU[i,"label"]) == FALSE) { totalPetiteOTU[i,"label"] <- paste(totalPetiteOTU[i,"Function"]," : ",totalPetiteOTU[i,"label"], sep = "")}}
+  totalPetiteOTU$Fraction<- rep("Petite", each = nrow(totalPetiteOTU))
+  ## Grande
+  totalGrandeOTU <- data_otu_function %>% select(OTU_Id,TotalGrande,Function)
+  row.names(totalGrandeOTU)<-totalGrandeOTU$OTU_Id ; totalGrandeOTU <- totalGrandeOTU %>% select(-OTU_Id)
+  totalGrandeOTU <- totalGrandeOTU %>% group_by(Function) %>% summarise_all(sum)
+  totalGrandeOTU$TotalGrande <- totalGrandeOTU$TotalGrande*100/sum(totalGrandeOTU$TotalGrande)
+  totalGrandeOTU <- totalGrandeOTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+  totalGrandeOTU$label <- paste(round(totalGrandeOTU$TotalGrande,1), "%", sep = "")
+  for (i in rownames(totalGrandeOTU)) {
+    if (totalGrandeOTU[i,"label"] == "0%") { totalGrandeOTU[i,"label"] <- NA}}
+  for (i in rownames(totalGrandeOTU)) {
+    if (is.na(totalGrandeOTU[i,"label"]) == FALSE) { totalGrandeOTU[i,"label"] <- paste(totalGrandeOTU[i,"Function"]," : ",totalGrandeOTU[i,"label"], sep = "")}}
+  totalGrandeOTU$Fraction<- rep("Grande", each = nrow(totalGrandeOTU))
+  ## Fraction
+  colnames(totalPetiteOTU)[2]  <- "value"
+  totalPetiteOTU$Sum <- rep(0, each = nrow(totalPetiteOTU))
+  totalPetiteOTU$Count <- rep(0, each = nrow(totalPetiteOTU))
+  for (i in totalPetiteOTU$Function) { totalPetiteOTU$Count[which(totalPetiteOTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(TotalPetite))}
+  totalPetiteOTU$Sum <- sum(totalPetiteOTU$Count)
+  colnames(totalGrandeOTU)[2]  <- "value"
+  totalGrandeOTU$Sum <- rep(0, each = nrow(totalGrandeOTU))
+  totalGrandeOTU$Count <- rep(0, each = nrow(totalGrandeOTU))
+  for (i in totalGrandeOTU$Function) { totalGrandeOTU$Count[which(totalGrandeOTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(TotalGrande))}
+  totalGrandeOTU$Sum <- sum(totalGrandeOTU$Count)
+  totalFractionOTU <- rbind(totalPetiteOTU,totalGrandeOTU)
+  #Figure
+  cy <- ggplot(totalFractionOTU, mapping = aes(y= value, x = Fraction, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  cy <- cy + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
+  print(cy) 
+      # Date -------------------------------------------------------------------
+  ## Avril
+  total04OTU <- data_otu_function %>% select(OTU_Id,Total04,Function)
+  row.names(total04OTU)<-total04OTU$OTU_Id ; total04OTU <- total04OTU %>% select(-OTU_Id)
+  total04OTU <- total04OTU %>% group_by(Function) %>% summarise_all(sum)
+  total04OTU$Total04 <- total04OTU$Total04*100/sum(total04OTU$Total04)
+  total04OTU <- total04OTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total04) - 0.5*Total04)
+  total04OTU$label <- paste(round(total04OTU$Total04,1), "%", sep = "")
+  for (i in rownames(total04OTU)) {
+    if (total04OTU[i,"label"] == "0%") { total04OTU[i,"label"] <- NA}}
+  for (i in rownames(total04OTU)) {
+    if (is.na(total04OTU[i,"label"]) == FALSE) { total04OTU[i,"label"] <- paste(total04OTU[i,"Function"]," : ",total04OTU[i,"label"], sep = "")}}
+  total04OTU$Date<- rep("04", each = nrow(total04OTU))
+  ## Juin
+  total06OTU <- data_otu_function %>% select(OTU_Id,Total06,Function)
+  row.names(total06OTU)<-total06OTU$OTU_Id ; total06OTU <- total06OTU %>% select(-OTU_Id)
+  total06OTU <- total06OTU %>% group_by(Function) %>% summarise_all(sum)
+  total06OTU$Total06 <- total06OTU$Total06*100/sum(total06OTU$Total06)
+  total06OTU <- total06OTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total06) - 0.5*Total06)
+  total06OTU$label <- paste(round(total06OTU$Total06,1), "%", sep = "")
+  for (i in rownames(total06OTU)) {
+    if (total06OTU[i,"label"] == "0%") { total06OTU[i,"label"] <- NA}}
+  for (i in rownames(total06OTU)) {
+    if (is.na(total06OTU[i,"label"]) == FALSE) { total06OTU[i,"label"] <- paste(total06OTU[i,"Function"]," : ",total06OTU[i,"label"], sep = "")}}
+  total06OTU$Date<- rep("06", each = nrow(total06OTU))
+  ## Septembre
+  total09OTU <- data_otu_function %>% select(OTU_Id,Total09,Function)
+  row.names(total09OTU)<-total09OTU$OTU_Id ; total09OTU <- total09OTU %>% select(-OTU_Id)
+  total09OTU <- total09OTU %>% group_by(Function) %>% summarise_all(sum)
+  total09OTU$Total09 <- total09OTU$Total09*100/sum(total09OTU$Total09)
+  total09OTU <- total09OTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total09) - 0.5*Total09)
+  total09OTU$label <- paste(round(total09OTU$Total09,1), "%", sep = "")
+  for (i in rownames(total09OTU)) {
+    if (total09OTU[i,"label"] == "0%") { total09OTU[i,"label"] <- NA}}
+  for (i in rownames(total09OTU)) {
+    if (is.na(total09OTU[i,"label"]) == FALSE) { total09OTU[i,"label"] <- paste(total09OTU[i,"Function"]," : ",total09OTU[i,"label"], sep = "")}}
+  total09OTU$Date<- rep("09", each = nrow(total09OTU))
+  ## Octobre
+  total11OTU <- data_otu_function %>% select(OTU_Id,Total11,Function)
+  row.names(total11OTU)<-total11OTU$OTU_Id ; total11OTU <- total11OTU %>% select(-OTU_Id)
+  total11OTU <- total11OTU %>% group_by(Function) %>% summarise_all(sum)
+  total11OTU$Total11 <- total11OTU$Total11*100/sum(total11OTU$Total11)
+  total11OTU <- total11OTU %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total11) - 0.5*Total11)
+  total11OTU$label <- paste(round(total11OTU$Total11,1), "%", sep = "")
+  for (i in rownames(total11OTU)) {
+    if (total11OTU[i,"label"] == "0%") { total11OTU[i,"label"] <- NA}}
+  for (i in rownames(total11OTU)) {
+    if (is.na(total11OTU[i,"label"]) == FALSE) { total11OTU[i,"label"] <- paste(total11OTU[i,"Function"]," : ",total11OTU[i,"label"], sep = "")}}
+  total11OTU$Date<- rep("11", each = nrow(total11OTU))
+  ## Date
+  colnames(total04OTU)[2]  <- "value"
+  total04OTU$Sum <- rep(0, each = nrow(total04OTU))
+  total04OTU$Count <- rep(0, each = nrow(total04OTU))
+  for (i in total04OTU$Function) { total04OTU$Count[which(total04OTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(Total04))}
+  total04OTU$Sum <- sum(total04OTU$Count)
+  colnames(total06OTU)[2]  <- "value"
+  total06OTU$Sum <- rep(0, each = nrow(total06OTU))
+  total06OTU$Count <- rep(0, each = nrow(total06OTU))
+  for (i in total06OTU$Function) { total06OTU$Count[which(total06OTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(Total06))}
+  total06OTU$Sum <- sum(total06OTU$Count)
+  colnames(total09OTU)[2]  <- "value"
+  total09OTU$Sum <- rep(0, each = nrow(total09OTU))
+  total09OTU$Count <- rep(0, each = nrow(total09OTU))
+  for (i in total09OTU$Function) { total09OTU$Count[which(total09OTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(Total09))}
+  total09OTU$Sum <- sum(total09OTU$Count)
+  colnames(total11OTU)[2]  <- "value"
+  total11OTU$Sum <- rep(0, each = nrow(total11OTU))
+  total11OTU$Count <- rep(0, each = nrow(total11OTU))
+  for (i in total11OTU$Function) { total11OTU$Count[which(total11OTU$Function == i)] <- sum(data_otu_function  %>% filter(Function == i) %>% select(Total11))}
+  total11OTU$Sum <- sum(total11OTU$Count)
+  totalDateOTU <- rbind(total04OTU,total06OTU,total09OTU,total11OTU)
+  #Figure
+  dy <- ggplot(totalDateOTU, mapping = aes(y= value, x = Date, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
+    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  dy <- dy + theme(legend.position = "none") + labs(x="Dates",y="OTUs (%)")
+  print(dy) 
+      # Coplot -------------------------------------------------------------------
+  svglite("Hist-Function/OTU-Function-Total.svg",width = 14.00,height = 6.00)
+  b_plot <- plot_grid(ay,by,cy,dy,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
+  print(b_plot)
+  dev.off()
+    # Séquence ONLY---------------------------------------------------------------------
+    data_seq_function <- merge(data_seq_tax,tax_table_funtion, by = "OTU_Id")
+      # Cycle -------------------------------------------------------------------
+  ## Jour
+  onlyJourSequence <- data_seq_function %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Function)
+  row.names(onlyJourSequence)<-onlyJourSequence$OTU_Id ; onlyJourSequence <- onlyJourSequence %>% select(-OTU_Id)
+  onlyJourSequence <- onlyJourSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyJourSequence$TotalJour <- onlyJourSequence$TotalJour*100/sum(onlyJourSequence$TotalJour)
+  onlyJourSequence <- onlyJourSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+  onlyJourSequence$label <- paste(round(onlyJourSequence$TotalJour,1), "%", sep = "")
+  for (i in rownames(onlyJourSequence)) {
+    if (onlyJourSequence[i,"label"] == "0%") { onlyJourSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyJourSequence)) {
+    if (is.na(onlyJourSequence[i,"label"]) == FALSE) { onlyJourSequence[i,"label"] <- paste(onlyJourSequence[i,"Function"]," : ",onlyJourSequence[i,"label"], sep = "")}}
+  onlyJourSequence$Cycle<- rep("Jour", each = nrow(onlyJourSequence))
+  ## Nuit
+  onlyNuitSequence <- data_seq_function %>% filter(Cycle == "Nuit") %>% select(OTU_Id,TotalNuit,Function)
+  row.names(onlyNuitSequence)<-onlyNuitSequence$OTU_Id ; onlyNuitSequence <- onlyNuitSequence %>% select(-OTU_Id)
+  onlyNuitSequence <- onlyNuitSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyNuitSequence$TotalNuit <- onlyNuitSequence$TotalNuit*100/sum(onlyNuitSequence$TotalNuit)
+  onlyNuitSequence <- onlyNuitSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+  onlyNuitSequence$label <- paste(round(onlyNuitSequence$TotalNuit,1), "%", sep = "")
+  for (i in rownames(onlyNuitSequence)) {
+    if (onlyNuitSequence[i,"label"] == "0%") { onlyNuitSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyNuitSequence)) {
+    if (is.na(onlyNuitSequence[i,"label"]) == FALSE) { onlyNuitSequence[i,"label"] <- paste(onlyNuitSequence[i,"Function"]," : ",onlyNuitSequence[i,"label"], sep = "")}}
+  onlyNuitSequence$Cycle<- rep("Nuit", each = nrow(onlyNuitSequence))
+  ## Cycle
+  colnames(onlyJourSequence)[2]  <- "value"
+  onlyJourSequence$Sum <- rep(0, each = nrow(onlyJourSequence))
+  onlyJourSequence$Count <- rep(0, each = nrow(onlyJourSequence))
+  for (i in onlyJourSequence$Function) { onlyJourSequence$Count[which(onlyJourSequence$Function == i)] <- sum(data_seq_function %>% filter(Cycle == "Jour") %>% filter(Function == i) %>% select(TotalJour))}
+  onlyJourSequence$Sum <- sum(onlyJourSequence$Count)
+  colnames(onlyNuitSequence)[2]  <- "value"
+  onlyNuitSequence$Sum <- rep(0, each = nrow(onlyNuitSequence))
+  onlyNuitSequence$Count <- rep(0, each = nrow(onlyNuitSequence))
+  for (i in onlyNuitSequence$Function) { onlyNuitSequence$Count[which(onlyNuitSequence$Function == i)] <- sum(data_seq_function %>% filter(Cycle == "Nuit") %>% filter(Function == i) %>% select(TotalNuit))}
+  onlyNuitSequence$Sum <- sum(onlyNuitSequence$Count)
+  onlyCycleSequence <- rbind(onlyJourSequence,onlyNuitSequence)
+  #Figure
+  iz <- ggplot(onlyCycleSequence, mapping = aes(y= value, x = Cycle, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  legendSequence <- get_legend(iz)
+  iz <- iz + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
+  print(iz)
+  
+      # Zone -------------------------------------------------------------------
+  ## Oxique
+  onlyOxiqueSequence <- data_seq_function %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Function)
+  row.names(onlyOxiqueSequence)<-onlyOxiqueSequence$OTU_Id ; onlyOxiqueSequence <- onlyOxiqueSequence %>% select(-OTU_Id)
+  onlyOxiqueSequence <- onlyOxiqueSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyOxiqueSequence$TotalOxique <- onlyOxiqueSequence$TotalOxique*100/sum(onlyOxiqueSequence$TotalOxique)
+  onlyOxiqueSequence <- onlyOxiqueSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+  onlyOxiqueSequence$label <- paste(round(onlyOxiqueSequence$TotalOxique,1), "%", sep = "")
+  for (i in rownames(onlyOxiqueSequence)) {
+    if (onlyOxiqueSequence[i,"label"] == "0%") { onlyOxiqueSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyOxiqueSequence)) {
+    if (is.na(onlyOxiqueSequence[i,"label"]) == FALSE) { onlyOxiqueSequence[i,"label"] <- paste(onlyOxiqueSequence[i,"Function"]," : ",onlyOxiqueSequence[i,"label"], sep = "")}}
+  onlyOxiqueSequence$Zone<- rep("Oxique", each = nrow(onlyOxiqueSequence))
+  ## Anoxique
+  onlyAnoxiqueSequence <- data_seq_function %>% filter(Zone == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Function)
+  row.names(onlyAnoxiqueSequence)<-onlyAnoxiqueSequence$OTU_Id ; onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% select(-OTU_Id)
+  onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyAnoxiqueSequence$TotalAnoxique <- onlyAnoxiqueSequence$TotalAnoxique*100/sum(onlyAnoxiqueSequence$TotalAnoxique)
+  onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+  onlyAnoxiqueSequence$label <- paste(round(onlyAnoxiqueSequence$TotalAnoxique,1), "%", sep = "")
+  for (i in rownames(onlyAnoxiqueSequence)) {
+    if (onlyAnoxiqueSequence[i,"label"] == "0%") { onlyAnoxiqueSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyAnoxiqueSequence)) {
+    if (is.na(onlyAnoxiqueSequence[i,"label"]) == FALSE) { onlyAnoxiqueSequence[i,"label"] <- paste(onlyAnoxiqueSequence[i,"Function"]," : ",onlyAnoxiqueSequence[i,"label"], sep = "")}}
+  onlyAnoxiqueSequence$Zone<- rep("Anoxique", each = nrow(onlyAnoxiqueSequence))
+  ## Zone
+  colnames(onlyOxiqueSequence)[2]  <- "value"
+  onlyOxiqueSequence$Sum <- rep(0, each = nrow(onlyOxiqueSequence))
+  onlyOxiqueSequence$Count <- rep(0, each = nrow(onlyOxiqueSequence))
+  for (i in onlyOxiqueSequence$Function) { onlyOxiqueSequence$Count[which(onlyOxiqueSequence$Function == i)] <- sum(data_seq_function %>% filter(Zone == "Oxique") %>% filter(Function == i) %>% select(TotalOxique))}
+  onlyOxiqueSequence$Sum <- sum(onlyOxiqueSequence$Count)
+  colnames(onlyAnoxiqueSequence)[2]  <- "value"
+  onlyAnoxiqueSequence$Sum <- rep(0, each = nrow(onlyAnoxiqueSequence))
+  onlyAnoxiqueSequence$Count <- rep(0, each = nrow(onlyAnoxiqueSequence))
+  for (i in onlyAnoxiqueSequence$Function) { onlyAnoxiqueSequence$Count[which(onlyAnoxiqueSequence$Function == i)] <- sum(data_seq_function %>% filter(Zone == "Anoxique") %>% filter(Function == i) %>% select(TotalAnoxique))}
+  onlyAnoxiqueSequence$Sum <- sum(onlyAnoxiqueSequence$Count)
+  onlyZoneSequence <- rbind(onlyOxiqueSequence,onlyAnoxiqueSequence)
+  #Figure
+  jz <- ggplot(onlyZoneSequence, mapping = aes(y= value, x = Zone, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  jz <- jz + theme(legend.position = "none") + labs(x="Zones",y="Séquences (%)")
+  print(jz)    
+      # Fraction -------------------------------------------------------------------
+  ## Petite
+  onlyPetiteSequence <- data_seq_function %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Function)
+  row.names(onlyPetiteSequence)<-onlyPetiteSequence$OTU_Id ; onlyPetiteSequence <- onlyPetiteSequence %>% select(-OTU_Id)
+  onlyPetiteSequence <- onlyPetiteSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyPetiteSequence$TotalPetite <- onlyPetiteSequence$TotalPetite*100/sum(onlyPetiteSequence$TotalPetite)
+  onlyPetiteSequence <- onlyPetiteSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+  onlyPetiteSequence$label <- paste(round(onlyPetiteSequence$TotalPetite,1), "%", sep = "")
+  for (i in rownames(onlyPetiteSequence)) {
+    if (onlyPetiteSequence[i,"label"] == "0%") { onlyPetiteSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyPetiteSequence)) {
+    if (is.na(onlyPetiteSequence[i,"label"]) == FALSE) { onlyPetiteSequence[i,"label"] <- paste(onlyPetiteSequence[i,"Function"]," : ",onlyPetiteSequence[i,"label"], sep = "")}}
+  onlyPetiteSequence$Fraction<- rep("Petite", each = nrow(onlyPetiteSequence))
+  ## Grande
+  onlyGrandeSequence <- data_seq_function %>% filter(Fraction == "Grande") %>% select(OTU_Id,TotalGrande,Function)
+  row.names(onlyGrandeSequence)<-onlyGrandeSequence$OTU_Id ; onlyGrandeSequence <- onlyGrandeSequence %>% select(-OTU_Id)
+  onlyGrandeSequence <- onlyGrandeSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyGrandeSequence$TotalGrande <- onlyGrandeSequence$TotalGrande*100/sum(onlyGrandeSequence$TotalGrande)
+  onlyGrandeSequence <- onlyGrandeSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+  onlyGrandeSequence$label <- paste(round(onlyGrandeSequence$TotalGrande,1), "%", sep = "")
+  for (i in rownames(onlyGrandeSequence)) {
+    if (onlyGrandeSequence[i,"label"] == "0%") { onlyGrandeSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyGrandeSequence)) {
+    if (is.na(onlyGrandeSequence[i,"label"]) == FALSE) { onlyGrandeSequence[i,"label"] <- paste(onlyGrandeSequence[i,"Function"]," : ",onlyGrandeSequence[i,"label"], sep = "")}}
+  onlyGrandeSequence$Fraction<- rep("Grande", each = nrow(onlyGrandeSequence))
+  ## Fraction
+  colnames(onlyPetiteSequence)[2]  <- "value"
+  onlyPetiteSequence$Sum <- rep(0, each = nrow(onlyPetiteSequence))
+  onlyPetiteSequence$Count <- rep(0, each = nrow(onlyPetiteSequence))
+  for (i in onlyPetiteSequence$Function) { onlyPetiteSequence$Count[which(onlyPetiteSequence$Function == i)] <- sum(data_seq_function %>% filter(Fraction == "Petite") %>% filter(Function == i) %>% select(TotalPetite))}
+  onlyPetiteSequence$Sum <- sum(onlyPetiteSequence$Count)
+  colnames(onlyGrandeSequence)[2]  <- "value"
+  onlyGrandeSequence$Sum <- rep(0, each = nrow(onlyGrandeSequence))
+  onlyGrandeSequence$Count <- rep(0, each = nrow(onlyGrandeSequence))
+  for (i in onlyGrandeSequence$Function) { onlyGrandeSequence$Count[which(onlyGrandeSequence$Function == i)] <- sum(data_seq_function %>% filter(Fraction == "Grande") %>% filter(Function == i) %>% select(TotalGrande))}
+  onlyGrandeSequence$Sum <- sum(onlyGrandeSequence$Count)
+  onlyFractionSequence <- rbind(onlyPetiteSequence,onlyGrandeSequence)
+  #Figure
+  kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
+  print(kz) 
+      # Coplot -------------------------------------------------------------------
+  svglite("Hist-Function/Sequence-Function-only.svg",width = 10.00,height = 8.00)
+  b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+  print(b_plot)
+  dev.off()  
+  
+    # Séquence TOTAL---------------------------------------------------------------------
+    data_seq_function <- merge(data_seq_tax,tax_table_funtion, by = "OTU_Id")
+      # Cycle -------------------------------------------------------------------
+  ## Jour
+  totalJourSequence <- data_seq_function %>% select(OTU_Id,TotalJour,Function)
+  row.names(totalJourSequence)<-totalJourSequence$OTU_Id ; totalJourSequence <- totalJourSequence %>% select(-OTU_Id)
+  totalJourSequence <- totalJourSequence %>% group_by(Function) %>% summarise_all(sum)
+  totalJourSequence$TotalJour <- totalJourSequence$TotalJour*100/sum(totalJourSequence$TotalJour)
+  totalJourSequence <- totalJourSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+  totalJourSequence$label <- paste(round(totalJourSequence$TotalJour,1), "%", sep = "")
+  for (i in rownames(totalJourSequence)) {
+    if (totalJourSequence[i,"label"] == "0%") { totalJourSequence[i,"label"] <- NA}}
+  for (i in rownames(totalJourSequence)) {
+    if (is.na(totalJourSequence[i,"label"]) == FALSE) { totalJourSequence[i,"label"] <- paste(totalJourSequence[i,"Function"]," : ",totalJourSequence[i,"label"], sep = "")}}
+  totalJourSequence$Cycle<- rep("Jour", each = nrow(totalJourSequence))
+  ## Nuit
+  totalNuitSequence <- data_seq_function %>% select(OTU_Id,TotalNuit,Function)
+  row.names(totalNuitSequence)<-totalNuitSequence$OTU_Id ; totalNuitSequence <- totalNuitSequence %>% select(-OTU_Id)
+  totalNuitSequence <- totalNuitSequence %>% group_by(Function) %>% summarise_all(sum)
+  totalNuitSequence$TotalNuit <- totalNuitSequence$TotalNuit*100/sum(totalNuitSequence$TotalNuit)
+  totalNuitSequence <- totalNuitSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+  totalNuitSequence$label <- paste(round(totalNuitSequence$TotalNuit,1), "%", sep = "")
+  for (i in rownames(totalNuitSequence)) {
+    if (totalNuitSequence[i,"label"] == "0%") { totalNuitSequence[i,"label"] <- NA}}
+  for (i in rownames(totalNuitSequence)) {
+    if (is.na(totalNuitSequence[i,"label"]) == FALSE) { totalNuitSequence[i,"label"] <- paste(totalNuitSequence[i,"Function"]," : ",totalNuitSequence[i,"label"], sep = "")}}
+  totalNuitSequence$Cycle<- rep("Nuit", each = nrow(totalNuitSequence))
+  ## Cycle
+  colnames(totalJourSequence)[2]  <- "value"
+  totalJourSequence$Sum <- rep(0, each = nrow(totalJourSequence))
+  totalJourSequence$Count <- rep(0, each = nrow(totalJourSequence))
+  for (i in totalJourSequence$Function) { totalJourSequence$Count[which(totalJourSequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(TotalJour))}
+  totalJourSequence$Sum <- sum(totalJourSequence$Count)
+  colnames(totalNuitSequence)[2]  <- "value"
+  totalNuitSequence$Sum <- rep(0, each = nrow(totalNuitSequence))
+  totalNuitSequence$Count <- rep(0, each = nrow(totalNuitSequence))
+  for (i in totalNuitSequence$Function) { totalNuitSequence$Count[which(totalNuitSequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(TotalNuit))}
+  totalNuitSequence$Sum <- sum(totalNuitSequence$Count)
+  totalCycleSequence <- rbind(totalJourSequence,totalNuitSequence)
+  totalCycleSequence$percent <- paste("(",round(totalCycleSequence$Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))/2),1)," %)",sep ="")
+  
+  #Figure
+  iy <- ggplot(totalCycleSequence, mapping = aes(y= value, x = Cycle, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    scale_fill_manual(values = palette) + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  legendSequence <- get_legend(iy)
+  iy <- iy + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
+  print(iy)
+  
+      # Zone -------------------------------------------------------------------
+  ## Oxique
+  totalOxiqueSequence <- data_seq_function %>% select(OTU_Id,TotalOxique,Function)
+  row.names(totalOxiqueSequence)<-totalOxiqueSequence$OTU_Id ; totalOxiqueSequence <- totalOxiqueSequence %>% select(-OTU_Id)
+  totalOxiqueSequence <- totalOxiqueSequence %>% group_by(Function) %>% summarise_all(sum)
+  totalOxiqueSequence$TotalOxique <- totalOxiqueSequence$TotalOxique*100/sum(totalOxiqueSequence$TotalOxique)
+  totalOxiqueSequence <- totalOxiqueSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+  totalOxiqueSequence$label <- paste(round(totalOxiqueSequence$TotalOxique,1), "%", sep = "")
+  for (i in rownames(totalOxiqueSequence)) {
+    if (totalOxiqueSequence[i,"label"] == "0%") { totalOxiqueSequence[i,"label"] <- NA}}
+  for (i in rownames(totalOxiqueSequence)) {
+    if (is.na(totalOxiqueSequence[i,"label"]) == FALSE) { totalOxiqueSequence[i,"label"] <- paste(totalOxiqueSequence[i,"Function"]," : ",totalOxiqueSequence[i,"label"], sep = "")}}
+  totalOxiqueSequence$Zone<- rep("Oxique", each = nrow(totalOxiqueSequence))
+  ## Anoxique
+  totalAnoxiqueSequence <- data_seq_function %>% select(OTU_Id,TotalAnoxique,Function)
+  row.names(totalAnoxiqueSequence)<-totalAnoxiqueSequence$OTU_Id ; totalAnoxiqueSequence <- totalAnoxiqueSequence %>% select(-OTU_Id)
+  totalAnoxiqueSequence <- totalAnoxiqueSequence %>% group_by(Function) %>% summarise_all(sum)
+  totalAnoxiqueSequence$TotalAnoxique <- totalAnoxiqueSequence$TotalAnoxique*100/sum(totalAnoxiqueSequence$TotalAnoxique)
+  totalAnoxiqueSequence <- totalAnoxiqueSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+  totalAnoxiqueSequence$label <- paste(round(totalAnoxiqueSequence$TotalAnoxique,1), "%", sep = "")
+  for (i in rownames(totalAnoxiqueSequence)) {
+    if (totalAnoxiqueSequence[i,"label"] == "0%") { totalAnoxiqueSequence[i,"label"] <- NA}}
+  for (i in rownames(totalAnoxiqueSequence)) {
+    if (is.na(totalAnoxiqueSequence[i,"label"]) == FALSE) { totalAnoxiqueSequence[i,"label"] <- paste(totalAnoxiqueSequence[i,"Function"]," : ",totalAnoxiqueSequence[i,"label"], sep = "")}}
+  totalAnoxiqueSequence$Zone<- rep("Anoxique", each = nrow(totalAnoxiqueSequence))
+  ## Zone
+  colnames(totalOxiqueSequence)[2]  <- "value"
+  totalOxiqueSequence$Sum <- rep(0, each = nrow(totalOxiqueSequence))
+  totalOxiqueSequence$Count <- rep(0, each = nrow(totalOxiqueSequence))
+  for (i in totalOxiqueSequence$Function) { totalOxiqueSequence$Count[which(totalOxiqueSequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(TotalOxique))}
+  totalOxiqueSequence$Sum <- sum(totalOxiqueSequence$Count)
+  colnames(totalAnoxiqueSequence)[2]  <- "value"
+  totalAnoxiqueSequence$Sum <- rep(0, each = nrow(totalAnoxiqueSequence))
+  totalAnoxiqueSequence$Count <- rep(0, each = nrow(totalAnoxiqueSequence))
+  for (i in totalAnoxiqueSequence$Function) { totalAnoxiqueSequence$Count[which(totalAnoxiqueSequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(TotalAnoxique))}
+  totalAnoxiqueSequence$Sum <- sum(totalAnoxiqueSequence$Count)
+  totalZoneSequence <- rbind(totalOxiqueSequence,totalAnoxiqueSequence)
+  totalZoneSequence$percent <- paste("(",round(totalZoneSequence$Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))/2),1)," %)",sep ="")
+  
+  #Figure
+  jy <- ggplot(totalZoneSequence, mapping = aes(y= value, x = Zone, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    scale_fill_manual(values = palette) + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  jy <- jy + labs(x="Zones",y="Séquences (%)") + theme(legend.position = "none")
+  print(jy)    
+      # Fraction -------------------------------------------------------------------
+  ## Petite
+  totalPetiteSequence <- data_seq_function %>% select(OTU_Id,TotalPetite,Function)
+  row.names(totalPetiteSequence)<-totalPetiteSequence$OTU_Id ; totalPetiteSequence <- totalPetiteSequence %>% select(-OTU_Id)
+  totalPetiteSequence <- totalPetiteSequence %>% group_by(Function) %>% summarise_all(sum)
+  totalPetiteSequence$TotalPetite <- totalPetiteSequence$TotalPetite*100/sum(totalPetiteSequence$TotalPetite)
+  totalPetiteSequence <- totalPetiteSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+  totalPetiteSequence$label <- paste(round(totalPetiteSequence$TotalPetite,1), "%", sep = "")
+  for (i in rownames(totalPetiteSequence)) {
+    if (totalPetiteSequence[i,"label"] == "0%") { totalPetiteSequence[i,"label"] <- NA}}
+  for (i in rownames(totalPetiteSequence)) {
+    if (is.na(totalPetiteSequence[i,"label"]) == FALSE) { totalPetiteSequence[i,"label"] <- paste(totalPetiteSequence[i,"Function"]," : ",totalPetiteSequence[i,"label"], sep = "")}}
+  totalPetiteSequence$Fraction<- rep("Petite", each = nrow(totalPetiteSequence))
+  ## Grande
+  totalGrandeSequence <- data_seq_function %>% select(OTU_Id,TotalGrande,Function)
+  row.names(totalGrandeSequence)<-totalGrandeSequence$OTU_Id ; totalGrandeSequence <- totalGrandeSequence %>% select(-OTU_Id)
+  totalGrandeSequence <- totalGrandeSequence %>% group_by(Function) %>% summarise_all(sum)
+  totalGrandeSequence$TotalGrande <- totalGrandeSequence$TotalGrande*100/sum(totalGrandeSequence$TotalGrande)
+  totalGrandeSequence <- totalGrandeSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+  totalGrandeSequence$label <- paste(round(totalGrandeSequence$TotalGrande,1), "%", sep = "")
+  for (i in rownames(totalGrandeSequence)) {
+    if (totalGrandeSequence[i,"label"] == "0%") { totalGrandeSequence[i,"label"] <- NA}}
+  for (i in rownames(totalGrandeSequence)) {
+    if (is.na(totalGrandeSequence[i,"label"]) == FALSE) { totalGrandeSequence[i,"label"] <- paste(totalGrandeSequence[i,"Function"]," : ",totalGrandeSequence[i,"label"], sep = "")}}
+  totalGrandeSequence$Fraction<- rep("Grande", each = nrow(totalGrandeSequence))
+  ## Fraction
+  colnames(totalPetiteSequence)[2]  <- "value"
+  totalPetiteSequence$Sum <- rep(0, each = nrow(totalPetiteSequence))
+  totalPetiteSequence$Count <- rep(0, each = nrow(totalPetiteSequence))
+  for (i in totalPetiteSequence$Function) { totalPetiteSequence$Count[which(totalPetiteSequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(TotalPetite))}
+  totalPetiteSequence$Sum <- sum(totalPetiteSequence$Count)
+  colnames(totalGrandeSequence)[2]  <- "value"
+  totalGrandeSequence$Sum <- rep(0, each = nrow(totalGrandeSequence))
+  totalGrandeSequence$Count <- rep(0, each = nrow(totalGrandeSequence))
+  for (i in totalGrandeSequence$Function) { totalGrandeSequence$Count[which(totalGrandeSequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(TotalGrande))}
+  totalGrandeSequence$Sum <- sum(totalGrandeSequence$Count)
+  totalFractionSequence <- rbind(totalPetiteSequence,totalGrandeSequence)
+  totalFractionSequence$percent <- paste("(",round(totalFractionSequence$Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))/2),1)," %)",sep ="")
+  
+  #Figure
+  ky <- ggplot(totalFractionSequence, mapping = aes(y= value, x = Fraction, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    scale_fill_manual(values = palette) + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  ky <- ky + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
+  print(ky) 
+      # Date -------------------------------------------------------------------
+  ## Avril
+  total04Sequence <- data_seq_function %>% select(OTU_Id,Total04,Function)
+  row.names(total04Sequence)<-total04Sequence$OTU_Id ; total04Sequence <- total04Sequence %>% select(-OTU_Id)
+  total04Sequence <- total04Sequence %>% group_by(Function) %>% summarise_all(sum)
+  total04Sequence$Total04 <- total04Sequence$Total04*100/sum(total04Sequence$Total04)
+  total04Sequence <- total04Sequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total04) - 0.5*Total04)
+  total04Sequence$label <- paste(round(total04Sequence$Total04,1), "%", sep = "")
+  for (i in rownames(total04Sequence)) {
+    if (total04Sequence[i,"label"] == "0%") { total04Sequence[i,"label"] <- NA}}
+  for (i in rownames(total04Sequence)) {
+    if (is.na(total04Sequence[i,"label"]) == FALSE) { total04Sequence[i,"label"] <- paste(total04Sequence[i,"Function"]," : ",total04Sequence[i,"label"], sep = "")}}
+  total04Sequence$Date<- rep("04", each = nrow(total04Sequence))
+  ## Juin
+  total06Sequence <- data_seq_function %>% select(OTU_Id,Total06,Function)
+  row.names(total06Sequence)<-total06Sequence$OTU_Id ; total06Sequence <- total06Sequence %>% select(-OTU_Id)
+  total06Sequence <- total06Sequence %>% group_by(Function) %>% summarise_all(sum)
+  total06Sequence$Total06 <- total06Sequence$Total06*100/sum(total06Sequence$Total06)
+  total06Sequence <- total06Sequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total06) - 0.5*Total06)
+  total06Sequence$label <- paste(round(total06Sequence$Total06,1), "%", sep = "")
+  for (i in rownames(total06Sequence)) {
+    if (total06Sequence[i,"label"] == "0%") { total06Sequence[i,"label"] <- NA}}
+  for (i in rownames(total06Sequence)) {
+    if (is.na(total06Sequence[i,"label"]) == FALSE) { total06Sequence[i,"label"] <- paste(total06Sequence[i,"Function"]," : ",total06Sequence[i,"label"], sep = "")}}
+  total06Sequence$Date<- rep("06", each = nrow(total06Sequence))
+  ## Septembre
+  total09Sequence <- data_seq_function %>% select(OTU_Id,Total09,Function)
+  row.names(total09Sequence)<-total09Sequence$OTU_Id ; total09Sequence <- total09Sequence %>% select(-OTU_Id)
+  total09Sequence <- total09Sequence %>% group_by(Function) %>% summarise_all(sum)
+  total09Sequence$Total09 <- total09Sequence$Total09*100/sum(total09Sequence$Total09)
+  total09Sequence <- total09Sequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total09) - 0.5*Total09)
+  total09Sequence$label <- paste(round(total09Sequence$Total09,1), "%", sep = "")
+  for (i in rownames(total09Sequence)) {
+    if (total09Sequence[i,"label"] == "0%") { total09Sequence[i,"label"] <- NA}}
+  for (i in rownames(total09Sequence)) {
+    if (is.na(total09Sequence[i,"label"]) == FALSE) { total09Sequence[i,"label"] <- paste(total09Sequence[i,"Function"]," : ",total09Sequence[i,"label"], sep = "")}}
+  total09Sequence$Date<- rep("09", each = nrow(total09Sequence))
+  ## Octobre
+  total11Sequence <- data_seq_function %>% select(OTU_Id,Total11,Function)
+  row.names(total11Sequence)<-total11Sequence$OTU_Id ; total11Sequence <- total11Sequence %>% select(-OTU_Id)
+  total11Sequence <- total11Sequence %>% group_by(Function) %>% summarise_all(sum)
+  total11Sequence$Total11 <- total11Sequence$Total11*100/sum(total11Sequence$Total11)
+  total11Sequence <- total11Sequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total11) - 0.5*Total11)
+  total11Sequence$label <- paste(round(total11Sequence$Total11,1), "%", sep = "")
+  for (i in rownames(total11Sequence)) {
+    if (total11Sequence[i,"label"] == "0%") { total11Sequence[i,"label"] <- NA}}
+  for (i in rownames(total11Sequence)) {
+    if (is.na(total11Sequence[i,"label"]) == FALSE) { total11Sequence[i,"label"] <- paste(total11Sequence[i,"Function"]," : ",total11Sequence[i,"label"], sep = "")}}
+  total11Sequence$Date<- rep("11", each = nrow(total11Sequence))
+  ## Dates
+  colnames(total04Sequence)[2]  <- "value"
+  total04Sequence$Sum <- rep(0, each = nrow(total04Sequence))
+  total04Sequence$Count <- rep(0, each = nrow(total04Sequence))
+  for (i in total04Sequence$Function) { total04Sequence$Count[which(total04Sequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(Total04))}
+  total04Sequence$Sum <- sum(total04Sequence$Count)
+  colnames(total06Sequence)[2]  <- "value"
+  total06Sequence$Sum <- rep(0, each = nrow(total06Sequence))
+  total06Sequence$Count <- rep(0, each = nrow(total06Sequence))
+  for (i in total06Sequence$Function) { total06Sequence$Count[which(total06Sequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(Total06))}
+  total06Sequence$Sum <- sum(total06Sequence$Count)
+  colnames(total09Sequence)[2]  <- "value"
+  total09Sequence$Sum <- rep(0, each = nrow(total09Sequence))
+  total09Sequence$Count <- rep(0, each = nrow(total09Sequence))
+  for (i in total09Sequence$Function) { total09Sequence$Count[which(total09Sequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(Total09))}
+  total09Sequence$Sum <- sum(total09Sequence$Count)
+  colnames(total11Sequence)[2]  <- "value"
+  total11Sequence$Sum <- rep(0, each = nrow(total11Sequence))
+  total11Sequence$Count <- rep(0, each = nrow(total11Sequence))
+  for (i in total11Sequence$Function) { total11Sequence$Count[which(total11Sequence$Function == i)] <- sum(data_seq_function  %>% filter(Function == i) %>% select(Total11))}
+  total11Sequence$Sum <- sum(total11Sequence$Count)
+  totalDateSequence <- rbind(total04Sequence,total06Sequence,total09Sequence,total11Sequence)
+  totalDateSequence$percent <- paste("(",round(totalDateSequence$Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))/4),1)," %)",sep ="")
+  
+  #Figure
+  ly <- ggplot(totalDateSequence, mapping = aes(y= value, x = Date, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    scale_fill_manual(values = palette) + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  ly <- ly + labs(x="Dates",y="Séquences (%)") + theme(legend.position = "none")
+  print(ly) 
+      # Coplot -------------------------------------------------------------------
+  svglite("Hist-Function/Sequence-Function-Total.svg",width = 14.00,height = 6.00)
+  b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
+  print(b_plot)
+  dev.off()
+  # Polar ------------------------------------------------------
+    # Séquence ----------------------------------------------------------------
+  ##Total column
+  Polar_seq_function <- merge(data_seq_tax,tax_table_funtion, by = "OTU_Id")
+  Polar_seq_function$TotalAnnée <- 0
+  for (i in rownames(Polar_seq_function)) { Polar_seq_function[i,"TotalAnnée"] <- Polar_seq_function[i,"Total04"] + Polar_seq_function[i,"Total06"] + Polar_seq_function[i,"Total09"] + Polar_seq_function[i,"Total11"]}
+  Polar_seq_function <- Polar_seq_function %>% select(TotalAnnée,Function)
+  ## Total Figure
+  Polar_seq_function <- Polar_seq_function %>% group_by(Function) %>% summarise_all(sum)
+  for (i in rownames(Polar_seq_function)) { Polar_seq_function[i,"Total"] <- (Polar_seq_function[i,"TotalAnnée"] * 100) / sum(Polar_seq_function$TotalAnnée)}
+  ##Label
+  Polar_seq_function <- Polar_seq_function %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total) - 0.5*Total)
+  Polar_seq_function$label <- paste(round(Polar_seq_function$Total,1), "%", sep = "")
+  for (i in rownames(Polar_seq_function)) {
+    if (Polar_seq_function[i,"label"] == "0%") { Polar_seq_function[i,"label"] <- NA}}
+  for (i in rownames(Polar_seq_function)) {
+    if (is.na(Polar_seq_function[i,"label"]) == FALSE) { Polar_seq_function[i,"label"] <- paste(Polar_seq_function[i,"Function"]," : ",Polar_seq_function[i,"label"], sep = "")}}
+  ##Figure
+  svglite("Composition/Polar-Function-Total-seq.svg",width = 4.00,height = 4.00)
+  ax <- ggplot(Polar_seq_function, mapping = aes(y= Total, x = 2, fill = Function), Rowv = NA, col = colMain, scale = "column") +
+    geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
+    geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
+    scale_y_continuous(limits=c(0,sum(Polar_seq_function %>% select(Total))))+
+    xlim(1,2.5) +
+    theme_unique_darkbis() + 
+    #facet_wrap( ~ variable , nrow = 4) +
+    labs(y = "Séquences",x="") + scale_fill_manual(values = rev(palette))
+  print(ax)
+  dev.off()
+  
+    # OTU ----------------------------------------------------------------
+  ##Total column
+  Polar_otu_function <- merge(data_otu_tax,tax_table_funtion, by = "OTU_Id")
+  Polar_otu_function$TotalAnnée <- 0
+  for (i in rownames(Polar_otu_function)) { if (Polar_otu_function[i,"Total04"] + Polar_otu_function[i,"Total06"] + Polar_otu_function[i,"Total09"] + Polar_otu_function[i,"Total11"] > 0) {Polar_otu_function[i,"TotalAnnée"] <- 1}}
+  Polar_otu_function <- Polar_otu_function %>% select(TotalAnnée,Function)
+  ## Total Figure
+  Polar_otu_function <- Polar_otu_function %>% group_by(Function) %>% summarise_all(sum)
+  for (i in rownames(Polar_otu_function)) { Polar_otu_function[i,"Total"] <- (Polar_otu_function[i,"TotalAnnée"] * 100) / sum(Polar_otu_function$TotalAnnée)}
+  ##Label
+  Polar_otu_function <- Polar_otu_function %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(Total) - 0.5*Total)
+  Polar_otu_function$label <- paste(round(Polar_otu_function$Total,1), "%", sep = "")
+  for (i in rownames(Polar_otu_function)) {
+    if (Polar_otu_function[i,"label"] == "0%") { Polar_otu_function[i,"label"] <- NA}}
+  for (i in rownames(Polar_otu_function)) {
+    if (is.na(Polar_otu_function[i,"label"]) == FALSE) { Polar_otu_function[i,"label"] <- paste(Polar_otu_function[i,"Function"]," : ",Polar_otu_function[i,"label"], sep = "")}}
+  ##Figure
+  svglite("Composition/Polar-Function-Total-otu.svg",width = 4.00,height = 4.00)
+  bx <- ggplot(Polar_otu_function, mapping = aes(y= Total, x = 2, fill = Function), Rowv = NA, col = colMain, scale = "column") +
+    geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
+    geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
+    scale_y_continuous(limits=c(0,sum(Polar_otu_function %>% select(Total))))+
+    xlim(1,2.5) +
+    theme_unique_darkbis() + 
+    #facet_wrap( ~ variable , nrow = 4) +
+    labs(y = "OTUs",x="") + scale_fill_manual(values = rev(palette))
+  print(bx)
+  dev.off()
   
 # HIST  --------------------------------------------------------------------
   # OTU ONLY ---------------------------------------------------------------------
@@ -1712,7 +2530,7 @@ cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Divis
 cz <- cz + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
 print(cz) 
     # Coplot -------------------------------------------------------------------
-svglite("HistOnly/OTU-only.svg",width = 10.00,height = 8.00)
+svglite("Hist-Taxomy/OTU-only.svg",width = 10.00,height = 8.00)
 b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
@@ -1960,7 +2778,7 @@ dy <- ggplot(totalDateOTU, mapping = aes(y= value, x = Date, fill = Division, gr
 dy <- dy + theme(legend.position = "none") + labs(x="Dates",y="OTUs (%)")
 print(dy) 
     # Coplot -------------------------------------------------------------------
-svglite("HistOnly/OTU-Total.svg",width = 14.00,height = 6.00)
+svglite("Hist-Taxomy/OTU-Total.svg",width = 14.00,height = 6.00)
 b_plot <- plot_grid(ay,by,cy,dy,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
 print(b_plot)
 dev.off()
@@ -2109,7 +2927,7 @@ kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = 
 kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
 print(kz) 
     # Coplot -------------------------------------------------------------------
-svglite("HistOnly/Sequence-only.svg",width = 10.00,height = 8.00)
+svglite("Hist-Taxomy/Sequence-only.svg",width = 10.00,height = 8.00)
 b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
@@ -2367,7 +3185,7 @@ ly <- ggplot(totalDateSequence, mapping = aes(y= value, x = Date, fill = Divisio
 ly <- ly + labs(x="Dates",y="Séquences (%)") + theme(legend.position = "none")
 print(ly) 
     # Coplot -------------------------------------------------------------------
-svglite("HistOnly/Sequence-Total.svg",width = 14.00,height = 6.00)
+svglite("Hist-Taxomy/Sequence-Total.svg",width = 14.00,height = 6.00)
 b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
 print(b_plot)
 dev.off()
@@ -2449,9 +3267,9 @@ colnames(onlyNuitTable)[2]  <- "value"
 onlyCycleTable <- rbind(onlyJourTable,onlyNuitTable)
 onlyCycleTable <- merge(onlyCycleTable,taxo, by = "OTU_Id")
 ##Table
-write.table(onlyCycleTable, file = "TableOnly/Only_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(onlyCycleOTU, file = "TableOnly/Only_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(onlyCycleSequence, file = "TableOnly/Only_Cycles_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyCycleTable, file = "Table/Only_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyCycleOTU, file = "Table/Only_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyCycleSequence, file = "Table/Only_Cycles_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Zone -------------------------------------------------------------------
 ##Oxique
@@ -2466,9 +3284,9 @@ colnames(onlyAnoxiqueTable)[2]  <- "value"
 onlyZoneTable <- rbind(onlyOxiqueTable,onlyAnoxiqueTable)
 onlyZoneTable <- merge(onlyZoneTable,taxo, by = "OTU_Id")
 ##Table
-write.table(onlyZoneTable, file = "TableOnly/Only_Zone.txt", sep = "\t", col.names = TRUE, row.names = FALSE,quote = FALSE)
-write.table(onlyZoneOTU, file = "TableOnly/Only_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(onlyZoneSequence, file = "TableOnly/Only_Zone_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyZoneTable, file = "Table/Only_Zone.txt", sep = "\t", col.names = TRUE, row.names = FALSE,quote = FALSE)
+write.table(onlyZoneOTU, file = "Table/Only_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyZoneSequence, file = "Table/Only_Zone_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Fraction -------------------------------------------------------------------
 ##Petite
@@ -2483,9 +3301,9 @@ colnames(onlyGrandeTable)[2]  <- "value"
 onlyFractionTable <- rbind(onlyPetiteTable,onlyGrandeTable)
 onlyFractionTable <- merge(onlyFractionTable,taxo, by = "OTU_Id")
 ##Table
-write.table(onlyFractionTable, file = "TableOnly/Only_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(onlyFractionOTU, file = "TableOnly/Only_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(onlyFractionSequence, file = "TableOnly/Only_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyFractionTable, file = "Table/Only_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyFractionOTU, file = "Table/Only_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyFractionSequence, file = "Table/Only_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
 # Table Total---------------------------------------------------------------------
   # Cycle Total -------------------------------------------------------------------
@@ -2503,9 +3321,9 @@ colnames(totalNuitTable)[2]  <- "value"
 totalCycleTable <- rbind(totalJourTable,totalNuitTable)
 totalCycleTable <- merge(totalCycleTable,taxo, by = "OTU_Id")
 ##Table
-write.table(totalCycleTable, file = "TableOnly/Total_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalCycleOTU, file = "TableOnly/Total_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalCycleSequence, file = "TableOnly/Total_Cycles_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalCycleTable, file = "Table/Total_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalCycleOTU, file = "Table/Total_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalCycleSequence, file = "Table/Total_Cycles_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Zone Total -------------------------------------------------------------------
 ##Oxique
@@ -2522,9 +3340,9 @@ colnames(totalAnoxiqueTable)[2]  <- "value"
 totalZoneTable <- rbind(totalOxiqueTable,totalAnoxiqueTable)
 totalZoneTable <- merge(totalZoneTable,taxo, by = "OTU_Id")
 ##Table
-write.table(totalZoneTable, file = "TableOnly/Total_Zone.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalZoneOTU, file = "TableOnly/Total_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalZoneSequence, file = "TableOnly/Total_Zone_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalZoneTable, file = "Table/Total_Zone.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalZoneOTU, file = "Table/Total_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalZoneSequence, file = "Table/Total_Zone_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Fraction Total -------------------------------------------------------------------
 ##Petite
@@ -2541,9 +3359,9 @@ colnames(totalGrandeTable)[2]  <- "value"
 totalFractionTable <- rbind(totalPetiteTable,totalGrandeTable)
 totalFractionTable <- merge(totalFractionTable,taxo, by = "OTU_Id")
 ##Table
-write.table(totalFractionTable, file = "TableOnly/Total_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalFractionOTU, file = "TableOnly/Total_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalFractionSequence, file = "TableOnly/Total_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalFractionTable, file = "Table/Total_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalFractionOTU, file = "Table/Total_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalFractionSequence, file = "Table/Total_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Date Total -------------------------------------------------------------------
 total04Table <- data_seq_tax %>% select(OTU_Id,Total04,Division)
@@ -2569,7 +3387,7 @@ colnames(total11Table)[2]  <- "value"
 totalDateTable <- rbind(total04Table,total06Table,total09Table,total11Table)
 totalDateTable <- merge(totalDateTable,taxo, by = "OTU_Id")
 ##
-write.table(totalDateTable, file = "TableOnly/Total_Dates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalDateOTU, file = "TableOnly/Total_Dates_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-write.table(totalDateSequence, file = "TableOnly/Total_Dates_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalDateTable, file = "Table/Total_Dates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalDateOTU, file = "Table/Total_Dates_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(totalDateSequence, file = "Table/Total_Dates_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 

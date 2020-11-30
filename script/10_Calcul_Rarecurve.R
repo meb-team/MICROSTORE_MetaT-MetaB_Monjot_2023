@@ -12,10 +12,11 @@
 # Script Rarecurve
 # Set directory, input, output and import packages -----------------------------------------------------------
 #
-#output <- "Analyse-Composition-Rarefy-V4-095-199-NOfilter-Eukaryota"
-#input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
+#output <- "Composition-V4-095-Vsearch215-Filterno-Unifyno-Rarefyyes-NN-Fungi"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
+#UnifyYoN <- "no"
 rarecurvecolor <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
@@ -159,7 +160,8 @@ for (i in row.names(samples_df)) {
   if (samples_df[i,"Zone"] == "A") { samples_df[i,"Zone"] <- "Anoxique"}
   if (samples_df[i,"Fraction"] == "G") { samples_df[i,"Fraction"] <- "Grande"}
   if (samples_df[i,"Fraction"] == "P") { samples_df[i,"Fraction"] <- "Petite"}}
-
+amplicon <- grep(pattern = "OSTA", colnames(tableVinput), value = TRUE)
+samples_df <- merge(samples_df, tibble(amplicon), by.x = "Amplicon", by.y = "amplicon")
 # Select V4 or V9 ---------------------------------------------------------
 samples_df<-filter(samples_df, Region == region)
 # Prepare Object Nopool-------------------------------------------------
