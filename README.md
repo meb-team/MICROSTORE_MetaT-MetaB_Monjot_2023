@@ -131,15 +131,15 @@ Return in initial directory : `cd ../../`
 
 * **Requires R version 3.6.3**
 
-        Miniconda is downloaded: `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
+Miniconda is downloaded: `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
 
-        and installed: `bash Miniconda3-latest-Linux-x86_64.sh`
+and installed: `bash Miniconda3-latest-Linux-x86_64.sh`
         
-        To finilize the miniconda installation, close the currently terminal and open a new one.
+To finilize the miniconda installation, close the currently terminal and open a new one.
         
 Define current directory: `cd Microstore-metabarcoding/`
         
-To install R and dependencies, run: `bash R_setup.sh`
+Install R and dependencies: `bash R_setup.sh`
 
 ### 2. R initialization
 
