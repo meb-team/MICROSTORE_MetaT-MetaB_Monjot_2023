@@ -44,7 +44,7 @@ lapply(pkg, require, character.only = TRUE)
 #palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
 #show_col(palette)
 #palette <- c("#D43F3ACC","#EEA236CC","#AD002ACC","#46B8DACC","#357EBDCC","#9632B8CC","#B8B8B8CC","#00468BCC","#ED0000CC","#42B540CC","#0099B4CC","#925E9FCC")
-palette <- c("#AD002ACC","#EEA236CC","#00468BCC","#0099B4CC","#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#9632B8CC","#EFC000CC","#D43F3ACC","#FF7F0ECC","#46B8DACC","#5CB85CCC","#925E9FCC","#B8B8B8CC")
+palette <- c("#AD002ACC","#EEA236CC","#00468BCC","#0099B4CC","#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#FF7F0ECC","#925E9FCC","#D43F3ACC","#9632B8CC","#46B8DACC","#5CB85CCC","#EFC008CC")
 show_col(palette)
 
 
@@ -2384,172 +2384,6 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   dev.off()
   
 # HIST  --------------------------------------------------------------------
-  # OTU ONLY ---------------------------------------------------------------------
-    # Cycles -------------------------------------------------------------------
-## Jour
-onlyJourOTU <- data_otu_tax %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Division)
-row.names(onlyJourOTU) <- onlyJourOTU$OTU_Id ; onlyJourOTU <- onlyJourOTU %>% select(-OTU_Id)
-onlyJourOTU <- onlyJourOTU %>% group_by(Division) %>% summarise_all(sum)
-onlyJourOTU$TotalJour <- onlyJourOTU$TotalJour*100/sum(onlyJourOTU$TotalJour)
-onlyJourOTU <- onlyJourOTU %>%
-  arrange(desc(Division)) %>%
-  mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
-onlyJourOTU$label <- paste(round(onlyJourOTU$TotalJour,1), "%", sep = "")
-for (i in rownames(onlyJourOTU)) {
-  if (onlyJourOTU[i,"label"] == "0%") { onlyJourOTU[i,"label"] <- NA}}
-for (i in rownames(onlyJourOTU)) {
-  if (is.na(onlyJourOTU[i,"label"]) == FALSE) { onlyJourOTU[i,"label"] <- paste(onlyJourOTU[i,"Division"]," : ",onlyJourOTU[i,"label"], sep = "")}}
-onlyJourOTU$Cycle<- rep("Jour", each = nrow(onlyJourOTU))
-## Nuit
-onlyNuitOTU <- data_otu_tax %>% filter(Cycle == "Nuit") %>% select(OTU_Id,TotalNuit,Division)
-row.names(onlyNuitOTU)<-onlyNuitOTU$OTU_Id ; onlyNuitOTU <- onlyNuitOTU %>% select(-OTU_Id)
-onlyNuitOTU <- onlyNuitOTU %>% group_by(Division) %>% summarise_all(sum)
-onlyNuitOTU$TotalNuit <- onlyNuitOTU$TotalNuit*100/sum(onlyNuitOTU$TotalNuit)
-onlyNuitOTU <- onlyNuitOTU %>%
-  arrange(desc(Division)) %>%
-  mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
-onlyNuitOTU$label <- paste(round(onlyNuitOTU$TotalNuit,1), "%", sep = "")
-for (i in rownames(onlyNuitOTU)) {
-  if (onlyNuitOTU[i,"label"] == "0%") { onlyNuitOTU[i,"label"] <- NA}}
-for (i in rownames(onlyNuitOTU)) {
-  if (is.na(onlyNuitOTU[i,"label"]) == FALSE) { onlyNuitOTU[i,"label"] <- paste(onlyNuitOTU[i,"Division"]," : ",onlyNuitOTU[i,"label"], sep = "")}}
-onlyNuitOTU$Cycle<- rep("Nuit", each = nrow(onlyNuitOTU))
-## Cycle
-colnames(onlyJourOTU)[2]  <- "value"
-onlyJourOTU$Sum <- rep(0, each = nrow(onlyJourOTU))
-onlyJourOTU$Count <- rep(0, each = nrow(onlyJourOTU))
-for (i in onlyJourOTU$Division) { onlyJourOTU$Count[which(onlyJourOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Cycle == "Jour") %>% filter(Division == i))}
-onlyJourOTU$Sum <- sum(onlyJourOTU$Count)
-colnames(onlyNuitOTU)[2]  <- "value"
-onlyNuitOTU$Sum <- rep(0, each = nrow(onlyNuitOTU))
-onlyNuitOTU$Count <- rep(0, each = nrow(onlyNuitOTU))
-for (i in onlyNuitOTU$Division) { onlyNuitOTU$Count[which(onlyNuitOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Cycle == "Nuit") %>% filter(Division == i))}
-onlyNuitOTU$Sum <- sum(onlyNuitOTU$Count)
-onlyCycleOTU <- rbind(onlyJourOTU,onlyNuitOTU)
-#Figure
-az <- ggplot(onlyCycleOTU, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
-legendOTU <- get_legend(az)
-az <- az + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
-print(az)
-
-
-    # Zone -------------------------------------------------------------------
-## Oxique
-onlyOxiqueOTU <- data_otu_tax %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Division)
-row.names(onlyOxiqueOTU)<-onlyOxiqueOTU$OTU_Id ; onlyOxiqueOTU <- onlyOxiqueOTU %>% select(-OTU_Id)
-onlyOxiqueOTU <- onlyOxiqueOTU %>% group_by(Division) %>% summarise_all(sum)
-onlyOxiqueOTU$TotalOxique <- onlyOxiqueOTU$TotalOxique*100/sum(onlyOxiqueOTU$TotalOxique)
-onlyOxiqueOTU <- onlyOxiqueOTU %>%
-  arrange(desc(Division)) %>%
-  mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
-onlyOxiqueOTU$label <- paste(round(onlyOxiqueOTU$TotalOxique,1), "%", sep = "")
-for (i in rownames(onlyOxiqueOTU)) {
-  if (onlyOxiqueOTU[i,"label"] == "0%") { onlyOxiqueOTU[i,"label"] <- NA}}
-for (i in rownames(onlyOxiqueOTU)) {
-  if (is.na(onlyOxiqueOTU[i,"label"]) == FALSE) { onlyOxiqueOTU[i,"label"] <- paste(onlyOxiqueOTU[i,"Division"]," : ",onlyOxiqueOTU[i,"label"], sep = "")}}
-onlyOxiqueOTU$Zone<- rep("Oxique", each = nrow(onlyOxiqueOTU))
-## Anoxique
-onlyAnoxiqueOTU <- data_otu_tax %>% filter(Zone == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Division)
-row.names(onlyAnoxiqueOTU)<-onlyAnoxiqueOTU$OTU_Id ; onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>% select(-OTU_Id)
-onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>% group_by(Division) %>% summarise_all(sum)
-onlyAnoxiqueOTU$TotalAnoxique <- onlyAnoxiqueOTU$TotalAnoxique*100/sum(onlyAnoxiqueOTU$TotalAnoxique)
-onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>%
-  arrange(desc(Division)) %>%
-  mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
-onlyAnoxiqueOTU$label <- paste(round(onlyAnoxiqueOTU$TotalAnoxique,1), "%", sep = "")
-for (i in rownames(onlyAnoxiqueOTU)) {
-  if (onlyAnoxiqueOTU[i,"label"] == "0%") { onlyAnoxiqueOTU[i,"label"] <- NA}}
-for (i in rownames(onlyAnoxiqueOTU)) {
-  if (is.na(onlyAnoxiqueOTU[i,"label"]) == FALSE) { onlyAnoxiqueOTU[i,"label"] <- paste(onlyAnoxiqueOTU[i,"Division"]," : ",onlyAnoxiqueOTU[i,"label"], sep = "")}}
-onlyAnoxiqueOTU$Zone<- rep("Anoxique", each = nrow(onlyAnoxiqueOTU))
-## Zone
-colnames(onlyOxiqueOTU)[2]  <- "value"
-onlyOxiqueOTU$Sum <- rep(0, each = nrow(onlyOxiqueOTU))
-onlyOxiqueOTU$Count <- rep(0, each = nrow(onlyOxiqueOTU))
-for (i in onlyOxiqueOTU$Division) { onlyOxiqueOTU$Count[which(onlyOxiqueOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Zone == "Oxique") %>% filter(Division == i))}
-onlyOxiqueOTU$Sum <- sum(onlyOxiqueOTU$Count)
-colnames(onlyAnoxiqueOTU)[2]  <- "value"
-onlyAnoxiqueOTU$Sum <- rep(0, each = nrow(onlyAnoxiqueOTU))
-onlyAnoxiqueOTU$Count <- rep(0, each = nrow(onlyAnoxiqueOTU))
-for (i in onlyAnoxiqueOTU$Division) { onlyAnoxiqueOTU$Count[which(onlyAnoxiqueOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Zone == "Anoxique") %>% filter(Division == i))}
-onlyAnoxiqueOTU$Sum <- sum(onlyAnoxiqueOTU$Count)
-onlyZoneOTU <- rbind(onlyOxiqueOTU,onlyAnoxiqueOTU)
-#Figure
-bz <- ggplot(onlyZoneOTU, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
-bz <- bz + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
-print(bz)
-
-    # Fraction -------------------------------------------------------------------
-## Petite
-onlyPetiteOTU <- data_otu_tax %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Division)
-row.names(onlyPetiteOTU)<-onlyPetiteOTU$OTU_Id ; onlyPetiteOTU <- onlyPetiteOTU %>% select(-OTU_Id)
-onlyPetiteOTU <- onlyPetiteOTU %>% group_by(Division) %>% summarise_all(sum)
-onlyPetiteOTU$TotalPetite <- onlyPetiteOTU$TotalPetite*100/sum(onlyPetiteOTU$TotalPetite)
-onlyPetiteOTU <- onlyPetiteOTU %>%
-  arrange(desc(Division)) %>%
-  mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
-onlyPetiteOTU$label <- paste(round(onlyPetiteOTU$TotalPetite,1), "%", sep = "")
-for (i in rownames(onlyPetiteOTU)) {
-  if (onlyPetiteOTU[i,"label"] == "0%") { onlyPetiteOTU[i,"label"] <- NA}}
-for (i in rownames(onlyPetiteOTU)) {
-  if (is.na(onlyPetiteOTU[i,"label"]) == FALSE) { onlyPetiteOTU[i,"label"] <- paste(onlyPetiteOTU[i,"Division"]," : ",onlyPetiteOTU[i,"label"], sep = "")}}
-onlyPetiteOTU$Fraction<- rep("Petite", each = nrow(onlyPetiteOTU))
-## Grande
-onlyGrandeOTU <- data_otu_tax %>% filter(Fraction == "Grande") %>% select(OTU_Id,TotalGrande,Division)
-row.names(onlyGrandeOTU)<-onlyGrandeOTU$OTU_Id
-onlyGrandeOTU <- onlyGrandeOTU %>% select(-OTU_Id)
-onlyGrandeOTU <- onlyGrandeOTU %>% group_by(Division) %>% summarise_all(sum)
-onlyGrandeOTU$TotalGrande <- onlyGrandeOTU$TotalGrande*100/sum(onlyGrandeOTU$TotalGrande)
-onlyGrandeOTU <- onlyGrandeOTU %>%
-  arrange(desc(Division)) %>%
-  mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
-onlyGrandeOTU$label <- paste(round(onlyGrandeOTU$TotalGrande,1), "%", sep = "")
-for (i in rownames(onlyGrandeOTU)) {
-  if (onlyGrandeOTU[i,"label"] == "0%") { onlyGrandeOTU[i,"label"] <- NA}}
-for (i in rownames(onlyGrandeOTU)) {
-  if (is.na(onlyGrandeOTU[i,"label"]) == FALSE) { onlyGrandeOTU[i,"label"] <- paste(onlyGrandeOTU[i,"Division"]," : ",onlyGrandeOTU[i,"label"], sep = "")}}
-onlyGrandeOTU$Fraction<- rep("Grande", each = nrow(onlyGrandeOTU))
-## Fraction
-colnames(onlyPetiteOTU)[2]  <- "value"
-onlyPetiteOTU$Sum <- rep(0, each = nrow(onlyPetiteOTU))
-onlyPetiteOTU$Count <- rep(0, each = nrow(onlyPetiteOTU))
-for (i in onlyPetiteOTU$Division) { onlyPetiteOTU$Count[which(onlyPetiteOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Fraction == "Petite") %>% filter(Division == i))}
-onlyPetiteOTU$Sum <- sum(onlyPetiteOTU$Count)
-colnames(onlyGrandeOTU)[2]  <- "value"
-onlyGrandeOTU$Sum <- rep(0, each = nrow(onlyGrandeOTU))
-onlyGrandeOTU$Count <- rep(0, each = nrow(onlyGrandeOTU))
-for (i in onlyGrandeOTU$Division) { onlyGrandeOTU$Count[which(onlyGrandeOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Fraction == "Grande") %>% filter(Division == i))}
-onlyGrandeOTU$Sum <- sum(onlyGrandeOTU$Count)
-onlyFractionOTU <- rbind(onlyPetiteOTU,onlyGrandeOTU)
-#Figure
-cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
-  scale_fill_manual(values = palette)
-cz <- cz + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
-print(cz) 
-    # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/OTU-only.svg",width = 10.00,height = 8.00)
-b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
-print(b_plot)
-dev.off()  
-    # Coplot X AFC -------------------------------------------------------------------
-f <- ggplot() + theme_void()
-print(f)
-#AFC = séquence
-svglite("Biplot/OTU-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
-b_plot <- plot_grid(aCycle,az,f,bZone,bz,legendOTU,cFraction,cz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
-print(b_plot)
-dev.off()  
-#AFC = OTU
-svglite("Biplot/OTU-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
-c_plot <- plot_grid(iCycle,az,f,jZone,bz,legendOTU,kFraction,cz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
-print(c_plot)
-dev.off()  
-
-
-
   # OTU TOTAL---------------------------------------------------------------------
     # Cycle -------------------------------------------------------------------
 ## Jour
@@ -2782,169 +2616,170 @@ svglite("Hist-Taxomy/OTU-Total.svg",width = 14.00,height = 6.00)
 b_plot <- plot_grid(ay,by,cy,dy,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
 print(b_plot)
 dev.off()
-  # Séquence ONLY---------------------------------------------------------------------
-    # Cycle -------------------------------------------------------------------
+  # OTU ONLY ---------------------------------------------------------------------
+    # Cycles -------------------------------------------------------------------
 ## Jour
-onlyJourSequence <- data_seq_tax %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Division)
-row.names(onlyJourSequence)<-onlyJourSequence$OTU_Id ; onlyJourSequence <- onlyJourSequence %>% select(-OTU_Id)
-onlyJourSequence <- onlyJourSequence %>% group_by(Division) %>% summarise_all(sum)
-onlyJourSequence$TotalJour <- onlyJourSequence$TotalJour*100/sum(onlyJourSequence$TotalJour)
-onlyJourSequence <- onlyJourSequence %>%
+onlyJourOTU <- data_otu_tax %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Division)
+row.names(onlyJourOTU) <- onlyJourOTU$OTU_Id ; onlyJourOTU <- onlyJourOTU %>% select(-OTU_Id)
+onlyJourOTU <- onlyJourOTU %>% group_by(Division) %>% summarise_all(sum)
+onlyJourOTU$TotalJour <- onlyJourOTU$TotalJour*100/sum(onlyJourOTU$TotalJour)
+onlyJourOTU <- onlyJourOTU %>%
   arrange(desc(Division)) %>%
   mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
-onlyJourSequence$label <- paste(round(onlyJourSequence$TotalJour,1), "%", sep = "")
-for (i in rownames(onlyJourSequence)) {
-  if (onlyJourSequence[i,"label"] == "0%") { onlyJourSequence[i,"label"] <- NA}}
-for (i in rownames(onlyJourSequence)) {
-  if (is.na(onlyJourSequence[i,"label"]) == FALSE) { onlyJourSequence[i,"label"] <- paste(onlyJourSequence[i,"Division"]," : ",onlyJourSequence[i,"label"], sep = "")}}
-onlyJourSequence$Cycle<- rep("Jour", each = nrow(onlyJourSequence))
+onlyJourOTU$label <- paste(round(onlyJourOTU$TotalJour,1), "%", sep = "")
+for (i in rownames(onlyJourOTU)) {
+  if (onlyJourOTU[i,"label"] == "0%") { onlyJourOTU[i,"label"] <- NA}}
+for (i in rownames(onlyJourOTU)) {
+  if (is.na(onlyJourOTU[i,"label"]) == FALSE) { onlyJourOTU[i,"label"] <- paste(onlyJourOTU[i,"Division"]," : ",onlyJourOTU[i,"label"], sep = "")}}
+onlyJourOTU$Cycle<- rep("Jour", each = nrow(onlyJourOTU))
 ## Nuit
-onlyNuitSequence <- data_seq_tax %>% filter(Cycle == "Nuit") %>% select(OTU_Id,TotalNuit,Division)
-row.names(onlyNuitSequence)<-onlyNuitSequence$OTU_Id ; onlyNuitSequence <- onlyNuitSequence %>% select(-OTU_Id)
-onlyNuitSequence <- onlyNuitSequence %>% group_by(Division) %>% summarise_all(sum)
-onlyNuitSequence$TotalNuit <- onlyNuitSequence$TotalNuit*100/sum(onlyNuitSequence$TotalNuit)
-onlyNuitSequence <- onlyNuitSequence %>%
+onlyNuitOTU <- data_otu_tax %>% filter(Cycle == "Nuit") %>% select(OTU_Id,TotalNuit,Division)
+row.names(onlyNuitOTU)<-onlyNuitOTU$OTU_Id ; onlyNuitOTU <- onlyNuitOTU %>% select(-OTU_Id)
+onlyNuitOTU <- onlyNuitOTU %>% group_by(Division) %>% summarise_all(sum)
+onlyNuitOTU$TotalNuit <- onlyNuitOTU$TotalNuit*100/sum(onlyNuitOTU$TotalNuit)
+onlyNuitOTU <- onlyNuitOTU %>%
   arrange(desc(Division)) %>%
   mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
-onlyNuitSequence$label <- paste(round(onlyNuitSequence$TotalNuit,1), "%", sep = "")
-for (i in rownames(onlyNuitSequence)) {
-  if (onlyNuitSequence[i,"label"] == "0%") { onlyNuitSequence[i,"label"] <- NA}}
-for (i in rownames(onlyNuitSequence)) {
-  if (is.na(onlyNuitSequence[i,"label"]) == FALSE) { onlyNuitSequence[i,"label"] <- paste(onlyNuitSequence[i,"Division"]," : ",onlyNuitSequence[i,"label"], sep = "")}}
-onlyNuitSequence$Cycle<- rep("Nuit", each = nrow(onlyNuitSequence))
+onlyNuitOTU$label <- paste(round(onlyNuitOTU$TotalNuit,1), "%", sep = "")
+for (i in rownames(onlyNuitOTU)) {
+  if (onlyNuitOTU[i,"label"] == "0%") { onlyNuitOTU[i,"label"] <- NA}}
+for (i in rownames(onlyNuitOTU)) {
+  if (is.na(onlyNuitOTU[i,"label"]) == FALSE) { onlyNuitOTU[i,"label"] <- paste(onlyNuitOTU[i,"Division"]," : ",onlyNuitOTU[i,"label"], sep = "")}}
+onlyNuitOTU$Cycle<- rep("Nuit", each = nrow(onlyNuitOTU))
 ## Cycle
-colnames(onlyJourSequence)[2]  <- "value"
-onlyJourSequence$Sum <- rep(0, each = nrow(onlyJourSequence))
-onlyJourSequence$Count <- rep(0, each = nrow(onlyJourSequence))
-for (i in onlyJourSequence$Division) { onlyJourSequence$Count[which(onlyJourSequence$Division == i)] <- sum(data_seq_tax %>% filter(Cycle == "Jour") %>% filter(Division == i) %>% select(TotalJour))}
-onlyJourSequence$Sum <- sum(onlyJourSequence$Count)
-colnames(onlyNuitSequence)[2]  <- "value"
-onlyNuitSequence$Sum <- rep(0, each = nrow(onlyNuitSequence))
-onlyNuitSequence$Count <- rep(0, each = nrow(onlyNuitSequence))
-for (i in onlyNuitSequence$Division) { onlyNuitSequence$Count[which(onlyNuitSequence$Division == i)] <- sum(data_seq_tax %>% filter(Cycle == "Nuit") %>% filter(Division == i) %>% select(TotalNuit))}
-onlyNuitSequence$Sum <- sum(onlyNuitSequence$Count)
-onlyCycleSequence <- rbind(onlyJourSequence,onlyNuitSequence)
+colnames(onlyJourOTU)[2]  <- "value"
+onlyJourOTU$Sum <- rep(0, each = nrow(onlyJourOTU))
+onlyJourOTU$Count <- rep(0, each = nrow(onlyJourOTU))
+for (i in onlyJourOTU$Division) { onlyJourOTU$Count[which(onlyJourOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Cycle == "Jour") %>% filter(Division == i))}
+onlyJourOTU$Sum <- sum(onlyJourOTU$Count)
+colnames(onlyNuitOTU)[2]  <- "value"
+onlyNuitOTU$Sum <- rep(0, each = nrow(onlyNuitOTU))
+onlyNuitOTU$Count <- rep(0, each = nrow(onlyNuitOTU))
+for (i in onlyNuitOTU$Division) { onlyNuitOTU$Count[which(onlyNuitOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Cycle == "Nuit") %>% filter(Division == i))}
+onlyNuitOTU$Sum <- sum(onlyNuitOTU$Count)
+onlyCycleOTU <- rbind(onlyJourOTU,onlyNuitOTU)
 #Figure
-iz <- ggplot(onlyCycleSequence, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
-  scale_fill_manual(values = palette)
-legendSequence <- get_legend(iz)
-iz <- iz + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
-print(iz)
+az <- ggplot(onlyCycleOTU, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+#legendOTU <- get_legend(az)
+az <- az + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
+print(az)
+
 
     # Zone -------------------------------------------------------------------
 ## Oxique
-onlyOxiqueSequence <- data_seq_tax %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Division)
-row.names(onlyOxiqueSequence)<-onlyOxiqueSequence$OTU_Id ; onlyOxiqueSequence <- onlyOxiqueSequence %>% select(-OTU_Id)
-onlyOxiqueSequence <- onlyOxiqueSequence %>% group_by(Division) %>% summarise_all(sum)
-onlyOxiqueSequence$TotalOxique <- onlyOxiqueSequence$TotalOxique*100/sum(onlyOxiqueSequence$TotalOxique)
-onlyOxiqueSequence <- onlyOxiqueSequence %>%
+onlyOxiqueOTU <- data_otu_tax %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Division)
+row.names(onlyOxiqueOTU)<-onlyOxiqueOTU$OTU_Id ; onlyOxiqueOTU <- onlyOxiqueOTU %>% select(-OTU_Id)
+onlyOxiqueOTU <- onlyOxiqueOTU %>% group_by(Division) %>% summarise_all(sum)
+onlyOxiqueOTU$TotalOxique <- onlyOxiqueOTU$TotalOxique*100/sum(onlyOxiqueOTU$TotalOxique)
+onlyOxiqueOTU <- onlyOxiqueOTU %>%
   arrange(desc(Division)) %>%
   mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
-onlyOxiqueSequence$label <- paste(round(onlyOxiqueSequence$TotalOxique,1), "%", sep = "")
-for (i in rownames(onlyOxiqueSequence)) {
-  if (onlyOxiqueSequence[i,"label"] == "0%") { onlyOxiqueSequence[i,"label"] <- NA}}
-for (i in rownames(onlyOxiqueSequence)) {
-  if (is.na(onlyOxiqueSequence[i,"label"]) == FALSE) { onlyOxiqueSequence[i,"label"] <- paste(onlyOxiqueSequence[i,"Division"]," : ",onlyOxiqueSequence[i,"label"], sep = "")}}
-onlyOxiqueSequence$Zone<- rep("Oxique", each = nrow(onlyOxiqueSequence))
+onlyOxiqueOTU$label <- paste(round(onlyOxiqueOTU$TotalOxique,1), "%", sep = "")
+for (i in rownames(onlyOxiqueOTU)) {
+  if (onlyOxiqueOTU[i,"label"] == "0%") { onlyOxiqueOTU[i,"label"] <- NA}}
+for (i in rownames(onlyOxiqueOTU)) {
+  if (is.na(onlyOxiqueOTU[i,"label"]) == FALSE) { onlyOxiqueOTU[i,"label"] <- paste(onlyOxiqueOTU[i,"Division"]," : ",onlyOxiqueOTU[i,"label"], sep = "")}}
+onlyOxiqueOTU$Zone<- rep("Oxique", each = nrow(onlyOxiqueOTU))
 ## Anoxique
-onlyAnoxiqueSequence <- data_seq_tax %>% filter(Zone == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Division)
-row.names(onlyAnoxiqueSequence)<-onlyAnoxiqueSequence$OTU_Id ; onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% select(-OTU_Id)
-onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% group_by(Division) %>% summarise_all(sum)
-onlyAnoxiqueSequence$TotalAnoxique <- onlyAnoxiqueSequence$TotalAnoxique*100/sum(onlyAnoxiqueSequence$TotalAnoxique)
-onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>%
+onlyAnoxiqueOTU <- data_otu_tax %>% filter(Zone == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Division)
+row.names(onlyAnoxiqueOTU)<-onlyAnoxiqueOTU$OTU_Id ; onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>% select(-OTU_Id)
+onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>% group_by(Division) %>% summarise_all(sum)
+onlyAnoxiqueOTU$TotalAnoxique <- onlyAnoxiqueOTU$TotalAnoxique*100/sum(onlyAnoxiqueOTU$TotalAnoxique)
+onlyAnoxiqueOTU <- onlyAnoxiqueOTU %>%
   arrange(desc(Division)) %>%
   mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
-onlyAnoxiqueSequence$label <- paste(round(onlyAnoxiqueSequence$TotalAnoxique,1), "%", sep = "")
-for (i in rownames(onlyAnoxiqueSequence)) {
-  if (onlyAnoxiqueSequence[i,"label"] == "0%") { onlyAnoxiqueSequence[i,"label"] <- NA}}
-for (i in rownames(onlyAnoxiqueSequence)) {
-  if (is.na(onlyAnoxiqueSequence[i,"label"]) == FALSE) { onlyAnoxiqueSequence[i,"label"] <- paste(onlyAnoxiqueSequence[i,"Division"]," : ",onlyAnoxiqueSequence[i,"label"], sep = "")}}
-onlyAnoxiqueSequence$Zone<- rep("Anoxique", each = nrow(onlyAnoxiqueSequence))
+onlyAnoxiqueOTU$label <- paste(round(onlyAnoxiqueOTU$TotalAnoxique,1), "%", sep = "")
+for (i in rownames(onlyAnoxiqueOTU)) {
+  if (onlyAnoxiqueOTU[i,"label"] == "0%") { onlyAnoxiqueOTU[i,"label"] <- NA}}
+for (i in rownames(onlyAnoxiqueOTU)) {
+  if (is.na(onlyAnoxiqueOTU[i,"label"]) == FALSE) { onlyAnoxiqueOTU[i,"label"] <- paste(onlyAnoxiqueOTU[i,"Division"]," : ",onlyAnoxiqueOTU[i,"label"], sep = "")}}
+onlyAnoxiqueOTU$Zone<- rep("Anoxique", each = nrow(onlyAnoxiqueOTU))
 ## Zone
-colnames(onlyOxiqueSequence)[2]  <- "value"
-onlyOxiqueSequence$Sum <- rep(0, each = nrow(onlyOxiqueSequence))
-onlyOxiqueSequence$Count <- rep(0, each = nrow(onlyOxiqueSequence))
-for (i in onlyOxiqueSequence$Division) { onlyOxiqueSequence$Count[which(onlyOxiqueSequence$Division == i)] <- sum(data_seq_tax %>% filter(Zone == "Oxique") %>% filter(Division == i) %>% select(TotalOxique))}
-onlyOxiqueSequence$Sum <- sum(onlyOxiqueSequence$Count)
-colnames(onlyAnoxiqueSequence)[2]  <- "value"
-onlyAnoxiqueSequence$Sum <- rep(0, each = nrow(onlyAnoxiqueSequence))
-onlyAnoxiqueSequence$Count <- rep(0, each = nrow(onlyAnoxiqueSequence))
-for (i in onlyAnoxiqueSequence$Division) { onlyAnoxiqueSequence$Count[which(onlyAnoxiqueSequence$Division == i)] <- sum(data_seq_tax %>% filter(Zone == "Anoxique") %>% filter(Division == i) %>% select(TotalAnoxique))}
-onlyAnoxiqueSequence$Sum <- sum(onlyAnoxiqueSequence$Count)
-onlyZoneSequence <- rbind(onlyOxiqueSequence,onlyAnoxiqueSequence)
+colnames(onlyOxiqueOTU)[2]  <- "value"
+onlyOxiqueOTU$Sum <- rep(0, each = nrow(onlyOxiqueOTU))
+onlyOxiqueOTU$Count <- rep(0, each = nrow(onlyOxiqueOTU))
+for (i in onlyOxiqueOTU$Division) { onlyOxiqueOTU$Count[which(onlyOxiqueOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Zone == "Oxique") %>% filter(Division == i))}
+onlyOxiqueOTU$Sum <- sum(onlyOxiqueOTU$Count)
+colnames(onlyAnoxiqueOTU)[2]  <- "value"
+onlyAnoxiqueOTU$Sum <- rep(0, each = nrow(onlyAnoxiqueOTU))
+onlyAnoxiqueOTU$Count <- rep(0, each = nrow(onlyAnoxiqueOTU))
+for (i in onlyAnoxiqueOTU$Division) { onlyAnoxiqueOTU$Count[which(onlyAnoxiqueOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Zone == "Anoxique") %>% filter(Division == i))}
+onlyAnoxiqueOTU$Sum <- sum(onlyAnoxiqueOTU$Count)
+onlyZoneOTU <- rbind(onlyOxiqueOTU,onlyAnoxiqueOTU)
 #Figure
-jz <- ggplot(onlyZoneSequence, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
-  scale_fill_manual(values = palette)
-jz <- jz + theme(legend.position = "none") + labs(x="Zones",y="Séquences (%)")
-print(jz)    
+bz <- ggplot(onlyZoneOTU, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+bz <- bz + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
+print(bz)
+
     # Fraction -------------------------------------------------------------------
 ## Petite
-onlyPetiteSequence <- data_seq_tax %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Division)
-row.names(onlyPetiteSequence)<-onlyPetiteSequence$OTU_Id ; onlyPetiteSequence <- onlyPetiteSequence %>% select(-OTU_Id)
-onlyPetiteSequence <- onlyPetiteSequence %>% group_by(Division) %>% summarise_all(sum)
-onlyPetiteSequence$TotalPetite <- onlyPetiteSequence$TotalPetite*100/sum(onlyPetiteSequence$TotalPetite)
-onlyPetiteSequence <- onlyPetiteSequence %>%
+onlyPetiteOTU <- data_otu_tax %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Division)
+row.names(onlyPetiteOTU)<-onlyPetiteOTU$OTU_Id ; onlyPetiteOTU <- onlyPetiteOTU %>% select(-OTU_Id)
+onlyPetiteOTU <- onlyPetiteOTU %>% group_by(Division) %>% summarise_all(sum)
+onlyPetiteOTU$TotalPetite <- onlyPetiteOTU$TotalPetite*100/sum(onlyPetiteOTU$TotalPetite)
+onlyPetiteOTU <- onlyPetiteOTU %>%
   arrange(desc(Division)) %>%
   mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
-onlyPetiteSequence$label <- paste(round(onlyPetiteSequence$TotalPetite,1), "%", sep = "")
-for (i in rownames(onlyPetiteSequence)) {
-  if (onlyPetiteSequence[i,"label"] == "0%") { onlyPetiteSequence[i,"label"] <- NA}}
-for (i in rownames(onlyPetiteSequence)) {
-  if (is.na(onlyPetiteSequence[i,"label"]) == FALSE) { onlyPetiteSequence[i,"label"] <- paste(onlyPetiteSequence[i,"Division"]," : ",onlyPetiteSequence[i,"label"], sep = "")}}
-onlyPetiteSequence$Fraction<- rep("Petite", each = nrow(onlyPetiteSequence))
+onlyPetiteOTU$label <- paste(round(onlyPetiteOTU$TotalPetite,1), "%", sep = "")
+for (i in rownames(onlyPetiteOTU)) {
+  if (onlyPetiteOTU[i,"label"] == "0%") { onlyPetiteOTU[i,"label"] <- NA}}
+for (i in rownames(onlyPetiteOTU)) {
+  if (is.na(onlyPetiteOTU[i,"label"]) == FALSE) { onlyPetiteOTU[i,"label"] <- paste(onlyPetiteOTU[i,"Division"]," : ",onlyPetiteOTU[i,"label"], sep = "")}}
+onlyPetiteOTU$Fraction<- rep("Petite", each = nrow(onlyPetiteOTU))
 ## Grande
-onlyGrandeSequence <- data_seq_tax %>% filter(Fraction == "Grande") %>% select(OTU_Id,TotalGrande,Division)
-row.names(onlyGrandeSequence)<-onlyGrandeSequence$OTU_Id ; onlyGrandeSequence <- onlyGrandeSequence %>% select(-OTU_Id)
-onlyGrandeSequence <- onlyGrandeSequence %>% group_by(Division) %>% summarise_all(sum)
-onlyGrandeSequence$TotalGrande <- onlyGrandeSequence$TotalGrande*100/sum(onlyGrandeSequence$TotalGrande)
-onlyGrandeSequence <- onlyGrandeSequence %>%
+onlyGrandeOTU <- data_otu_tax %>% filter(Fraction == "Grande") %>% select(OTU_Id,TotalGrande,Division)
+row.names(onlyGrandeOTU)<-onlyGrandeOTU$OTU_Id
+onlyGrandeOTU <- onlyGrandeOTU %>% select(-OTU_Id)
+onlyGrandeOTU <- onlyGrandeOTU %>% group_by(Division) %>% summarise_all(sum)
+onlyGrandeOTU$TotalGrande <- onlyGrandeOTU$TotalGrande*100/sum(onlyGrandeOTU$TotalGrande)
+onlyGrandeOTU <- onlyGrandeOTU %>%
   arrange(desc(Division)) %>%
   mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
-onlyGrandeSequence$label <- paste(round(onlyGrandeSequence$TotalGrande,1), "%", sep = "")
-for (i in rownames(onlyGrandeSequence)) {
-  if (onlyGrandeSequence[i,"label"] == "0%") { onlyGrandeSequence[i,"label"] <- NA}}
-for (i in rownames(onlyGrandeSequence)) {
-  if (is.na(onlyGrandeSequence[i,"label"]) == FALSE) { onlyGrandeSequence[i,"label"] <- paste(onlyGrandeSequence[i,"Division"]," : ",onlyGrandeSequence[i,"label"], sep = "")}}
-onlyGrandeSequence$Fraction<- rep("Grande", each = nrow(onlyGrandeSequence))
+onlyGrandeOTU$label <- paste(round(onlyGrandeOTU$TotalGrande,1), "%", sep = "")
+for (i in rownames(onlyGrandeOTU)) {
+  if (onlyGrandeOTU[i,"label"] == "0%") { onlyGrandeOTU[i,"label"] <- NA}}
+for (i in rownames(onlyGrandeOTU)) {
+  if (is.na(onlyGrandeOTU[i,"label"]) == FALSE) { onlyGrandeOTU[i,"label"] <- paste(onlyGrandeOTU[i,"Division"]," : ",onlyGrandeOTU[i,"label"], sep = "")}}
+onlyGrandeOTU$Fraction<- rep("Grande", each = nrow(onlyGrandeOTU))
 ## Fraction
-colnames(onlyPetiteSequence)[2]  <- "value"
-onlyPetiteSequence$Sum <- rep(0, each = nrow(onlyPetiteSequence))
-onlyPetiteSequence$Count <- rep(0, each = nrow(onlyPetiteSequence))
-for (i in onlyPetiteSequence$Division) { onlyPetiteSequence$Count[which(onlyPetiteSequence$Division == i)] <- sum(data_seq_tax %>% filter(Fraction == "Petite") %>% filter(Division == i) %>% select(TotalPetite))}
-onlyPetiteSequence$Sum <- sum(onlyPetiteSequence$Count)
-colnames(onlyGrandeSequence)[2]  <- "value"
-onlyGrandeSequence$Sum <- rep(0, each = nrow(onlyGrandeSequence))
-onlyGrandeSequence$Count <- rep(0, each = nrow(onlyGrandeSequence))
-for (i in onlyGrandeSequence$Division) { onlyGrandeSequence$Count[which(onlyGrandeSequence$Division == i)] <- sum(data_seq_tax %>% filter(Fraction == "Grande") %>% filter(Division == i) %>% select(TotalGrande))}
-onlyGrandeSequence$Sum <- sum(onlyGrandeSequence$Count)
-onlyFractionSequence <- rbind(onlyPetiteSequence,onlyGrandeSequence)
+colnames(onlyPetiteOTU)[2]  <- "value"
+onlyPetiteOTU$Sum <- rep(0, each = nrow(onlyPetiteOTU))
+onlyPetiteOTU$Count <- rep(0, each = nrow(onlyPetiteOTU))
+for (i in onlyPetiteOTU$Division) { onlyPetiteOTU$Count[which(onlyPetiteOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Fraction == "Petite") %>% filter(Division == i))}
+onlyPetiteOTU$Sum <- sum(onlyPetiteOTU$Count)
+colnames(onlyGrandeOTU)[2]  <- "value"
+onlyGrandeOTU$Sum <- rep(0, each = nrow(onlyGrandeOTU))
+onlyGrandeOTU$Count <- rep(0, each = nrow(onlyGrandeOTU))
+for (i in onlyGrandeOTU$Division) { onlyGrandeOTU$Count[which(onlyGrandeOTU$Division == i)] <- nrow(data_otu_tax %>% filter(Fraction == "Grande") %>% filter(Division == i))}
+onlyGrandeOTU$Sum <- sum(onlyGrandeOTU$Count)
+onlyFractionOTU <- rbind(onlyPetiteOTU,onlyGrandeOTU)
 #Figure
-kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
   scale_fill_manual(values = palette)
-kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
-print(kz) 
+cz <- cz + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
+print(cz) 
     # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/Sequence-only.svg",width = 10.00,height = 8.00)
-b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+svglite("Hist-Taxomy/OTU-only.svg",width = 10.00,height = 8.00)
+b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
-
     # Coplot X AFC -------------------------------------------------------------------
 f <- ggplot() + theme_void()
 print(f)
 #AFC = séquence
-svglite("Biplot/Sequence-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
-b_plot <- plot_grid(aCycle,iz,f,bZone,jz,legendSequence,cFraction,kz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+svglite("Biplot/OTU-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
+b_plot <- plot_grid(aCycle,az,f,bZone,bz,legendOTU,cFraction,cz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
 print(b_plot)
 dev.off()  
 #AFC = OTU
-svglite("Biplot/Sequence-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
-c_plot <- plot_grid(iCycle,iz,f,jZone,jz,legendSequence,kFraction,kz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+svglite("Biplot/OTU-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
+c_plot <- plot_grid(iCycle,az,f,jZone,bz,legendOTU,kFraction,cz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
 print(c_plot)
-dev.off()
+dev.off()  
+
 
 
   # Séquence TOTAL---------------------------------------------------------------------
@@ -3189,6 +3024,171 @@ svglite("Hist-Taxomy/Sequence-Total.svg",width = 14.00,height = 6.00)
 b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
 print(b_plot)
 dev.off()
+  # Séquence ONLY---------------------------------------------------------------------
+    # Cycle -------------------------------------------------------------------
+## Jour
+onlyJourSequence <- data_seq_tax %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Division)
+row.names(onlyJourSequence)<-onlyJourSequence$OTU_Id ; onlyJourSequence <- onlyJourSequence %>% select(-OTU_Id)
+onlyJourSequence <- onlyJourSequence %>% group_by(Division) %>% summarise_all(sum)
+onlyJourSequence$TotalJour <- onlyJourSequence$TotalJour*100/sum(onlyJourSequence$TotalJour)
+onlyJourSequence <- onlyJourSequence %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+onlyJourSequence$label <- paste(round(onlyJourSequence$TotalJour,1), "%", sep = "")
+for (i in rownames(onlyJourSequence)) {
+  if (onlyJourSequence[i,"label"] == "0%") { onlyJourSequence[i,"label"] <- NA}}
+for (i in rownames(onlyJourSequence)) {
+  if (is.na(onlyJourSequence[i,"label"]) == FALSE) { onlyJourSequence[i,"label"] <- paste(onlyJourSequence[i,"Division"]," : ",onlyJourSequence[i,"label"], sep = "")}}
+onlyJourSequence$Cycle<- rep("Jour", each = nrow(onlyJourSequence))
+## Nuit
+onlyNuitSequence <- data_seq_tax %>% filter(Cycle == "Nuit") %>% select(OTU_Id,TotalNuit,Division)
+row.names(onlyNuitSequence)<-onlyNuitSequence$OTU_Id ; onlyNuitSequence <- onlyNuitSequence %>% select(-OTU_Id)
+onlyNuitSequence <- onlyNuitSequence %>% group_by(Division) %>% summarise_all(sum)
+onlyNuitSequence$TotalNuit <- onlyNuitSequence$TotalNuit*100/sum(onlyNuitSequence$TotalNuit)
+onlyNuitSequence <- onlyNuitSequence %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+onlyNuitSequence$label <- paste(round(onlyNuitSequence$TotalNuit,1), "%", sep = "")
+for (i in rownames(onlyNuitSequence)) {
+  if (onlyNuitSequence[i,"label"] == "0%") { onlyNuitSequence[i,"label"] <- NA}}
+for (i in rownames(onlyNuitSequence)) {
+  if (is.na(onlyNuitSequence[i,"label"]) == FALSE) { onlyNuitSequence[i,"label"] <- paste(onlyNuitSequence[i,"Division"]," : ",onlyNuitSequence[i,"label"], sep = "")}}
+onlyNuitSequence$Cycle<- rep("Nuit", each = nrow(onlyNuitSequence))
+## Cycle
+colnames(onlyJourSequence)[2]  <- "value"
+onlyJourSequence$Sum <- rep(0, each = nrow(onlyJourSequence))
+onlyJourSequence$Count <- rep(0, each = nrow(onlyJourSequence))
+for (i in onlyJourSequence$Division) { onlyJourSequence$Count[which(onlyJourSequence$Division == i)] <- sum(data_seq_tax %>% filter(Cycle == "Jour") %>% filter(Division == i) %>% select(TotalJour))}
+onlyJourSequence$Sum <- sum(onlyJourSequence$Count)
+colnames(onlyNuitSequence)[2]  <- "value"
+onlyNuitSequence$Sum <- rep(0, each = nrow(onlyNuitSequence))
+onlyNuitSequence$Count <- rep(0, each = nrow(onlyNuitSequence))
+for (i in onlyNuitSequence$Division) { onlyNuitSequence$Count[which(onlyNuitSequence$Division == i)] <- sum(data_seq_tax %>% filter(Cycle == "Nuit") %>% filter(Division == i) %>% select(TotalNuit))}
+onlyNuitSequence$Sum <- sum(onlyNuitSequence$Count)
+onlyCycleSequence <- rbind(onlyJourSequence,onlyNuitSequence)
+#Figure
+iz <- ggplot(onlyCycleSequence, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_fill_manual(values = palette)
+#legendSequence <- get_legend(iz)
+iz <- iz + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
+print(iz)
+
+    # Zone -------------------------------------------------------------------
+## Oxique
+onlyOxiqueSequence <- data_seq_tax %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Division)
+row.names(onlyOxiqueSequence)<-onlyOxiqueSequence$OTU_Id ; onlyOxiqueSequence <- onlyOxiqueSequence %>% select(-OTU_Id)
+onlyOxiqueSequence <- onlyOxiqueSequence %>% group_by(Division) %>% summarise_all(sum)
+onlyOxiqueSequence$TotalOxique <- onlyOxiqueSequence$TotalOxique*100/sum(onlyOxiqueSequence$TotalOxique)
+onlyOxiqueSequence <- onlyOxiqueSequence %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+onlyOxiqueSequence$label <- paste(round(onlyOxiqueSequence$TotalOxique,1), "%", sep = "")
+for (i in rownames(onlyOxiqueSequence)) {
+  if (onlyOxiqueSequence[i,"label"] == "0%") { onlyOxiqueSequence[i,"label"] <- NA}}
+for (i in rownames(onlyOxiqueSequence)) {
+  if (is.na(onlyOxiqueSequence[i,"label"]) == FALSE) { onlyOxiqueSequence[i,"label"] <- paste(onlyOxiqueSequence[i,"Division"]," : ",onlyOxiqueSequence[i,"label"], sep = "")}}
+onlyOxiqueSequence$Zone<- rep("Oxique", each = nrow(onlyOxiqueSequence))
+## Anoxique
+onlyAnoxiqueSequence <- data_seq_tax %>% filter(Zone == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Division)
+row.names(onlyAnoxiqueSequence)<-onlyAnoxiqueSequence$OTU_Id ; onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% select(-OTU_Id)
+onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% group_by(Division) %>% summarise_all(sum)
+onlyAnoxiqueSequence$TotalAnoxique <- onlyAnoxiqueSequence$TotalAnoxique*100/sum(onlyAnoxiqueSequence$TotalAnoxique)
+onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+onlyAnoxiqueSequence$label <- paste(round(onlyAnoxiqueSequence$TotalAnoxique,1), "%", sep = "")
+for (i in rownames(onlyAnoxiqueSequence)) {
+  if (onlyAnoxiqueSequence[i,"label"] == "0%") { onlyAnoxiqueSequence[i,"label"] <- NA}}
+for (i in rownames(onlyAnoxiqueSequence)) {
+  if (is.na(onlyAnoxiqueSequence[i,"label"]) == FALSE) { onlyAnoxiqueSequence[i,"label"] <- paste(onlyAnoxiqueSequence[i,"Division"]," : ",onlyAnoxiqueSequence[i,"label"], sep = "")}}
+onlyAnoxiqueSequence$Zone<- rep("Anoxique", each = nrow(onlyAnoxiqueSequence))
+## Zone
+colnames(onlyOxiqueSequence)[2]  <- "value"
+onlyOxiqueSequence$Sum <- rep(0, each = nrow(onlyOxiqueSequence))
+onlyOxiqueSequence$Count <- rep(0, each = nrow(onlyOxiqueSequence))
+for (i in onlyOxiqueSequence$Division) { onlyOxiqueSequence$Count[which(onlyOxiqueSequence$Division == i)] <- sum(data_seq_tax %>% filter(Zone == "Oxique") %>% filter(Division == i) %>% select(TotalOxique))}
+onlyOxiqueSequence$Sum <- sum(onlyOxiqueSequence$Count)
+colnames(onlyAnoxiqueSequence)[2]  <- "value"
+onlyAnoxiqueSequence$Sum <- rep(0, each = nrow(onlyAnoxiqueSequence))
+onlyAnoxiqueSequence$Count <- rep(0, each = nrow(onlyAnoxiqueSequence))
+for (i in onlyAnoxiqueSequence$Division) { onlyAnoxiqueSequence$Count[which(onlyAnoxiqueSequence$Division == i)] <- sum(data_seq_tax %>% filter(Zone == "Anoxique") %>% filter(Division == i) %>% select(TotalAnoxique))}
+onlyAnoxiqueSequence$Sum <- sum(onlyAnoxiqueSequence$Count)
+onlyZoneSequence <- rbind(onlyOxiqueSequence,onlyAnoxiqueSequence)
+#Figure
+jz <- ggplot(onlyZoneSequence, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_fill_manual(values = palette)
+jz <- jz + theme(legend.position = "none") + labs(x="Zones",y="Séquences (%)")
+print(jz)    
+    # Fraction -------------------------------------------------------------------
+## Petite
+onlyPetiteSequence <- data_seq_tax %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Division)
+row.names(onlyPetiteSequence)<-onlyPetiteSequence$OTU_Id ; onlyPetiteSequence <- onlyPetiteSequence %>% select(-OTU_Id)
+onlyPetiteSequence <- onlyPetiteSequence %>% group_by(Division) %>% summarise_all(sum)
+onlyPetiteSequence$TotalPetite <- onlyPetiteSequence$TotalPetite*100/sum(onlyPetiteSequence$TotalPetite)
+onlyPetiteSequence <- onlyPetiteSequence %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+onlyPetiteSequence$label <- paste(round(onlyPetiteSequence$TotalPetite,1), "%", sep = "")
+for (i in rownames(onlyPetiteSequence)) {
+  if (onlyPetiteSequence[i,"label"] == "0%") { onlyPetiteSequence[i,"label"] <- NA}}
+for (i in rownames(onlyPetiteSequence)) {
+  if (is.na(onlyPetiteSequence[i,"label"]) == FALSE) { onlyPetiteSequence[i,"label"] <- paste(onlyPetiteSequence[i,"Division"]," : ",onlyPetiteSequence[i,"label"], sep = "")}}
+onlyPetiteSequence$Fraction<- rep("Petite", each = nrow(onlyPetiteSequence))
+## Grande
+onlyGrandeSequence <- data_seq_tax %>% filter(Fraction == "Grande") %>% select(OTU_Id,TotalGrande,Division)
+row.names(onlyGrandeSequence)<-onlyGrandeSequence$OTU_Id ; onlyGrandeSequence <- onlyGrandeSequence %>% select(-OTU_Id)
+onlyGrandeSequence <- onlyGrandeSequence %>% group_by(Division) %>% summarise_all(sum)
+onlyGrandeSequence$TotalGrande <- onlyGrandeSequence$TotalGrande*100/sum(onlyGrandeSequence$TotalGrande)
+onlyGrandeSequence <- onlyGrandeSequence %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+onlyGrandeSequence$label <- paste(round(onlyGrandeSequence$TotalGrande,1), "%", sep = "")
+for (i in rownames(onlyGrandeSequence)) {
+  if (onlyGrandeSequence[i,"label"] == "0%") { onlyGrandeSequence[i,"label"] <- NA}}
+for (i in rownames(onlyGrandeSequence)) {
+  if (is.na(onlyGrandeSequence[i,"label"]) == FALSE) { onlyGrandeSequence[i,"label"] <- paste(onlyGrandeSequence[i,"Division"]," : ",onlyGrandeSequence[i,"label"], sep = "")}}
+onlyGrandeSequence$Fraction<- rep("Grande", each = nrow(onlyGrandeSequence))
+## Fraction
+colnames(onlyPetiteSequence)[2]  <- "value"
+onlyPetiteSequence$Sum <- rep(0, each = nrow(onlyPetiteSequence))
+onlyPetiteSequence$Count <- rep(0, each = nrow(onlyPetiteSequence))
+for (i in onlyPetiteSequence$Division) { onlyPetiteSequence$Count[which(onlyPetiteSequence$Division == i)] <- sum(data_seq_tax %>% filter(Fraction == "Petite") %>% filter(Division == i) %>% select(TotalPetite))}
+onlyPetiteSequence$Sum <- sum(onlyPetiteSequence$Count)
+colnames(onlyGrandeSequence)[2]  <- "value"
+onlyGrandeSequence$Sum <- rep(0, each = nrow(onlyGrandeSequence))
+onlyGrandeSequence$Count <- rep(0, each = nrow(onlyGrandeSequence))
+for (i in onlyGrandeSequence$Division) { onlyGrandeSequence$Count[which(onlyGrandeSequence$Division == i)] <- sum(data_seq_tax %>% filter(Fraction == "Grande") %>% filter(Division == i) %>% select(TotalGrande))}
+onlyGrandeSequence$Sum <- sum(onlyGrandeSequence$Count)
+onlyFractionSequence <- rbind(onlyPetiteSequence,onlyGrandeSequence)
+#Figure
+kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_fill_manual(values = palette)
+kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
+print(kz) 
+    # Coplot -------------------------------------------------------------------
+svglite("Hist-Taxomy/Sequence-only.svg",width = 10.00,height = 8.00)
+b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+print(b_plot)
+dev.off()  
+
+    # Coplot X AFC -------------------------------------------------------------------
+f <- ggplot() + theme_void()
+print(f)
+#AFC = séquence
+svglite("Biplot/Sequence-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
+b_plot <- plot_grid(aCycle,iz,f,bZone,jz,legendSequence,cFraction,kz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+print(b_plot)
+dev.off()  
+#AFC = OTU
+svglite("Biplot/Sequence-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
+c_plot <- plot_grid(iCycle,iz,f,jZone,jz,legendSequence,kFraction,kz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+print(c_plot)
+dev.off()
+
+
 # Polar ------------------------------------------------------
   # Séquence ----------------------------------------------------------------
 ##Total column
