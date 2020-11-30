@@ -12,13 +12,13 @@
 # Script Composition
 # Set directory, input and output -----------------------------------------------------------
 #
-#output <- "Composition-V4-095-Vsearch215-Filterno-Unifyno-Rarefyyes-NN-Fungi"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
+#output <- "test"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
-#sortop <- "no"
-#Taxonomy <- "NN"
-#Mode <- "Phylum"
-#Group <- "Fungi"
+#sortop <- "yes"
+#Taxonomy <- "LCA"
+#Mode <- "Superphylum"
+#Group <- "Eukaryota"
 #RarefyYoN <- "yes"
 #UnifyYoN <- "no"
 #
@@ -1470,6 +1470,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
 # Prepare Functionnal affiliation -----------------------------------------
   tax_table_funtion <- tax_table
   tax_table_funtion$Function <- "unclassed"
+  tax_table_funtion[is.na(tax_table_funtion) == TRUE] <- "Not affiliated"
   # Identifier --------------------------------------------------------------
   for (i in row.names(tax_table_funtion)) {
     if ( tax_table_funtion[i,"Superphylum"] == "Alveolata") {
