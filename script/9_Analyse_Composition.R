@@ -13,14 +13,14 @@
 # Set directory, input and output -----------------------------------------------------------
 #
 #output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-199/OTU_distribution_tax.txt"
+#input <- "../dataPANAM/PANAM2/V4-result-095-199/OTU_distribution_tax.txt"
 #region <- "V4"
-#sortop <- "yes"
+#sortop <- "no"
 #Taxonomy <- "LCA"
 #Mode <- "Superphylum"
 #Group <- "Eukaryota"
 #RarefyYoN <- "yes"
-#UnifyYoN <- "no"
+#UnifyYoN <- "yes"
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -216,7 +216,7 @@ samples_df<-filter(samples_df, Region == region)
 amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
 seq_mat <- tableVinput %>% select(all_of(amplicon))
 seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,all_of(amplicon)], as.numeric)
-
+seq_mat$OTU_Id <- row.names(seq_mat)
 ## Prepare taxonomy
 if (length(args)==2) {
   cat("Enter Taxonomy mod (LCA, NN or Best_HIT) ? : ");
@@ -231,7 +231,7 @@ if (length(args)>2) {
 if (Taxonomy == "LCA") { Taxonomy <- "LCA.taxonomy"}
 if (Taxonomy == "NN") { Taxonomy <- "NN.taxonomy"}
 if (Taxonomy == "Best_HIT") { Taxonomy <- "Best_hit_identity"}
-seq_mat[,"Taxonomy"] <- tableVinput[,Taxonomy]
+#seq_mat[,"Taxonomy"] <- tableVinput[,Taxonomy]
 
 ## Prepare correspondance table
 tblc <- samples_df %>% select("Amplicon", "Date", "Replicat", "Condition")
@@ -255,8 +255,8 @@ if (length(args)>2) {
   UnifyYoN <- args[6]
 }
 if (UnifyYoN == "yes") {
-seq_mat_pool <- as.data.frame(x=seq_mat[,"Taxonomy"],row.names = row.names(seq_mat))
-colnames(seq_mat_pool) <- "Taxonomy"
+seq_mat_pool <- as.data.frame(x=seq_mat[,"OTU_Id"],row.names = row.names(seq_mat))
+colnames(seq_mat_pool) <- "OTU_Id"
 for (h in tblcx[,"Amplicon.x"] ) {
   f <- (tblcx %>% filter(Amplicon.x == h) %>% select(Amplicon.y))[[1]]
   print (h)
@@ -283,11 +283,12 @@ if (length(args)>2) {
   RarefyYoN <- args[7]
 }
 if (RarefyYoN == "yes") {
-seq_mat_poolt <- seq_mat_pool %>% select(-"Taxonomy")
+seq_mat_poolt <- seq_mat_pool %>% select(-"OTU_Id")
 seq_mat_poolt <- t(seq_mat_poolt)
 seq_mat_pool_rare <- as.data.frame(t(Rarefy(seq_mat_poolt)$otu.tab.rff)) ## Ref : Jun Chen et al. (2012). Associating microbiome composition with environmental covariates using generalized UniFrac distances. 28(16): 2106–2113.
 rm(seq_mat_poolt)
-for (i in row.names(seq_mat_pool_rare)) { seq_mat_pool_rare[i,"Taxonomy"] <- seq_mat_pool[i,"Taxonomy"]}
+seq_mat_pool_rare$OTU_Id <- rownames(seq_mat_pool_rare)
+#for (i in row.names(seq_mat_pool_rare)) { seq_mat_pool_rare[i,"Taxonomy"] <- seq_mat_pool[i,"Taxonomy"]}
 }
 if (RarefyYoN == "no") { seq_mat_pool_rare <- seq_mat_pool }
 
@@ -414,13 +415,36 @@ H <- ggplot(statRarefy, aes(y = `avRarefy-OTU`, x = Fusion)) + geom_boxplot() + 
 H <- H + theme(legend.position="none")
 print(H)
 dev.off()  
-  # Taxonomy statistics -----------------------------------------------------
-##Create Tax stat table
+  # Taxonomy & statistics -----------------------------------------------------
+## Create Tax stat table
 tax_table <- tableVinput %>% select(all_of(Taxonomy))
 tax_table$OTU_Id <- row.names(tax_table)
 tax_table <- separate(tax_table, all_of(Taxonomy), c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
 tax_table[tax_table == ""] <- NA
 tax_table[tax_table == " "] <- NA
+for (i in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus")) {
+  j <- grep(i, colnames(tax_table)) + 1
+  for (f in rownames(tax_table)) { 
+    if (is.na(tax_table[f,i]) == TRUE) { tax_table[f,j] <- NA }}}
+tax_tablemix <- tax_table
+tax_tablemix$Taxonomy <- paste(tax_table[,"Domain"],tax_table[,"Superphylum"],tax_table[,"Phylum"],tax_table[,"Class"],tax_table[,"Order"],tax_table[,"Family"],tax_table[,"Genus"],tax_table[,"Species"], sep = ";")
+tax_tablemix <- tax_tablemix %>% select(OTU_Id, Taxonomy)
+
+## Add taxonomy to seq and otu matrix
+seq_mat <- merge(seq_mat,tax_tablemix,by = "OTU_Id")
+rownames(seq_mat) <- seq_mat$OTU_Id ; seq_mat <- seq_mat %>% select(-OTU_Id)
+seq_mat_pool <- merge(seq_mat_pool,tax_tablemix,by = "OTU_Id")
+rownames(seq_mat_pool) <- seq_mat_pool$OTU_Id ; seq_mat_pool <- seq_mat_pool %>% select(-OTU_Id)
+seq_mat_pool_rare <- merge(seq_mat_pool_rare,tax_tablemix,by = "OTU_Id")
+rownames(seq_mat_pool_rare) <- seq_mat_pool_rare$OTU_Id ; seq_mat_pool_rare <- seq_mat_pool_rare %>% select(-OTU_Id)
+otu_mat <- merge(otu_mat,tax_tablemix,by = "OTU_Id")
+rownames(otu_mat) <- otu_mat$OTU_Id ; otu_mat <- otu_mat %>% select(-OTU_Id)
+otu_mat_pool <- merge(otu_mat_pool,tax_tablemix,by = "OTU_Id")
+rownames(otu_mat_pool) <- otu_mat_pool$OTU_Id ; otu_mat_pool <- otu_mat_pool %>% select(-OTU_Id)
+otu_mat_pool_rare <- merge(otu_mat_pool_rare,tax_tablemix,by = "OTU_Id")
+rownames(otu_mat_pool_rare) <- otu_mat_pool_rare$OTU_Id ; otu_mat_pool_rare <- otu_mat_pool_rare %>% select(-OTU_Id)
+
+
 tax_table_TF <- as.data.frame(is.na(tax_table))
 for (level in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species")) {
   assign(paste("count", level, sep = "_"), nrow(as.data.frame(tax_table_TF[,level][tax_table_TF[,level] == FALSE])))}
@@ -773,11 +797,12 @@ Dim2otu <- paste("Dim 2 [",round(Xotu %>% filter(dim == 2) %>% select(eig),1),"%
 # AFC Taxonomy ------------------------------------------------------------
   # Séquence ----------------------------------------------------------------
 data_seq_tax <- data_seq
-taxo <- tableVinput %>% select(all_of(Taxonomy)) ; taxo$OTU_Id <- row.names(taxo)
-data_seq_tax <- merge(x = data_seq_tax, y =  taxo, by = "OTU_Id")
+colnames(tax_tablemix) <- c("OTU_Id",Taxonomy)
+data_seq_tax <- merge(data_seq_tax,tax_tablemix, by = "OTU_Id")
 data_seq_tax <- separate(data_seq_tax, all_of(Taxonomy),c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
 data_seq_tax[data_seq_tax == ""] <- NA
 data_seq_tax[data_seq_tax == " "] <- NA
+data_seq_tax[data_seq_tax == "NA"] <- NA
 data_seq_tax[is.na(data_seq_tax) == TRUE] <- "Not Affiliated"
 
 if (Mode == "Class") {
@@ -845,7 +870,7 @@ All_plot <- plot_grid(aCycle, cFraction, bZone, ncol = 2, nrow = 2, rel_widths =
 print(All_plot)
 dev.off()
     # Avril_2018 ---------------------------------------------------
-data_seq04_tax <- merge(x = data_seq04, y =  taxo, by = "OTU_Id")
+data_seq04_tax <- merge(x = data_seq04, y =  tax_tablemix, by = "OTU_Id")
 
 a_04 <- ggplot(data_seq04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -902,7 +927,7 @@ Avril_plot <- plot_grid(a_04, c_04, b_04, ncol = 2, nrow = 2, rel_widths = c(3,3
 print(Avril_plot)
 dev.off()  
     # Juin_2018 ---------------------------------------------------
-data_seq06_tax <- merge(x = data_seq06, y =  taxo, by = "OTU_Id")
+data_seq06_tax <- merge(x = data_seq06, y =  tax_tablemix, by = "OTU_Id")
 
 a_06 <- ggplot(data_seq06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -960,7 +985,7 @@ print(Juin_plot)
 dev.off()  
 
     # Septembre_2018 ---------------------------------------------------
-data_seq09_tax <- merge(x = data_seq09, y =  taxo, by = "OTU_Id")
+data_seq09_tax <- merge(x = data_seq09, y =  tax_tablemix, by = "OTU_Id")
 
 a_09 <- ggplot(data_seq09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -1019,7 +1044,7 @@ dev.off()
 
 
     # Novembre_2018 ---------------------------------------------------
-data_seq11_tax <- merge(x = data_seq11, y =  taxo, by = "OTU_Id")
+data_seq11_tax <- merge(x = data_seq11, y =  tax_tablemix, by = "OTU_Id")
 
 a_11 <- ggplot(data_seq11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -1079,11 +1104,12 @@ dev.off()
 
   # OTU ----------------------------------------------------------------
 data_otu_tax <- data_otu
-taxo <- tableVinput %>% select(all_of(Taxonomy)) ; taxo$OTU_Id <- row.names(taxo)
-data_otu_tax <- merge(x = data_otu_tax, y =  taxo, by = "OTU_Id")
+colnames(tax_tablemix) <- c("OTU_Id",Taxonomy)
+data_otu_tax <- merge(x = data_otu_tax, y =  tax_tablemix, by = "OTU_Id")
 data_otu_tax <- separate(data_otu_tax, all_of(Taxonomy),c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
 data_otu_tax[data_otu_tax == ""] <- NA
 data_otu_tax[data_otu_tax == " "] <- NA
+data_otu_tax[data_otu_tax == "NA"] <- NA
 data_otu_tax[is.na(data_otu_tax) == TRUE] <- "Not Affiliated"
 
 if (Mode == "Class") {
@@ -1151,7 +1177,7 @@ All_plot <- plot_grid(iCycle, jZone, kFraction, ncol = 2, nrow = 2, rel_widths =
 print(All_plot)
 dev.off()
     # Avril_2018 ---------------------------------------------------
-data_otu04_tax <- merge(x = data_otu04, y =  taxo, by = "OTU_Id")
+data_otu04_tax <- merge(x = data_otu04, y =  tax_tablemix, by = "OTU_Id")
 
 i_04 <- ggplot(data_otu04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -1208,7 +1234,7 @@ Avril_plot <- plot_grid(i_04, j_04, k_04, ncol = 2, nrow = 2, rel_widths = c(3,3
 print(Avril_plot)
 dev.off()  
     # Juin_2018 ---------------------------------------------------
-data_otu06_tax <- merge(x = data_otu06, y =  taxo, by = "OTU_Id")
+data_otu06_tax <- merge(x = data_otu06, y =  tax_tablemix, by = "OTU_Id")
 
 i_06 <- ggplot(data_otu06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -1266,7 +1292,7 @@ print(Juin_plot)
 dev.off()  
 
     # Septembre_2018 ---------------------------------------------------
-data_otu09_tax <- merge(x = data_otu09, y =  taxo, by = "OTU_Id")
+data_otu09_tax <- merge(x = data_otu09, y =  tax_tablemix, by = "OTU_Id")
 
 i_09 <- ggplot(data_otu09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -1325,7 +1351,7 @@ dev.off()
 
 
     # Novembre_2018 ---------------------------------------------------
-data_otu11_tax <- merge(x = data_otu11, y =  taxo, by = "OTU_Id")
+data_otu11_tax <- merge(x = data_otu11, y =  tax_tablemix, by = "OTU_Id")
 
 i_11 <- ggplot(data_otu11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -2661,11 +2687,10 @@ onlyNuitOTU$Sum <- sum(onlyNuitOTU$Count)
 onlyCycleOTU <- rbind(onlyJourOTU,onlyNuitOTU)
 #Figure
 az <- ggplot(onlyCycleOTU, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
 #legendOTU <- get_legend(az)
-az <- az + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
+az <- az + labs(x="Cycles",y="OTUs (%)") #+ theme(legend.position = "none")
 print(az)
-
 
     # Zone -------------------------------------------------------------------
 ## Oxique
@@ -2710,8 +2735,8 @@ onlyAnoxiqueOTU$Sum <- sum(onlyAnoxiqueOTU$Count)
 onlyZoneOTU <- rbind(onlyOxiqueOTU,onlyAnoxiqueOTU)
 #Figure
 bz <- ggplot(onlyZoneOTU, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
-bz <- bz + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
+  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+bz <- bz + labs(x="Zones",y="OTUs (%)") #+ theme(legend.position = "none")
 print(bz)
 
     # Fraction -------------------------------------------------------------------
@@ -2758,13 +2783,13 @@ onlyGrandeOTU$Sum <- sum(onlyGrandeOTU$Count)
 onlyFractionOTU <- rbind(onlyPetiteOTU,onlyGrandeOTU)
 #Figure
 cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
   scale_fill_manual(values = palette)
-cz <- cz + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
+cz <- cz + labs(x="Fractions",y="OTUs (%)") #+ theme(legend.position = "none")
 print(cz) 
     # Coplot -------------------------------------------------------------------
 svglite("Hist-Taxomy/OTU-only.svg",width = 10.00,height = 8.00)
-b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+b_plot <- plot_grid(az,bz,cz,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
     # Coplot X AFC -------------------------------------------------------------------
@@ -2772,12 +2797,12 @@ f <- ggplot() + theme_void()
 print(f)
 #AFC = séquence
 svglite("Biplot/OTU-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
-b_plot <- plot_grid(aCycle,az,f,bZone,bz,legendOTU,cFraction,cz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+b_plot <- plot_grid(aCycle,az,bZone,bz,cFraction,cz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(b_plot)
 dev.off()  
 #AFC = OTU
 svglite("Biplot/OTU-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
-c_plot <- plot_grid(iCycle,az,f,jZone,bz,legendOTU,kFraction,cz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+c_plot <- plot_grid(iCycle,az,jZone,bz,kFraction,cz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(c_plot)
 dev.off()  
 
@@ -3072,7 +3097,7 @@ iz <- ggplot(onlyCycleSequence, mapping = aes(y= value, x = Cycle, fill = Divisi
   geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
   scale_fill_manual(values = palette)
 #legendSequence <- get_legend(iz)
-iz <- iz + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
+iz <- iz + labs(x="Cycles",y="Séquences (%)") #+ theme(legend.position = "none")
 print(iz)
 
     # Zone -------------------------------------------------------------------
@@ -3120,7 +3145,7 @@ onlyZoneSequence <- rbind(onlyOxiqueSequence,onlyAnoxiqueSequence)
 jz <- ggplot(onlyZoneSequence, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
   geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
   scale_fill_manual(values = palette)
-jz <- jz + theme(legend.position = "none") + labs(x="Zones",y="Séquences (%)")
+jz <- jz + labs(x="Zones",y="Séquences (%)") #+ theme(legend.position = "none") 
 print(jz)    
     # Fraction -------------------------------------------------------------------
 ## Petite
@@ -3167,11 +3192,11 @@ onlyFractionSequence <- rbind(onlyPetiteSequence,onlyGrandeSequence)
 kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
   geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
   scale_fill_manual(values = palette)
-kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
+kz <- kz + labs(x="Fractions",y="Séquences (%)") #+ theme(legend.position = "none")
 print(kz) 
     # Coplot -------------------------------------------------------------------
 svglite("Hist-Taxomy/Sequence-only.svg",width = 10.00,height = 8.00)
-b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+b_plot <- plot_grid(iz,jz,kz,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
 
@@ -3180,12 +3205,12 @@ f <- ggplot() + theme_void()
 print(f)
 #AFC = séquence
 svglite("Biplot/Sequence-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
-b_plot <- plot_grid(aCycle,iz,f,bZone,jz,legendSequence,cFraction,kz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+b_plot <- plot_grid(aCycle,iz,bZone,jz,cFraction,kz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(b_plot)
 dev.off()  
 #AFC = OTU
 svglite("Biplot/Sequence-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
-c_plot <- plot_grid(iCycle,iz,f,jZone,jz,legendSequence,kFraction,kz,f, ncol = 3, nrow = 3, rel_widths = c(3,1.5,1),rel_heights = c(3,3,3))
+c_plot <- plot_grid(iCycle,iz,jZone,jz,kFraction,kz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(c_plot)
 dev.off()
 
@@ -3266,7 +3291,7 @@ onlyNuitTable <- onlyNuitTable %>% filter(TotalNuit > 0.01*sum(onlyNuitTable$Tot
 colnames(onlyNuitTable)[2]  <- "value"
 ##Bind
 onlyCycleTable <- rbind(onlyJourTable,onlyNuitTable)
-onlyCycleTable <- merge(onlyCycleTable,taxo, by = "OTU_Id")
+onlyCycleTable <- merge(onlyCycleTable,tax_tablemix, by = "OTU_Id")
 ##Table
 write.table(onlyCycleTable, file = "Table/Only_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(onlyCycleOTU, file = "Table/Only_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -3283,7 +3308,7 @@ onlyAnoxiqueTable <- onlyAnoxiqueTable %>% filter(TotalAnoxique > 0.01*sum(onlyA
 colnames(onlyAnoxiqueTable)[2]  <- "value"
 ##bind
 onlyZoneTable <- rbind(onlyOxiqueTable,onlyAnoxiqueTable)
-onlyZoneTable <- merge(onlyZoneTable,taxo, by = "OTU_Id")
+onlyZoneTable <- merge(onlyZoneTable,tax_tablemix, by = "OTU_Id")
 ##Table
 write.table(onlyZoneTable, file = "Table/Only_Zone.txt", sep = "\t", col.names = TRUE, row.names = FALSE,quote = FALSE)
 write.table(onlyZoneOTU, file = "Table/Only_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -3300,7 +3325,7 @@ onlyGrandeTable <- onlyGrandeTable %>% filter(TotalGrande > 0.01*sum(onlyGrandeT
 colnames(onlyGrandeTable)[2]  <- "value"
 ##bind
 onlyFractionTable <- rbind(onlyPetiteTable,onlyGrandeTable)
-onlyFractionTable <- merge(onlyFractionTable,taxo, by = "OTU_Id")
+onlyFractionTable <- merge(onlyFractionTable,tax_tablemix, by = "OTU_Id")
 ##Table
 write.table(onlyFractionTable, file = "Table/Only_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(onlyFractionOTU, file = "Table/Only_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -3320,7 +3345,7 @@ totalNuitTable <- totalNuitTable %>% filter(TotalNuit > 0.05*sum(totalNuitTable$
 colnames(totalNuitTable)[2]  <- "value"
 ##Bind
 totalCycleTable <- rbind(totalJourTable,totalNuitTable)
-totalCycleTable <- merge(totalCycleTable,taxo, by = "OTU_Id")
+totalCycleTable <- merge(totalCycleTable,tax_tablemix, by = "OTU_Id")
 ##Table
 write.table(totalCycleTable, file = "Table/Total_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(totalCycleOTU, file = "Table/Total_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -3339,7 +3364,7 @@ totalAnoxiqueTable <- totalAnoxiqueTable %>% filter(TotalAnoxique > 0.05*sum(tot
 colnames(totalAnoxiqueTable)[2]  <- "value"
 ##Bind
 totalZoneTable <- rbind(totalOxiqueTable,totalAnoxiqueTable)
-totalZoneTable <- merge(totalZoneTable,taxo, by = "OTU_Id")
+totalZoneTable <- merge(totalZoneTable,tax_tablemix, by = "OTU_Id")
 ##Table
 write.table(totalZoneTable, file = "Table/Total_Zone.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(totalZoneOTU, file = "Table/Total_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -3358,7 +3383,7 @@ totalGrandeTable <- totalGrandeTable %>% filter(TotalGrande > 0.05*sum(totalGran
 colnames(totalGrandeTable)[2]  <- "value"
 ##Bind
 totalFractionTable <- rbind(totalPetiteTable,totalGrandeTable)
-totalFractionTable <- merge(totalFractionTable,taxo, by = "OTU_Id")
+totalFractionTable <- merge(totalFractionTable,tax_tablemix, by = "OTU_Id")
 ##Table
 write.table(totalFractionTable, file = "Table/Total_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(totalFractionOTU, file = "Table/Total_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -3386,7 +3411,7 @@ total11Table <- total11Table %>% filter(Total11 > 0.05*sum(total11Table$Total11)
 colnames(total11Table)[2]  <- "value"
 ##
 totalDateTable <- rbind(total04Table,total06Table,total09Table,total11Table)
-totalDateTable <- merge(totalDateTable,taxo, by = "OTU_Id")
+totalDateTable <- merge(totalDateTable,tax_tablemix, by = "OTU_Id")
 ##
 write.table(totalDateTable, file = "Table/Total_Dates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(totalDateOTU, file = "Table/Total_Dates_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)

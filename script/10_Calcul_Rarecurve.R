@@ -12,11 +12,11 @@
 # Script Rarecurve
 # Set directory, input, output and import packages -----------------------------------------------------------
 #
-#output <- "Composition-V4-095-Vsearch215-Filterno-Unifyno-Rarefyyes-NN-Fungi"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
+#output <- "test"
+#input <- "../dataPANAM/PANAM2/V4-result-095-215/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "no"
-#UnifyYoN <- "no"
+#UnifyYoN <- "yes"
 rarecurvecolor <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
@@ -638,7 +638,8 @@ dev.off()
   Divrare <- as.data.frame(diversity(t(seq_mat_rare), index = "shannon"))
   colnames(Divrare) <- "Shannon"
   for (i in rownames(Divrare)) { Div_Table[i,"Shannon"] <- Divrare[i,"Shannon"] }
-  Div_Table <- Div_Table %>% filter(Replicat == 1)
+  amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
+  for (f in all_of(amplicon)) { Div_Table[f,] <- Div_Table %>% filter(Amplicon == f)}
   
   # Date
   my_comp <- list(c("04","06"),c("04","09"),c("04","11"),c("06","09"),c("06","11"),c("09","11"))

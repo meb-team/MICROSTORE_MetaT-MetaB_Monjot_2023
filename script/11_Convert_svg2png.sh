@@ -10,6 +10,10 @@
 #
 #!/bin/bash
 
+PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
+source $PATHCONDA'/etc/profile.d/conda.sh'
+conda activate REnv
+
 cd ../result
 for result in $(ls)
 do
