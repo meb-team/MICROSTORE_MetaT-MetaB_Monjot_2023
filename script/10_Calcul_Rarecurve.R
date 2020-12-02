@@ -110,7 +110,7 @@ quickRareCurve <- function (x, step = 1, sample, xlab = "Sequences",
 tableVinput <- read.csv(file = input, sep = "\t", row.names = "OTU_Id")
 ##0.0005% filter
 if (length(args)==2) {
-  cat("Should I filter 0.0005% of total OTUs (yes or no) ? : ");
+  cat("Should I filter OTUs (if yes, enter the filter mode : 'Bokulich', 'Doubleton' or 'OnlyOne' ; if no, enter 'no') ? : ");
   sortop <- readLines("stdin",n=1);
   cat("You entered")
   str(sortop);
@@ -119,11 +119,24 @@ if (length(args)>2) {
   sortop <- args[4]
 }
 
-if (sortop == "yes") {
+if (sortop == "Bokulich") {
   amplicon <- grep(pattern = "OSTA", colnames(tableVinput), value = TRUE)
   tableVinput$SUM <- rowSums(tableVinput %>% select(all_of(amplicon)))
   tableVinput <- tableVinput %>% filter(SUM > 0.0005*sum(tableVinput$SUM)/100)
   tableVinput <- tableVinput %>% select(-"SUM")
+}
+if (sortop == "Doubleton") {
+  amplicon <- grep(pattern = "OSTA", colnames(tableVinput), value = TRUE)
+  tableVinput$SUM <- rowSums(tableVinput %>% select(all_of(amplicon)))
+  tableVinput <- tableVinput %>% filter(SUM > 2)
+  tableVinput <- tableVinput %>% select(-"SUM")
+}
+if (sortop == "OnlyOne") {
+  amplicon <- grep(pattern = "OSTA", colnames(tableVinput), value = TRUE)
+  tableVinput$SUM <- rowSums(tableVinput %>% select(all_of(amplicon)))
+  tableVinput$MAX <- rowMaxs(as.matrix(tableVinput %>% select(all_of(amplicon))))
+  tableVinput <- tableVinput %>% filter(SUM != MAX)
+  tableVinput <- tableVinput %>% select(-"SUM", -"MAX")
 }
 
 # Prepare data inf --------------------------------------------------------
