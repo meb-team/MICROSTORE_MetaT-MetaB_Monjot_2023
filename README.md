@@ -157,8 +157,8 @@ For example:
             MODE    Phylum
         ## Division for Phylum or Class level [9]
             DIVISION    Fungi
-        ## Bokulich filter (yes or no) [4]
-            FILTER    no
+        ## Filter (if yes enter filter mode : "Bokulich", 'Doubleton' or "OnlyOne" ; if no enter "no") [4]
+            FILTER    OnlyOne
         ## Taxonomy mode (NN, LCA or BH) [5]
             TAXONOMY    NN
         ## Unify duplicat (yes or no) [6]
