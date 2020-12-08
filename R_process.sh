@@ -9,6 +9,7 @@
 # 25/11/2020
 #
 #!/bin/bash
+BEFORE=$SECONDS
 PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
 source $PATHCONDA'/etc/profile.d/conda.sh'
 conda activate REnv
@@ -73,3 +74,5 @@ if [ $RARECURVE == "yes" ]
 then
 nohup Rscript 10_Calcul_Rarecurve.R $INPUT $OUTPUT $REGION $FILTER $UNIFY >> Ranalyse.log
 fi
+ELAPSED=$(($SECONDS-$BEFORE))
+echo "R process finished and takes "$ELAPSED" seconds !"

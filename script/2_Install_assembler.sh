@@ -11,10 +11,10 @@
 #!/bin/bash
 
 # Intsall assembler
-## Install vsearch -v 2.15.0
+## Install vsearch -v 2.15.1
 cd ../bin
-tar xzf v2.15.0.tar.gz
-cd vsearch-2.15.0
+tar xzf v2.15.1.tar.gz
+cd vsearch-2.15.1
 ./autogen.sh
 ./configure --prefix=$(pwd)
 make

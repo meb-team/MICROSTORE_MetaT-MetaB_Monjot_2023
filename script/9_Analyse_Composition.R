@@ -13,7 +13,7 @@
 # Set directory, input and output -----------------------------------------------------------
 #
 #output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-Vsearch2151/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "OnlyOne"
 #Taxonomy <- "LCA"
@@ -232,7 +232,7 @@ seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,all_of(amplicon)], as.numeric)
 seq_mat$OTU_Id <- row.names(seq_mat)
 ## Prepare taxonomy
 if (length(args)==2) {
-  cat("Enter Taxonomy mod (LCA, NN or Best_HIT) ? : ");
+  cat("Enter Taxonomy mod (LCA, NN or BH) ? : ");
   Taxonomy <- readLines("stdin",n=1);
   cat("You entered")
   str(Taxonomy);
@@ -243,7 +243,7 @@ if (length(args)>2) {
 
 if (Taxonomy == "LCA") { Taxonomy <- "LCA.taxonomy"}
 if (Taxonomy == "NN") { Taxonomy <- "NN.taxonomy"}
-if (Taxonomy == "Best_HIT") { Taxonomy <- "Best_hit_identity"}
+if (Taxonomy == "BH") { Taxonomy <- "Best_hit_identity"}
 #seq_mat[,"Taxonomy"] <- tableVinput[,Taxonomy]
 
 ## Prepare correspondance table
@@ -690,37 +690,55 @@ coord <- as.data.frame(coord)
 coord$OTU_Id <- row.names(coord)
 ##Cycle
 data_seq <- merge(x = coord, y = Cycle_seq, by = "OTU_Id")
-data_seq$Jour <- 0
-data_seq$Nuit <- 0
-for (i in rownames(data_seq)) { if ( data_seq[i,"TotalJour"] != 0) { data_seq[i,"Jour"] <- 1}}
-for (i in rownames(data_seq)) { if ( data_seq[i,"TotalNuit"] != 0) { data_seq[i,"Nuit"] <- 2}}
-data_seq$Cycle <- 0
-for (i in rownames(data_seq)) { data_seq[i,"Cycle"] <- data_seq[i,"Jour"] + data_seq[i,"Nuit"] 
-if ( data_seq[i,"Cycle"] == 1) { data_seq[i,"Cycle"] <- "Jour"}
-if ( data_seq[i,"Cycle"] == 2) { data_seq[i,"Cycle"] <- "Nuit"}
-if ( data_seq[i,"Cycle"] == 3) { data_seq[i,"Cycle"] <- "Communs"}}
+### 100% - 0%
+  data_seq$Jour <- 0
+  data_seq$Nuit <- 0
+  for (i in rownames(data_seq)) { if ( data_seq[i,"TotalJour"] != 0) { data_seq[i,"Jour"] <- 1}}
+  for (i in rownames(data_seq)) { if ( data_seq[i,"TotalNuit"] != 0) { data_seq[i,"Nuit"] <- 2}}
+  data_seq$Cycle <- 0
+  for (i in rownames(data_seq)) { data_seq[i,"Cycle"] <- data_seq[i,"Jour"] + data_seq[i,"Nuit"] 
+  if ( data_seq[i,"Cycle"] == 1) { data_seq[i,"Cycle"] <- "Jour"}
+  if ( data_seq[i,"Cycle"] == 2) { data_seq[i,"Cycle"] <- "Nuit"}
+  if ( data_seq[i,"Cycle"] == 3) { data_seq[i,"Cycle"] <- "Communs"}}
+### 90% - 10%
+  data_seq$Cycle90 <- "Communs"
+  for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalJour"] > data_seq[i,"TotalNuit"]) { data_seq[i,"Cycle90"] <- "Jour"}}
+  for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalNuit"] > data_seq[i,"TotalJour"]) { data_seq[i,"Cycle90"] <- "Nuit"}}
+
 ##Zone
 data_seq <- merge(x = data_seq, y = Zone_seq, by = "OTU_Id")
-data_seq$Oxique <- 0
-data_seq$Anoxique <- 0
-for (i in rownames(data_seq)) { if ( data_seq[i,"TotalOxique"] != 0) { data_seq[i,"Oxique"] <- 1}}
-for (i in rownames(data_seq)) { if ( data_seq[i,"TotalAnoxique"] != 0) { data_seq[i,"Anoxique"] <- 2}}
-data_seq$Zone <- 0
-for (i in rownames(data_seq)) { data_seq[i,"Zone"] <- data_seq[i,"Oxique"] + data_seq[i,"Anoxique"] 
-if ( data_seq[i,"Zone"] == 1) { data_seq[i,"Zone"] <- "Oxique"}
-if ( data_seq[i,"Zone"] == 2) { data_seq[i,"Zone"] <- "Anoxique"}
-if ( data_seq[i,"Zone"] == 3) { data_seq[i,"Zone"] <- "Communs"}}
+### 100% - 0%
+  data_seq$Oxique <- 0
+  data_seq$Anoxique <- 0
+  for (i in rownames(data_seq)) { if ( data_seq[i,"TotalOxique"] != 0) { data_seq[i,"Oxique"] <- 1}}
+  for (i in rownames(data_seq)) { if ( data_seq[i,"TotalAnoxique"] != 0) { data_seq[i,"Anoxique"] <- 2}}
+  data_seq$Zone <- 0
+  for (i in rownames(data_seq)) { data_seq[i,"Zone"] <- data_seq[i,"Oxique"] + data_seq[i,"Anoxique"] 
+  if ( data_seq[i,"Zone"] == 1) { data_seq[i,"Zone"] <- "Oxique"}
+  if ( data_seq[i,"Zone"] == 2) { data_seq[i,"Zone"] <- "Anoxique"}
+  if ( data_seq[i,"Zone"] == 3) { data_seq[i,"Zone"] <- "Communs"}}
+### 90% - 10%
+  data_seq$Zone90 <- "Communs"
+  for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalOxique"] > data_seq[i,"TotalAnoxique"]) { data_seq[i,"Zone90"] <- "Oxique"}}
+  for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalAnoxique"] > data_seq[i,"TotalOxique"]) { data_seq[i,"Zone90"] <- "Anoxique"}}  
+
 ##Fraction
 data_seq <- merge(x = data_seq, y = Fraction_seq, by = "OTU_Id")
-data_seq$Petite <- 0
-data_seq$Grande <- 0
-for (i in rownames(data_seq)) { if ( data_seq[i,"TotalPetite"] != 0) { data_seq[i,"Petite"] <- 1}}
-for (i in rownames(data_seq)) { if ( data_seq[i,"TotalGrande"] != 0) { data_seq[i,"Grande"] <- 2}}
-data_seq$Fraction <- 0
-for (i in rownames(data_seq)) { data_seq[i,"Fraction"] <- data_seq[i,"Petite"] + data_seq[i,"Grande"] 
-if ( data_seq[i,"Fraction"] == 1) { data_seq[i,"Fraction"] <- "Petite"}
-if ( data_seq[i,"Fraction"] == 2) { data_seq[i,"Fraction"] <- "Grande"}
-if ( data_seq[i,"Fraction"] == 3) { data_seq[i,"Fraction"] <- "Communs"}}
+### 100% - 0%
+  data_seq$Petite <- 0
+  data_seq$Grande <- 0
+  for (i in rownames(data_seq)) { if ( data_seq[i,"TotalPetite"] != 0) { data_seq[i,"Petite"] <- 1}}
+  for (i in rownames(data_seq)) { if ( data_seq[i,"TotalGrande"] != 0) { data_seq[i,"Grande"] <- 2}}
+  data_seq$Fraction <- 0
+  for (i in rownames(data_seq)) { data_seq[i,"Fraction"] <- data_seq[i,"Petite"] + data_seq[i,"Grande"] 
+  if ( data_seq[i,"Fraction"] == 1) { data_seq[i,"Fraction"] <- "Petite"}
+  if ( data_seq[i,"Fraction"] == 2) { data_seq[i,"Fraction"] <- "Grande"}
+  if ( data_seq[i,"Fraction"] == 3) { data_seq[i,"Fraction"] <- "Communs"}}
+### 90% - 10%
+  data_seq$Fraction90 <- "Communs"
+  for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalPetite"] > data_seq[i,"TotalGrande"]) { data_seq[i,"Fraction90"] <- "Petite"}}
+  for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalGrande"] > data_seq[i,"TotalPetite"]) { data_seq[i,"Fraction90"] <- "Grande"}}  
+  
 #Date
 data_seq <- merge(x = data_seq, y = Date_seq, by = "OTU_Id")
 data_seq04 <- data_seq %>% filter(Total04 != 0) %>% select(-Total06,-Total09,-Total11)
@@ -827,7 +845,8 @@ data_seq_tax$Division <- data_seq_tax$Phylum }
 if (Mode == "Superphylum") {
 data_seq_tax$Division <- data_seq_tax$Superphylum }
 
-    # All_2018 ----------------------------------------------------------
+    # 100% - 0% -------------------------------------------------------------
+      # All_2018 ----------------------------------------------------------
 ##Figure Cycles
 aCycle <- ggplot(data_seq_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
   geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
@@ -878,11 +897,11 @@ cFraction <- ggplot(data_seq_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction
   labs(x=Dim1seq,y=Dim2seq,color = "Fractions", alpha = "Fractions", linetype = "Fractions")
 print(cFraction)
 ##Coplot
-svglite("AFC-Distribution/AFC-Sequence.svg",width = 12.00,height = 8.00)
+svglite("AFC-Distribution/AFC-Sequence-100.svg",width = 12.00,height = 8.00)
 All_plot <- plot_grid(aCycle, cFraction, bZone, ncol = 2, nrow = 2, rel_widths = c(3,3), rel_heights = c(3,3))
 print(All_plot)
 dev.off()
-    # Avril_2018 ---------------------------------------------------
+      # Avril_2018 ---------------------------------------------------
 data_seq04_tax <- merge(x = data_seq04, y =  tax_tablemix, by = "OTU_Id")
 
 a_04 <- ggplot(data_seq04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
@@ -935,11 +954,11 @@ c_04 <- ggplot(data_seq04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction)) 
   labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
 print(c_04)
 
-svglite("AFC-Distribution/AFC-Sequence-Avril.svg",width = 12.00,height = 8.00)
+svglite("AFC-Distribution/AFC-Sequence-Avril-100.svg",width = 12.00,height = 8.00)
 Avril_plot <- plot_grid(a_04, c_04, b_04, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(Avril_plot)
 dev.off()  
-    # Juin_2018 ---------------------------------------------------
+      # Juin_2018 ---------------------------------------------------
 data_seq06_tax <- merge(x = data_seq06, y =  tax_tablemix, by = "OTU_Id")
 
 a_06 <- ggplot(data_seq06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
@@ -992,12 +1011,12 @@ c_06 <- ggplot(data_seq06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction)) 
   labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
 print(c_06)
 
-svglite("AFC-Distribution/AFC-Sequence-Juin.svg",width = 12.00,height = 8.00)
+svglite("AFC-Distribution/AFC-Sequence-Juin-100.svg",width = 12.00,height = 8.00)
 Juin_plot <- plot_grid(a_06, c_06, b_06, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(Juin_plot)
 dev.off()  
 
-    # Septembre_2018 ---------------------------------------------------
+      # Septembre_2018 ---------------------------------------------------
 data_seq09_tax <- merge(x = data_seq09, y =  tax_tablemix, by = "OTU_Id")
 
 a_09 <- ggplot(data_seq09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
@@ -1050,13 +1069,13 @@ c_09 <- ggplot(data_seq09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction)) 
   labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
 print(c_09)
 
-svglite("AFC-Distribution/AFC-Sequence-Septembre.svg",width = 12.00,height = 8.00)
+svglite("AFC-Distribution/AFC-Sequence-Septembre-100.svg",width = 12.00,height = 8.00)
 Septembre_plot <- plot_grid(a_09, c_09, b_09, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(Septembre_plot)
 dev.off()  
 
 
-    # Novembre_2018 ---------------------------------------------------
+      # Novembre_2018 ---------------------------------------------------
 data_seq11_tax <- merge(x = data_seq11, y =  tax_tablemix, by = "OTU_Id")
 
 a_11 <- ggplot(data_seq11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle)) + geom_point(size = 2) +
@@ -1109,9 +1128,298 @@ c_11 <- ggplot(data_seq11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction)) 
   labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
 print(c_11)
 
-svglite("AFC-Distribution/AFC-Sequence-Novembre.svg",width = 12.00,height = 8.00)
+svglite("AFC-Distribution/AFC-Sequence-Novembre-100.svg",width = 12.00,height = 8.00)
 Novembre_plot <- plot_grid(a_11, c_11, b_11, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
 print(Novembre_plot)
+dev.off()  
+
+
+    # 90% - 10% -------------------------------------------------------------
+      # All_2018 ----------------------------------------------------------
+##Figure Cycles
+aCycle90 <- ggplot(data_seq_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Cycle90, alpha = Cycle90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles")
+print(aCycle90)
+
+##Figure Zone
+bZone90 <- ggplot(data_seq_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Zone90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Zone90, alpha = Zone90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(2,0,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0.1,0,0.1)) +
+  scale_color_manual(values = c("#F8766D","lightgrey","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones")
+print(bZone90)
+##Figure Fraction
+cFraction90 <- ggplot(data_seq_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Fraction90, alpha = Fraction90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Fractions", alpha = "Fractions", linetype = "Fractions")
+print(cFraction90)
+##Coplot
+svglite("AFC-Distribution/AFC-Sequence-90.svg",width = 12.00,height = 8.00)
+All_plot90 <- plot_grid(aCycle90, cFraction90, bZone90, ncol = 2, nrow = 2, rel_widths = c(3,3), rel_heights = c(3,3))
+print(All_plot90)
+dev.off()
+      # Avril_2018 ---------------------------------------------------
+data_seq04_tax <- merge(x = data_seq04, y =  tax_tablemix, by = "OTU_Id")
+
+a_04_90 <- ggplot(data_seq04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Cycle90, alpha = Cycle90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles")
+print(a_04_90)
+
+#Figure Zone
+b_04_90 <- ggplot(data_seq04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Zone90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Zone90, alpha = Zone90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(2,0,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0.1,0,0.1)) +
+  scale_color_manual(values = c("#F8766D","lightgrey","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones")
+print(b_04_90)
+
+#Figure Fraction
+c_04_90 <- ggplot(data_seq04_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Fraction90, alpha = Fraction90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
+print(c_04_90)
+
+svglite("AFC-Distribution/AFC-Sequence-Avril-90.svg",width = 12.00,height = 8.00)
+Avril_plot90 <- plot_grid(a_04_90, c_04_90, b_04_90, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
+print(Avril_plot90)
+dev.off()  
+      # Juin_2018 ---------------------------------------------------
+data_seq06_tax <- merge(x = data_seq06, y =  tax_tablemix, by = "OTU_Id")
+
+a_06_90 <- ggplot(data_seq06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Cycle90, alpha = Cycle90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles")
+print(a_06_90)
+
+#Figure Zone
+b_06_90 <- ggplot(data_seq06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Zone90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Zone90, alpha = Zone90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(2,0,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0.1,0,0.1)) +
+  scale_color_manual(values = c("#F8766D","lightgrey","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones")
+print(b_06_90)
+
+#Figure Fraction
+c_06_90 <- ggplot(data_seq06_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Fraction90, alpha = Fraction90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
+print(c_06_90)
+
+svglite("AFC-Distribution/AFC-Sequence-Juin-90.svg",width = 12.00,height = 8.00)
+Juin_plot_90 <- plot_grid(a_06_90, c_06_90, b_06_90, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
+print(Juin_plot_90)
+dev.off()  
+
+      # Septembre_2018 ---------------------------------------------------
+data_seq09_tax <- merge(x = data_seq09, y =  tax_tablemix, by = "OTU_Id")
+
+a_09_90 <- ggplot(data_seq09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Cycle90, alpha = Cycle90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles")
+print(a_09_90)
+
+#Figure Zone
+b_09_90 <- ggplot(data_seq09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Zone90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Zone90, alpha = Zone90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(2,0,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0.1,0,0.1)) +
+  scale_color_manual(values = c("#F8766D","lightgrey","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones")
+print(b_09_90)
+
+#Figure Fraction
+c_09_90 <- ggplot(data_seq09_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Fraction90, alpha = Fraction90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
+print(c_09_90)
+
+svglite("AFC-Distribution/AFC-Sequence-Septembre-90.svg",width = 12.00,height = 8.00)
+Septembre_plot_90 <- plot_grid(a_09_90, c_09_90, b_09_90, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
+print(Septembre_plot_90)
+dev.off()  
+
+
+      # Novembre_2018 ---------------------------------------------------
+data_seq11_tax <- merge(x = data_seq11, y =  tax_tablemix, by = "OTU_Id")
+
+a_11_90 <- ggplot(data_seq11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Cycle90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Cycle90, alpha = Cycle90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles")
+print(a_11_90)
+
+#Figure Zone
+b_11_90 <- ggplot(data_seq11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Zone90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Zone90, alpha = Zone90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(2,0,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0.1,0,0.1)) +
+  scale_color_manual(values = c("#F8766D","lightgrey","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones")
+print(b_11_90)
+
+#Figure Fraction
+c_11_90 <- ggplot(data_seq11_tax, aes(y = `Dim 2`, x = `Dim 1`, color = Fraction90)) + geom_point(size = 2) +
+  geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
+  geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
+  stat_ellipse(aes(linetype = Fraction90, alpha = Fraction90),geom = "polygon",type = "norm") +
+  scale_linetype_manual(values = c(0,2,2)) +
+  theme(axis.title = element_text(face="bold", size=12), 
+        axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
+        title = element_text(face="bold", size=14),
+        legend.title = element_text(face="bold"),
+        legend.position = "right",
+        legend.text = element_text(size=10)) +
+  scale_alpha_manual(values = c(0,0.1,0.1)) +
+  scale_color_manual(values = c("lightgrey","#F8766D","#00A5FF")) +
+  labs(x=Dim1seq,y=Dim2seq,color = "Fraction", alpha = "Fraction", linetype = "Fraction")
+print(c_11_90)
+
+svglite("AFC-Distribution/AFC-Sequence-Novembre-90.svg",width = 12.00,height = 8.00)
+Novembre_plot_90 <- plot_grid(a_11_90, c_11_90, b_11_90, ncol = 2, nrow = 2, rel_widths = c(3,3),rel_heights = c(3,3))
+print(Novembre_plot_90)
 dev.off()  
 
 
@@ -1968,7 +2276,8 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   dev.off()
     # Séquence ONLY---------------------------------------------------------------------
     data_seq_function <- merge(data_seq_tax,tax_table_funtion, by = "OTU_Id")
-      # Cycle -------------------------------------------------------------------
+      # 100% - 0% ---------------------------------------------------------------
+        # Cycle -------------------------------------------------------------------
   ## Jour
   onlyJourSequence <- data_seq_function %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Function)
   row.names(onlyJourSequence)<-onlyJourSequence$OTU_Id ; onlyJourSequence <- onlyJourSequence %>% select(-OTU_Id)
@@ -2017,7 +2326,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   iz <- iz + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
   print(iz)
   
-      # Zone -------------------------------------------------------------------
+        # Zone -------------------------------------------------------------------
   ## Oxique
   onlyOxiqueSequence <- data_seq_function %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Function)
   row.names(onlyOxiqueSequence)<-onlyOxiqueSequence$OTU_Id ; onlyOxiqueSequence <- onlyOxiqueSequence %>% select(-OTU_Id)
@@ -2064,7 +2373,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
     scale_fill_manual(values = palette)
   jz <- jz + theme(legend.position = "none") + labs(x="Zones",y="Séquences (%)")
   print(jz)    
-      # Fraction -------------------------------------------------------------------
+        # Fraction -------------------------------------------------------------------
   ## Petite
   onlyPetiteSequence <- data_seq_function %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Function)
   row.names(onlyPetiteSequence)<-onlyPetiteSequence$OTU_Id ; onlyPetiteSequence <- onlyPetiteSequence %>% select(-OTU_Id)
@@ -2111,10 +2420,160 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
     scale_fill_manual(values = palette)
   kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
   print(kz) 
-      # Coplot -------------------------------------------------------------------
-  svglite("Hist-Function/Sequence-Function-only.svg",width = 10.00,height = 8.00)
+        # Coplot -------------------------------------------------------------------
+  svglite("Hist-Function/Sequence-Function-only-100.svg",width = 10.00,height = 8.00)
   b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
   print(b_plot)
+  dev.off()  
+  
+      # 90% - 10% ---------------------------------------------------------------
+        # Cycle -------------------------------------------------------------------
+  ## Jour
+  onlyJourSequence <- data_seq_function %>% filter(Cycle90 == "Jour") %>% select(OTU_Id,TotalJour,Function)
+  row.names(onlyJourSequence)<-onlyJourSequence$OTU_Id ; onlyJourSequence <- onlyJourSequence %>% select(-OTU_Id)
+  onlyJourSequence <- onlyJourSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyJourSequence$TotalJour <- onlyJourSequence$TotalJour*100/sum(onlyJourSequence$TotalJour)
+  onlyJourSequence <- onlyJourSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+  onlyJourSequence$label <- paste(round(onlyJourSequence$TotalJour,1), "%", sep = "")
+  for (i in rownames(onlyJourSequence)) {
+    if (onlyJourSequence[i,"label"] == "0%") { onlyJourSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyJourSequence)) {
+    if (is.na(onlyJourSequence[i,"label"]) == FALSE) { onlyJourSequence[i,"label"] <- paste(onlyJourSequence[i,"Function"]," : ",onlyJourSequence[i,"label"], sep = "")}}
+  onlyJourSequence$Cycle90<- rep("Jour", each = nrow(onlyJourSequence))
+  ## Nuit
+  onlyNuitSequence <- data_seq_function %>% filter(Cycle90 == "Nuit") %>% select(OTU_Id,TotalNuit,Function)
+  row.names(onlyNuitSequence)<-onlyNuitSequence$OTU_Id ; onlyNuitSequence <- onlyNuitSequence %>% select(-OTU_Id)
+  onlyNuitSequence <- onlyNuitSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyNuitSequence$TotalNuit <- onlyNuitSequence$TotalNuit*100/sum(onlyNuitSequence$TotalNuit)
+  onlyNuitSequence <- onlyNuitSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+  onlyNuitSequence$label <- paste(round(onlyNuitSequence$TotalNuit,1), "%", sep = "")
+  for (i in rownames(onlyNuitSequence)) {
+    if (onlyNuitSequence[i,"label"] == "0%") { onlyNuitSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyNuitSequence)) {
+    if (is.na(onlyNuitSequence[i,"label"]) == FALSE) { onlyNuitSequence[i,"label"] <- paste(onlyNuitSequence[i,"Function"]," : ",onlyNuitSequence[i,"label"], sep = "")}}
+  onlyNuitSequence$Cycle90<- rep("Nuit", each = nrow(onlyNuitSequence))
+  ## Cycle
+  colnames(onlyJourSequence)[2]  <- "value"
+  onlyJourSequence$Sum <- rep(0, each = nrow(onlyJourSequence))
+  onlyJourSequence$Count <- rep(0, each = nrow(onlyJourSequence))
+  for (i in onlyJourSequence$Function) { onlyJourSequence$Count[which(onlyJourSequence$Function == i)] <- sum(data_seq_function %>% filter(Cycle90 == "Jour") %>% filter(Function == i) %>% select(TotalJour))}
+  onlyJourSequence$Sum <- sum(onlyJourSequence$Count)
+  colnames(onlyNuitSequence)[2]  <- "value"
+  onlyNuitSequence$Sum <- rep(0, each = nrow(onlyNuitSequence))
+  onlyNuitSequence$Count <- rep(0, each = nrow(onlyNuitSequence))
+  for (i in onlyNuitSequence$Function) { onlyNuitSequence$Count[which(onlyNuitSequence$Function == i)] <- sum(data_seq_function %>% filter(Cycle90 == "Nuit") %>% filter(Function == i) %>% select(TotalNuit))}
+  onlyNuitSequence$Sum <- sum(onlyNuitSequence$Count)
+  onlyCycleSequence <- rbind(onlyJourSequence,onlyNuitSequence)
+  #Figure
+  iz90 <- ggplot(onlyCycleSequence, mapping = aes(y= value, x = Cycle90, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  legendSequence90 <- get_legend(iz90)
+  iz90 <- iz90 + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
+  print(iz90)
+  
+        # Zone -------------------------------------------------------------------
+  ## Oxique
+  onlyOxiqueSequence <- data_seq_function %>% filter(Zone90 == "Oxique") %>% select(OTU_Id,TotalOxique,Function)
+  row.names(onlyOxiqueSequence)<-onlyOxiqueSequence$OTU_Id ; onlyOxiqueSequence <- onlyOxiqueSequence %>% select(-OTU_Id)
+  onlyOxiqueSequence <- onlyOxiqueSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyOxiqueSequence$TotalOxique <- onlyOxiqueSequence$TotalOxique*100/sum(onlyOxiqueSequence$TotalOxique)
+  onlyOxiqueSequence <- onlyOxiqueSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+  onlyOxiqueSequence$label <- paste(round(onlyOxiqueSequence$TotalOxique,1), "%", sep = "")
+  for (i in rownames(onlyOxiqueSequence)) {
+    if (onlyOxiqueSequence[i,"label"] == "0%") { onlyOxiqueSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyOxiqueSequence)) {
+    if (is.na(onlyOxiqueSequence[i,"label"]) == FALSE) { onlyOxiqueSequence[i,"label"] <- paste(onlyOxiqueSequence[i,"Function"]," : ",onlyOxiqueSequence[i,"label"], sep = "")}}
+  onlyOxiqueSequence$Zone90<- rep("Oxique", each = nrow(onlyOxiqueSequence))
+  ## Anoxique
+  onlyAnoxiqueSequence <- data_seq_function %>% filter(Zone90 == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Function)
+  row.names(onlyAnoxiqueSequence)<-onlyAnoxiqueSequence$OTU_Id ; onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% select(-OTU_Id)
+  onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyAnoxiqueSequence$TotalAnoxique <- onlyAnoxiqueSequence$TotalAnoxique*100/sum(onlyAnoxiqueSequence$TotalAnoxique)
+  onlyAnoxiqueSequence <- onlyAnoxiqueSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+  onlyAnoxiqueSequence$label <- paste(round(onlyAnoxiqueSequence$TotalAnoxique,1), "%", sep = "")
+  for (i in rownames(onlyAnoxiqueSequence)) {
+    if (onlyAnoxiqueSequence[i,"label"] == "0%") { onlyAnoxiqueSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyAnoxiqueSequence)) {
+    if (is.na(onlyAnoxiqueSequence[i,"label"]) == FALSE) { onlyAnoxiqueSequence[i,"label"] <- paste(onlyAnoxiqueSequence[i,"Function"]," : ",onlyAnoxiqueSequence[i,"label"], sep = "")}}
+  onlyAnoxiqueSequence$Zone90<- rep("Anoxique", each = nrow(onlyAnoxiqueSequence))
+  ## Zone
+  colnames(onlyOxiqueSequence)[2]  <- "value"
+  onlyOxiqueSequence$Sum <- rep(0, each = nrow(onlyOxiqueSequence))
+  onlyOxiqueSequence$Count <- rep(0, each = nrow(onlyOxiqueSequence))
+  for (i in onlyOxiqueSequence$Function) { onlyOxiqueSequence$Count[which(onlyOxiqueSequence$Function == i)] <- sum(data_seq_function %>% filter(Zone90 == "Oxique") %>% filter(Function == i) %>% select(TotalOxique))}
+  onlyOxiqueSequence$Sum <- sum(onlyOxiqueSequence$Count)
+  colnames(onlyAnoxiqueSequence)[2]  <- "value"
+  onlyAnoxiqueSequence$Sum <- rep(0, each = nrow(onlyAnoxiqueSequence))
+  onlyAnoxiqueSequence$Count <- rep(0, each = nrow(onlyAnoxiqueSequence))
+  for (i in onlyAnoxiqueSequence$Function) { onlyAnoxiqueSequence$Count[which(onlyAnoxiqueSequence$Function == i)] <- sum(data_seq_function %>% filter(Zone90 == "Anoxique") %>% filter(Function == i) %>% select(TotalAnoxique))}
+  onlyAnoxiqueSequence$Sum <- sum(onlyAnoxiqueSequence$Count)
+  onlyZoneSequence <- rbind(onlyOxiqueSequence,onlyAnoxiqueSequence)
+  #Figure
+  jz90 <- ggplot(onlyZoneSequence, mapping = aes(y= value, x = Zone90, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  jz90 <- jz90 + theme(legend.position = "none") + labs(x="Zones",y="Séquences (%)")
+  print(jz90)    
+        # Fraction -------------------------------------------------------------------
+  ## Petite
+  onlyPetiteSequence <- data_seq_function %>% filter(Fraction90 == "Petite") %>% select(OTU_Id,TotalPetite,Function)
+  row.names(onlyPetiteSequence)<-onlyPetiteSequence$OTU_Id ; onlyPetiteSequence <- onlyPetiteSequence %>% select(-OTU_Id)
+  onlyPetiteSequence <- onlyPetiteSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyPetiteSequence$TotalPetite <- onlyPetiteSequence$TotalPetite*100/sum(onlyPetiteSequence$TotalPetite)
+  onlyPetiteSequence <- onlyPetiteSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+  onlyPetiteSequence$label <- paste(round(onlyPetiteSequence$TotalPetite,1), "%", sep = "")
+  for (i in rownames(onlyPetiteSequence)) {
+    if (onlyPetiteSequence[i,"label"] == "0%") { onlyPetiteSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyPetiteSequence)) {
+    if (is.na(onlyPetiteSequence[i,"label"]) == FALSE) { onlyPetiteSequence[i,"label"] <- paste(onlyPetiteSequence[i,"Function"]," : ",onlyPetiteSequence[i,"label"], sep = "")}}
+  onlyPetiteSequence$Fraction90<- rep("Petite", each = nrow(onlyPetiteSequence))
+  ## Grande
+  onlyGrandeSequence <- data_seq_function %>% filter(Fraction90 == "Grande") %>% select(OTU_Id,TotalGrande,Function)
+  row.names(onlyGrandeSequence)<-onlyGrandeSequence$OTU_Id ; onlyGrandeSequence <- onlyGrandeSequence %>% select(-OTU_Id)
+  onlyGrandeSequence <- onlyGrandeSequence %>% group_by(Function) %>% summarise_all(sum)
+  onlyGrandeSequence$TotalGrande <- onlyGrandeSequence$TotalGrande*100/sum(onlyGrandeSequence$TotalGrande)
+  onlyGrandeSequence <- onlyGrandeSequence %>%
+    arrange(desc(Function)) %>%
+    mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+  onlyGrandeSequence$label <- paste(round(onlyGrandeSequence$TotalGrande,1), "%", sep = "")
+  for (i in rownames(onlyGrandeSequence)) {
+    if (onlyGrandeSequence[i,"label"] == "0%") { onlyGrandeSequence[i,"label"] <- NA}}
+  for (i in rownames(onlyGrandeSequence)) {
+    if (is.na(onlyGrandeSequence[i,"label"]) == FALSE) { onlyGrandeSequence[i,"label"] <- paste(onlyGrandeSequence[i,"Function"]," : ",onlyGrandeSequence[i,"label"], sep = "")}}
+  onlyGrandeSequence$Fraction90<- rep("Grande", each = nrow(onlyGrandeSequence))
+  ## Fraction
+  colnames(onlyPetiteSequence)[2]  <- "value"
+  onlyPetiteSequence$Sum <- rep(0, each = nrow(onlyPetiteSequence))
+  onlyPetiteSequence$Count <- rep(0, each = nrow(onlyPetiteSequence))
+  for (i in onlyPetiteSequence$Function) { onlyPetiteSequence$Count[which(onlyPetiteSequence$Function == i)] <- sum(data_seq_function %>% filter(Fraction90 == "Petite") %>% filter(Function == i) %>% select(TotalPetite))}
+  onlyPetiteSequence$Sum <- sum(onlyPetiteSequence$Count)
+  colnames(onlyGrandeSequence)[2]  <- "value"
+  onlyGrandeSequence$Sum <- rep(0, each = nrow(onlyGrandeSequence))
+  onlyGrandeSequence$Count <- rep(0, each = nrow(onlyGrandeSequence))
+  for (i in onlyGrandeSequence$Function) { onlyGrandeSequence$Count[which(onlyGrandeSequence$Function == i)] <- sum(data_seq_function %>% filter(Fraction90 == "Grande") %>% filter(Function == i) %>% select(TotalGrande))}
+  onlyGrandeSequence$Sum <- sum(onlyGrandeSequence$Count)
+  onlyFractionSequence <- rbind(onlyPetiteSequence,onlyGrandeSequence)
+  #Figure
+  kz90 <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction90, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+    geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    scale_fill_manual(values = palette)
+  kz90 <- kz90 + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
+  print(kz90) 
+        # Coplot -------------------------------------------------------------------
+  svglite("Hist-Function/Sequence-Function-only-90.svg",width = 10.00,height = 8.00)
+  b_plot90 <- plot_grid(iz90,jz90,kz90,legendSequence90,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+  print(b_plot90)
   dev.off()  
   
     # Séquence TOTAL---------------------------------------------------------------------
@@ -2700,7 +3159,7 @@ onlyNuitOTU$Sum <- sum(onlyNuitOTU$Count)
 onlyCycleOTU <- rbind(onlyJourOTU,onlyNuitOTU)
 #Figure
 az <- ggplot(onlyCycleOTU, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
 #legendOTU <- get_legend(az)
 az <- az + labs(x="Cycles",y="OTUs (%)") #+ theme(legend.position = "none")
 print(az)
@@ -2748,7 +3207,7 @@ onlyAnoxiqueOTU$Sum <- sum(onlyAnoxiqueOTU$Count)
 onlyZoneOTU <- rbind(onlyOxiqueOTU,onlyAnoxiqueOTU)
 #Figure
 bz <- ggplot(onlyZoneOTU, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
 bz <- bz + labs(x="Zones",y="OTUs (%)") #+ theme(legend.position = "none")
 print(bz)
 
@@ -2796,7 +3255,7 @@ onlyGrandeOTU$Sum <- sum(onlyGrandeOTU$Count)
 onlyFractionOTU <- rbind(onlyPetiteOTU,onlyGrandeOTU)
 #Figure
 cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
   scale_fill_manual(values = palette)
 cz <- cz + labs(x="Fractions",y="OTUs (%)") #+ theme(legend.position = "none")
 print(cz) 
@@ -2809,12 +3268,12 @@ dev.off()
 f <- ggplot() + theme_void()
 print(f)
 #AFC = séquence
-svglite("Biplot/OTU-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
+svglite("Biplot/OTU-onlyX-AFCseq.svg",width = 12.00,height = 14.00)
 b_plot <- plot_grid(aCycle,az,bZone,bz,cFraction,cz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(b_plot)
 dev.off()  
 #AFC = OTU
-svglite("Biplot/OTU-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
+svglite("Biplot/OTU-onlyX-AFCotu.svg",width = 12.00,height = 14.00)
 c_plot <- plot_grid(iCycle,az,jZone,bz,kFraction,cz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(c_plot)
 dev.off()  
@@ -3064,7 +3523,8 @@ b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths 
 print(b_plot)
 dev.off()
   # Séquence ONLY---------------------------------------------------------------------
-    # Cycle -------------------------------------------------------------------
+    # 100% - 0% ---------------------------------------------------------------
+      # Cycle -------------------------------------------------------------------
 ## Jour
 onlyJourSequence <- data_seq_tax %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Division)
 row.names(onlyJourSequence)<-onlyJourSequence$OTU_Id ; onlyJourSequence <- onlyJourSequence %>% select(-OTU_Id)
@@ -3113,7 +3573,7 @@ iz <- ggplot(onlyCycleSequence, mapping = aes(y= value, x = Cycle, fill = Divisi
 iz <- iz + labs(x="Cycles",y="Séquences (%)") #+ theme(legend.position = "none")
 print(iz)
 
-    # Zone -------------------------------------------------------------------
+      # Zone -------------------------------------------------------------------
 ## Oxique
 onlyOxiqueSequence <- data_seq_tax %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Division)
 row.names(onlyOxiqueSequence)<-onlyOxiqueSequence$OTU_Id ; onlyOxiqueSequence <- onlyOxiqueSequence %>% select(-OTU_Id)
@@ -3160,7 +3620,7 @@ jz <- ggplot(onlyZoneSequence, mapping = aes(y= value, x = Zone, fill = Division
   scale_fill_manual(values = palette)
 jz <- jz + labs(x="Zones",y="Séquences (%)") #+ theme(legend.position = "none") 
 print(jz)    
-    # Fraction -------------------------------------------------------------------
+      # Fraction -------------------------------------------------------------------
 ## Petite
 onlyPetiteSequence <- data_seq_tax %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Division)
 row.names(onlyPetiteSequence)<-onlyPetiteSequence$OTU_Id ; onlyPetiteSequence <- onlyPetiteSequence %>% select(-OTU_Id)
@@ -3207,23 +3667,188 @@ kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = 
   scale_fill_manual(values = palette)
 kz <- kz + labs(x="Fractions",y="Séquences (%)") #+ theme(legend.position = "none")
 print(kz) 
-    # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/Sequence-only.svg",width = 10.00,height = 8.00)
+      # Coplot -------------------------------------------------------------------
+svglite("Hist-Taxomy/Sequence-only-100.svg",width = 10.00,height = 8.00)
 b_plot <- plot_grid(iz,jz,kz,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
 
-    # Coplot X AFC -------------------------------------------------------------------
+      # Coplot X AFC -------------------------------------------------------------------
 f <- ggplot() + theme_void()
 print(f)
 #AFC = séquence
-svglite("Biplot/Sequence-onlyX-AFCseq.svg",width = 12.00,height = 11.00)
+svglite("Biplot/Sequence-onlyX-AFCseq-100.svg",width = 12.00,height = 14.00)
 b_plot <- plot_grid(aCycle,iz,bZone,jz,cFraction,kz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(b_plot)
 dev.off()  
 #AFC = OTU
-svglite("Biplot/Sequence-onlyX-AFCotu.svg",width = 12.00,height = 11.00)
+svglite("Biplot/Sequence-onlyX-AFCotu-100.svg",width = 12.00,height = 14.00)
 c_plot <- plot_grid(iCycle,iz,jZone,jz,kFraction,kz, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
+print(c_plot)
+dev.off()
+
+
+    # 90% - 10% ---------------------------------------------------------------
+      # Cycle -------------------------------------------------------------------
+## Jour
+onlyJourSequence90 <- data_seq_tax %>% filter(Cycle90 == "Jour") %>% select(OTU_Id,TotalJour,Division)
+row.names(onlyJourSequence90)<-onlyJourSequence90$OTU_Id ; onlyJourSequence90 <- onlyJourSequence90 %>% select(-OTU_Id)
+onlyJourSequence90 <- onlyJourSequence90 %>% group_by(Division) %>% summarise_all(sum)
+onlyJourSequence90$TotalJour <- onlyJourSequence90$TotalJour*100/sum(onlyJourSequence90$TotalJour)
+onlyJourSequence90 <- onlyJourSequence90 %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalJour) - 0.5*TotalJour)
+onlyJourSequence90$label <- paste(round(onlyJourSequence90$TotalJour,1), "%", sep = "")
+for (i in rownames(onlyJourSequence90)) {
+  if (onlyJourSequence90[i,"label"] == "0%") { onlyJourSequence90[i,"label"] <- NA}}
+for (i in rownames(onlyJourSequence90)) {
+  if (is.na(onlyJourSequence90[i,"label"]) == FALSE) { onlyJourSequence90[i,"label"] <- paste(onlyJourSequence90[i,"Division"]," : ",onlyJourSequence90[i,"label"], sep = "")}}
+onlyJourSequence90$Cycle90<- rep("Jour", each = nrow(onlyJourSequence90))
+## Nuit
+onlyNuitSequence90 <- data_seq_tax %>% filter(Cycle90 == "Nuit") %>% select(OTU_Id,TotalNuit,Division)
+row.names(onlyNuitSequence90)<-onlyNuitSequence90$OTU_Id ; onlyNuitSequence90 <- onlyNuitSequence90 %>% select(-OTU_Id)
+onlyNuitSequence90 <- onlyNuitSequence90 %>% group_by(Division) %>% summarise_all(sum)
+onlyNuitSequence90$TotalNuit <- onlyNuitSequence90$TotalNuit*100/sum(onlyNuitSequence90$TotalNuit)
+onlyNuitSequence90 <- onlyNuitSequence90 %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalNuit) - 0.5*TotalNuit)
+onlyNuitSequence90$label <- paste(round(onlyNuitSequence90$TotalNuit,1), "%", sep = "")
+for (i in rownames(onlyNuitSequence90)) {
+  if (onlyNuitSequence90[i,"label"] == "0%") { onlyNuitSequence90[i,"label"] <- NA}}
+for (i in rownames(onlyNuitSequence90)) {
+  if (is.na(onlyNuitSequence90[i,"label"]) == FALSE) { onlyNuitSequence90[i,"label"] <- paste(onlyNuitSequence90[i,"Division"]," : ",onlyNuitSequence90[i,"label"], sep = "")}}
+onlyNuitSequence90$Cycle90<- rep("Nuit", each = nrow(onlyNuitSequence90))
+## Cycle
+colnames(onlyJourSequence90)[2]  <- "value"
+onlyJourSequence90$Sum <- rep(0, each = nrow(onlyJourSequence90))
+onlyJourSequence90$Count <- rep(0, each = nrow(onlyJourSequence90))
+for (i in onlyJourSequence90$Division) { onlyJourSequence90$Count[which(onlyJourSequence90$Division == i)] <- sum(data_seq_tax %>% filter(Cycle90 == "Jour") %>% filter(Division == i) %>% select(TotalJour))}
+onlyJourSequence90$Sum <- sum(onlyJourSequence90$Count)
+colnames(onlyNuitSequence90)[2]  <- "value"
+onlyNuitSequence90$Sum <- rep(0, each = nrow(onlyNuitSequence90))
+onlyNuitSequence90$Count <- rep(0, each = nrow(onlyNuitSequence90))
+for (i in onlyNuitSequence90$Division) { onlyNuitSequence90$Count[which(onlyNuitSequence90$Division == i)] <- sum(data_seq_tax %>% filter(Cycle90 == "Nuit") %>% filter(Division == i) %>% select(TotalNuit))}
+onlyNuitSequence90$Sum <- sum(onlyNuitSequence90$Count)
+onlyCycleSequence90 <- rbind(onlyJourSequence90,onlyNuitSequence90)
+#Figure
+iz90 <- ggplot(onlyCycleSequence90, mapping = aes(y= value, x = Cycle90, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_fill_manual(values = palette)
+#legendSequence <- get_legend(iz90)
+iz90 <- iz90 + labs(x="Cycles",y="Séquences (%)") #+ theme(legend.position = "none")
+print(iz90)
+
+      # Zone -------------------------------------------------------------------
+## Oxique
+onlyOxiqueSequence90 <- data_seq_tax %>% filter(Zone90 == "Oxique") %>% select(OTU_Id,TotalOxique,Division)
+row.names(onlyOxiqueSequence90)<-onlyOxiqueSequence90$OTU_Id ; onlyOxiqueSequence90 <- onlyOxiqueSequence90 %>% select(-OTU_Id)
+onlyOxiqueSequence90 <- onlyOxiqueSequence90 %>% group_by(Division) %>% summarise_all(sum)
+onlyOxiqueSequence90$TotalOxique <- onlyOxiqueSequence90$TotalOxique*100/sum(onlyOxiqueSequence90$TotalOxique)
+onlyOxiqueSequence90 <- onlyOxiqueSequence90 %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalOxique) - 0.5*TotalOxique)
+onlyOxiqueSequence90$label <- paste(round(onlyOxiqueSequence90$TotalOxique,1), "%", sep = "")
+for (i in rownames(onlyOxiqueSequence90)) {
+  if (onlyOxiqueSequence90[i,"label"] == "0%") { onlyOxiqueSequence90[i,"label"] <- NA}}
+for (i in rownames(onlyOxiqueSequence90)) {
+  if (is.na(onlyOxiqueSequence90[i,"label"]) == FALSE) { onlyOxiqueSequence90[i,"label"] <- paste(onlyOxiqueSequence90[i,"Division"]," : ",onlyOxiqueSequence90[i,"label"], sep = "")}}
+onlyOxiqueSequence90$Zone90<- rep("Oxique", each = nrow(onlyOxiqueSequence90))
+## Anoxique
+onlyAnoxiqueSequence90 <- data_seq_tax %>% filter(Zone90 == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Division)
+row.names(onlyAnoxiqueSequence90)<-onlyAnoxiqueSequence90$OTU_Id ; onlyAnoxiqueSequence90 <- onlyAnoxiqueSequence90 %>% select(-OTU_Id)
+onlyAnoxiqueSequence90 <- onlyAnoxiqueSequence90 %>% group_by(Division) %>% summarise_all(sum)
+onlyAnoxiqueSequence90$TotalAnoxique <- onlyAnoxiqueSequence90$TotalAnoxique*100/sum(onlyAnoxiqueSequence90$TotalAnoxique)
+onlyAnoxiqueSequence90 <- onlyAnoxiqueSequence90 %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalAnoxique) - 0.5*TotalAnoxique)
+onlyAnoxiqueSequence90$label <- paste(round(onlyAnoxiqueSequence90$TotalAnoxique,1), "%", sep = "")
+for (i in rownames(onlyAnoxiqueSequence90)) {
+  if (onlyAnoxiqueSequence90[i,"label"] == "0%") { onlyAnoxiqueSequence90[i,"label"] <- NA}}
+for (i in rownames(onlyAnoxiqueSequence90)) {
+  if (is.na(onlyAnoxiqueSequence90[i,"label"]) == FALSE) { onlyAnoxiqueSequence90[i,"label"] <- paste(onlyAnoxiqueSequence90[i,"Division"]," : ",onlyAnoxiqueSequence90[i,"label"], sep = "")}}
+onlyAnoxiqueSequence90$Zone90<- rep("Anoxique", each = nrow(onlyAnoxiqueSequence90))
+## Zone
+colnames(onlyOxiqueSequence90)[2]  <- "value"
+onlyOxiqueSequence90$Sum <- rep(0, each = nrow(onlyOxiqueSequence90))
+onlyOxiqueSequence90$Count <- rep(0, each = nrow(onlyOxiqueSequence90))
+for (i in onlyOxiqueSequence90$Division) { onlyOxiqueSequence90$Count[which(onlyOxiqueSequence90$Division == i)] <- sum(data_seq_tax %>% filter(Zone90 == "Oxique") %>% filter(Division == i) %>% select(TotalOxique))}
+onlyOxiqueSequence90$Sum <- sum(onlyOxiqueSequence90$Count)
+colnames(onlyAnoxiqueSequence90)[2]  <- "value"
+onlyAnoxiqueSequence90$Sum <- rep(0, each = nrow(onlyAnoxiqueSequence90))
+onlyAnoxiqueSequence90$Count <- rep(0, each = nrow(onlyAnoxiqueSequence90))
+for (i in onlyAnoxiqueSequence90$Division) { onlyAnoxiqueSequence90$Count[which(onlyAnoxiqueSequence90$Division == i)] <- sum(data_seq_tax %>% filter(Zone90 == "Anoxique") %>% filter(Division == i) %>% select(TotalAnoxique))}
+onlyAnoxiqueSequence90$Sum <- sum(onlyAnoxiqueSequence90$Count)
+onlyZoneSequence90 <- rbind(onlyOxiqueSequence90,onlyAnoxiqueSequence90)
+#Figure
+jz90 <- ggplot(onlyZoneSequence90, mapping = aes(y= value, x = Zone90, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_fill_manual(values = palette)
+jz90 <- jz90 + labs(x="Zones",y="Séquences (%)") #+ theme(legend.position = "none") 
+print(jz90)    
+      # Fraction -------------------------------------------------------------------
+## Petite
+onlyPetiteSequence90 <- data_seq_tax %>% filter(Fraction90 == "Petite") %>% select(OTU_Id,TotalPetite,Division)
+row.names(onlyPetiteSequence90)<-onlyPetiteSequence90$OTU_Id ; onlyPetiteSequence90 <- onlyPetiteSequence90 %>% select(-OTU_Id)
+onlyPetiteSequence90 <- onlyPetiteSequence90 %>% group_by(Division) %>% summarise_all(sum)
+onlyPetiteSequence90$TotalPetite <- onlyPetiteSequence90$TotalPetite*100/sum(onlyPetiteSequence90$TotalPetite)
+onlyPetiteSequence90 <- onlyPetiteSequence90 %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalPetite) - 0.5*TotalPetite)
+onlyPetiteSequence90$label <- paste(round(onlyPetiteSequence90$TotalPetite,1), "%", sep = "")
+for (i in rownames(onlyPetiteSequence90)) {
+  if (onlyPetiteSequence90[i,"label"] == "0%") { onlyPetiteSequence90[i,"label"] <- NA}}
+for (i in rownames(onlyPetiteSequence90)) {
+  if (is.na(onlyPetiteSequence90[i,"label"]) == FALSE) { onlyPetiteSequence90[i,"label"] <- paste(onlyPetiteSequence90[i,"Division"]," : ",onlyPetiteSequence90[i,"label"], sep = "")}}
+onlyPetiteSequence90$Fraction90<- rep("Petite", each = nrow(onlyPetiteSequence90))
+## Grande
+onlyGrandeSequence90 <- data_seq_tax %>% filter(Fraction90 == "Grande") %>% select(OTU_Id,TotalGrande,Division)
+row.names(onlyGrandeSequence90)<-onlyGrandeSequence90$OTU_Id ; onlyGrandeSequence90 <- onlyGrandeSequence90 %>% select(-OTU_Id)
+onlyGrandeSequence90 <- onlyGrandeSequence90 %>% group_by(Division) %>% summarise_all(sum)
+onlyGrandeSequence90$TotalGrande <- onlyGrandeSequence90$TotalGrande*100/sum(onlyGrandeSequence90$TotalGrande)
+onlyGrandeSequence90 <- onlyGrandeSequence90 %>%
+  arrange(desc(Division)) %>%
+  mutate(lab.ypos = cumsum(TotalGrande) - 0.5*TotalGrande)
+onlyGrandeSequence90$label <- paste(round(onlyGrandeSequence90$TotalGrande,1), "%", sep = "")
+for (i in rownames(onlyGrandeSequence90)) {
+  if (onlyGrandeSequence90[i,"label"] == "0%") { onlyGrandeSequence90[i,"label"] <- NA}}
+for (i in rownames(onlyGrandeSequence90)) {
+  if (is.na(onlyGrandeSequence90[i,"label"]) == FALSE) { onlyGrandeSequence90[i,"label"] <- paste(onlyGrandeSequence90[i,"Division"]," : ",onlyGrandeSequence90[i,"label"], sep = "")}}
+onlyGrandeSequence90$Fraction90<- rep("Grande", each = nrow(onlyGrandeSequence90))
+## Fraction
+colnames(onlyPetiteSequence90)[2]  <- "value"
+onlyPetiteSequence90$Sum <- rep(0, each = nrow(onlyPetiteSequence90))
+onlyPetiteSequence90$Count <- rep(0, each = nrow(onlyPetiteSequence90))
+for (i in onlyPetiteSequence90$Division) { onlyPetiteSequence90$Count[which(onlyPetiteSequence90$Division == i)] <- sum(data_seq_tax %>% filter(Fraction90 == "Petite") %>% filter(Division == i) %>% select(TotalPetite))}
+onlyPetiteSequence90$Sum <- sum(onlyPetiteSequence90$Count)
+colnames(onlyGrandeSequence90)[2]  <- "value"
+onlyGrandeSequence90$Sum <- rep(0, each = nrow(onlyGrandeSequence90))
+onlyGrandeSequence90$Count <- rep(0, each = nrow(onlyGrandeSequence90))
+for (i in onlyGrandeSequence90$Division) { onlyGrandeSequence90$Count[which(onlyGrandeSequence90$Division == i)] <- sum(data_seq_tax %>% filter(Fraction90 == "Grande") %>% filter(Division == i) %>% select(TotalGrande))}
+onlyGrandeSequence90$Sum <- sum(onlyGrandeSequence90$Count)
+onlyFractionSequence90 <- rbind(onlyPetiteSequence90,onlyGrandeSequence90)
+#Figure
+kz90 <- ggplot(onlyFractionSequence90, mapping = aes(y= value, x = Fraction90, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
+  geom_label(aes(y = 106,label = paste(Sum,"séquences",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+  scale_fill_manual(values = palette)
+kz90 <- kz90 + labs(x="Fractions",y="Séquences (%)") #+ theme(legend.position = "none")
+print(kz90) 
+      # Coplot -------------------------------------------------------------------
+svglite("Hist-Taxomy/Sequence-only-90.svg",width = 10.00,height = 8.00)
+b_plot <- plot_grid(iz90,jz90,kz90,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
+print(b_plot)
+dev.off()  
+
+      # Coplot X AFC -------------------------------------------------------------------
+f <- ggplot() + theme_void()
+print(f)
+#AFC = séquence
+svglite("Biplot/Sequence-onlyX-AFCseq-90.svg",width = 12.00,height = 14.00)
+b_plot <- plot_grid(aCycle90,iz90,bZone90,jz90,cFraction90,kz90, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
+print(b_plot)
+dev.off()  
+#AFC = OTU
+svglite("Biplot/Sequence-onlyX-AFCotu-90.svg",width = 12.00,height = 14.00)
+c_plot <- plot_grid(iCycle,iz90,jZone,jz90,kFraction,kz90, ncol = 2, nrow = 3, rel_widths = c(3,2),rel_heights = c(3,3,3))
 print(c_plot)
 dev.off()
 
@@ -3293,7 +3918,7 @@ dev.off()
 
 # Table OTUs majoritaires -------------------------------------------------
 # Table ONLY---------------------------------------------------------------------
-  # Cycle -------------------------------------------------------------------
+  # Cycle-100 -------------------------------------------------------------------
 ##Jour
 onlyJourTable <- data_seq_tax %>% filter(Cycle == "Jour") %>% select(OTU_Id,TotalJour,Division,Cycle)
 onlyJourTable <- onlyJourTable %>% filter(TotalJour > 0.01*sum(onlyJourTable$TotalJour))
@@ -3310,7 +3935,7 @@ write.table(onlyCycleTable, file = "Table/Only_Cycles.txt", sep = "\t", col.name
 write.table(onlyCycleOTU, file = "Table/Only_Cycles_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(onlyCycleSequence, file = "Table/Only_Cycles_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
-  # Zone -------------------------------------------------------------------
+  # Zone-100 -------------------------------------------------------------------
 ##Oxique
 onlyOxiqueTable <- data_seq_tax %>% filter(Zone == "Oxique") %>% select(OTU_Id,TotalOxique,Division,Zone)
 onlyOxiqueTable <- onlyOxiqueTable %>% filter(TotalOxique > 0.01*sum(onlyOxiqueTable$TotalOxique))
@@ -3327,7 +3952,7 @@ write.table(onlyZoneTable, file = "Table/Only_Zone.txt", sep = "\t", col.names =
 write.table(onlyZoneOTU, file = "Table/Only_Zone_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(onlyZoneSequence, file = "Table/Only_Zone_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
-  # Fraction -------------------------------------------------------------------
+  # Fraction-100 -------------------------------------------------------------------
 ##Petite
 onlyPetiteTable <- data_seq_tax %>% filter(Fraction == "Petite") %>% select(OTU_Id,TotalPetite,Division,Fraction)
 onlyPetiteTable <- onlyPetiteTable %>% filter(TotalPetite > 0.01*sum(onlyPetiteTable$TotalPetite))
@@ -3343,6 +3968,54 @@ onlyFractionTable <- merge(onlyFractionTable,tax_tablemix, by = "OTU_Id")
 write.table(onlyFractionTable, file = "Table/Only_Fraction.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(onlyFractionOTU, file = "Table/Only_Fraction_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(onlyFractionSequence, file = "Table/Only_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+  # Cycle-90 -------------------------------------------------------------------
+##Jour
+onlyJourTable90 <- data_seq_tax %>% filter(Cycle90 == "Jour") %>% select(OTU_Id,TotalJour,Division,Cycle90)
+onlyJourTable90 <- onlyJourTable90 %>% filter(TotalJour > 0.01*sum(onlyJourTable90$TotalJour))
+colnames(onlyJourTable90)[2]  <- "value"
+##Nuit
+onlyNuitTable90 <- data_seq_tax %>% filter(Cycle90 == "Nuit") %>% select(OTU_Id,TotalNuit,Division,Cycle90)
+onlyNuitTable90 <- onlyNuitTable90 %>% filter(TotalNuit > 0.01*sum(onlyNuitTable90$TotalNuit))
+colnames(onlyNuitTable90)[2]  <- "value"
+##Bind
+onlyCycleTable90 <- rbind(onlyJourTable90,onlyNuitTable90)
+onlyCycleTable90 <- merge(onlyCycleTable90,tax_tablemix, by = "OTU_Id")
+##Table
+write.table(onlyCycleTable90, file = "Table/Only_Cycles90.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyCycleSequence90, file = "Table/Only_Cycles_Sequence90.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+  # Zone-90 -------------------------------------------------------------------
+##Oxique
+onlyOxiqueTable90 <- data_seq_tax %>% filter(Zone90 == "Oxique") %>% select(OTU_Id,TotalOxique,Division,Zone90)
+onlyOxiqueTable90 <- onlyOxiqueTable90 %>% filter(TotalOxique > 0.01*sum(onlyOxiqueTable90$TotalOxique))
+colnames(onlyOxiqueTable90)[2]  <- "value"
+##Anoxique
+onlyAnoxiqueTable90 <- data_seq_tax %>% filter(Zone90 == "Anoxique") %>% select(OTU_Id,TotalAnoxique,Division,Zone90)
+onlyAnoxiqueTable90 <- onlyAnoxiqueTable90 %>% filter(TotalAnoxique > 0.01*sum(onlyAnoxiqueTable90$TotalAnoxique))
+colnames(onlyAnoxiqueTable90)[2]  <- "value"
+##bind
+onlyZoneTable90 <- rbind(onlyOxiqueTable90,onlyAnoxiqueTable90)
+onlyZoneTable90 <- merge(onlyZoneTable90,tax_tablemix, by = "OTU_Id")
+##Table
+write.table(onlyZoneTable90, file = "Table/Only_Zone90.txt", sep = "\t", col.names = TRUE, row.names = FALSE,quote = FALSE)
+write.table(onlyZoneSequence90, file = "Table/Only_Zone_Sequence90.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+  # Fraction-90 -------------------------------------------------------------------
+##Petite
+onlyPetiteTable90 <- data_seq_tax %>% filter(Fraction90 == "Petite") %>% select(OTU_Id,TotalPetite,Division,Fraction90)
+onlyPetiteTable90 <- onlyPetiteTable90 %>% filter(TotalPetite > 0.01*sum(onlyPetiteTable90$TotalPetite))
+colnames(onlyPetiteTable90)[2]  <- "value"
+##Grande
+onlyGrandeTable90 <- data_seq_tax %>% filter(Fraction90 == "Grande") %>% select(OTU_Id,TotalGrande,Division,Fraction90)
+onlyGrandeTable90 <- onlyGrandeTable90 %>% filter(TotalGrande > 0.01*sum(onlyGrandeTable90$TotalGrande))
+colnames(onlyGrandeTable90)[2]  <- "value"
+##bind
+onlyFractionTable90 <- rbind(onlyPetiteTable90,onlyGrandeTable90)
+onlyFractionTable90 <- merge(onlyFractionTable90,tax_tablemix, by = "OTU_Id")
+##Table
+write.table(onlyFractionTable90, file = "Table/Only_Fraction90.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(onlyFractionSequence90, file = "Table/Only_Fraction_Sequence90.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
 # Table Total---------------------------------------------------------------------
   # Cycle Total -------------------------------------------------------------------
