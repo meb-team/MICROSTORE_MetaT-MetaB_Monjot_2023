@@ -74,5 +74,5 @@ if [ $RARECURVE == "yes" ]
 then
 nohup Rscript 10_Calcul_Rarecurve.R $INPUT $OUTPUT $REGION $FILTER $UNIFY >> Ranalyse.log
 fi
-ELAPSED=$(($SECONDS-$BEFORE))
-echo "R process finished and takes "$ELAPSED" seconds !"
+ELAPSED=$((($SECONDS-$BEFORE)/60))
+echo "R process finished and takes "$ELAPSED" minutes !"

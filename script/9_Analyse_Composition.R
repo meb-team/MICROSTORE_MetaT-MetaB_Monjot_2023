@@ -13,10 +13,10 @@
 # Set directory, input and output -----------------------------------------------------------
 #
 #output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-Vsearch2151/OTU_distribution_tax.txt"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-2151/OTU_distribution_tax.txt"
 #region <- "V4"
 #sortop <- "OnlyOne"
-#Taxonomy <- "LCA"
+#Taxonomy <- "BH"
 #Mode <- "Superphylum"
 #Group <- "Eukaryota"
 #RarefyYoN <- "yes"
@@ -484,6 +484,53 @@ tax_plot <- ggplot(tax_stat, mapping = aes(x= Level, y = value, fill = variable,
         axis.title = element_text(color = "black", face = "bold"))
 print(tax_plot)
 dev.off()
+
+  # Best Hits Stat ----------------------------------------------------------
+
+# BH stat
+if (Taxonomy == "Best_hit_identity") {
+  BH_table <- tableVinput %>% select(Identity....)
+  BH_table$OTU_Id <- rownames(BH_table)
+  BH_table <- merge(BH_table, tax_table, by = "OTU_Id")
+  
+  ## x scale
+  w <- 0
+  i <- 0
+  while ( i < max(BH_table$`Identity....`)+1) { print (i) 
+    w <- c(w,i)
+    i <- i+5}
+  ## plot
+  svglite("Stat-Analyse/BH-Stat.svg",width = 8.00,height = 6.00)
+    ### Hist
+  Histstat <- ggplot(BH_table, aes(x = `Identity....`)) +
+    geom_histogram(binwidth = 1,color = "white", fill = "#1212ff", alpha = 0.5) +
+    scale_y_continuous() +
+    scale_x_continuous(breaks = w, limits = c(min(BH_table$`Identity....`)-1,max(BH_table$`Identity....`)+1)) +
+    labs(y="OTU #") +
+    theme(legend.title = element_text(face="bold"),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(color = "black", face = "bold"),
+          strip.text.x = element_text(color = "black", face = "bold", size = 12),
+          axis.text.x = element_blank())
+    ### Boxplot
+  fun_mean <- function(x){return(data.frame(y=mean(x),label=round(mean(x,na.rm=T),2)))}
+  Boxstat <- ggplot(BH_table, aes(x = "", y = `Identity....`)) +
+    stat_boxplot(geom ='errorbar', width = 0.2) +
+    geom_boxplot(outlier.colour = "#1212ff", alpha = 0.1) +
+    coord_flip() +
+    scale_y_continuous(breaks = w, limits = c(min(BH_table$`Identity....`)-1,max(BH_table$`Identity....`)+1)) +
+    stat_summary(fun = mean, colour = "#1212ff", geom = "point", shape = 18, size = 3, alpha = 0.5) +
+    stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size = 3, fontface = "bold", alpha = 0.8) +
+    theme(legend.title = element_text(face="bold"),
+          axis.title.x = element_text(color = "black", face = "bold"),
+          axis.title.y = element_blank(),
+          strip.text.x = element_text(color = "black", face = "bold", size = 12),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+  BH_stat <- plot_grid(Histstat,Boxstat, align = "v", nrow = 2, rel_heights = c(4/5,1/5))
+  print(BH_stat)
+  dev.off()
+}
+
 
   # OTU distribution statistics ---------------------------------------------
 ## Raw
@@ -1935,7 +1982,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   onlyCycleOTU <- rbind(onlyJourOTU,onlyNuitOTU)
   #Figure
   az <- ggplot(onlyCycleOTU, mapping = aes(y= value, x = Cycle, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + 
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
   legendOTU <- get_legend(az)
   az <- az + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
   print(az)
@@ -1984,7 +2031,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   onlyZoneOTU <- rbind(onlyOxiqueOTU,onlyAnoxiqueOTU)
   #Figure
   bz <- ggplot(onlyZoneOTU, mapping = aes(y= value, x = Zone, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + scale_fill_manual(values = palette)
   bz <- bz + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
   print(bz)
   
@@ -2032,15 +2079,15 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   onlyFractionOTU <- rbind(onlyPetiteOTU,onlyGrandeOTU)
   #Figure
   cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
     scale_fill_manual(values = palette)
   cz <- cz + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
   print(cz) 
       # Coplot -------------------------------------------------------------------
-  svglite("Hist-Function/OTU-Function-only.svg",width = 10.00,height = 8.00)
-  b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+  svglite("Hist-Function/OTU-Function-only.svg",width = 12.00,height = 6.00)
+  b_plot <- plot_grid(az,bz,cz,legendOTU,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,2),rel_heights = c(3))
   print(b_plot)
-  dev.off()  
+  dev.off()
     # OTU TOTAL---------------------------------------------------------------------
     data_otu_function <- merge(data_otu_tax,tax_table_funtion, by = "OTU_Id")
       # Cycle -------------------------------------------------------------------
@@ -2087,7 +2134,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   
   #Figure
   ay <- ggplot(totalCycleOTU, mapping = aes(y= value, x = Cycle, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette) + 
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
   legendOTU <- get_legend(ay)
   ay <- ay + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
   print(ay)
@@ -2135,7 +2182,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   totalZoneOTU <- rbind(totalOxiqueOTU,totalAnoxiqueOTU)
   #Figure
   by <- ggplot(totalZoneOTU, mapping = aes(y= value, x = Zone, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette) + 
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
   by <- by + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
   print(by)
   
@@ -2182,7 +2229,7 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   totalFractionOTU <- rbind(totalPetiteOTU,totalGrandeOTU)
   #Figure
   cy <- ggplot(totalFractionOTU, mapping = aes(y= value, x = Fraction, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
   cy <- cy + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
   print(cy) 
       # Date -------------------------------------------------------------------
@@ -2266,12 +2313,12 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   totalDateOTU <- rbind(total04OTU,total06OTU,total09OTU,total11OTU)
   #Figure
   dy <- ggplot(totalDateOTU, mapping = aes(y= value, x = Date, fill = Function, group = Function), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
-    geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+    geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
   dy <- dy + theme(legend.position = "none") + labs(x="Dates",y="OTUs (%)")
   print(dy) 
       # Coplot -------------------------------------------------------------------
-  svglite("Hist-Function/OTU-Function-Total.svg",width = 14.00,height = 6.00)
-  b_plot <- plot_grid(ay,by,cy,dy,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
+  svglite("Hist-Function/OTU-Function-Total.svg",width = 12.00,height = 7.00)
+  b_plot <- plot_grid(ay,by,cy,dy,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,2),rel_heights = c(3))
   print(b_plot)
   dev.off()
     # Séquence ONLY---------------------------------------------------------------------
@@ -2421,8 +2468,8 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   kz <- kz + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
   print(kz) 
         # Coplot -------------------------------------------------------------------
-  svglite("Hist-Function/Sequence-Function-only-100.svg",width = 10.00,height = 8.00)
-  b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+  svglite("Hist-Function/Sequence-Function-only-100.svg",width = 12.00,height = 6.00)
+  b_plot <- plot_grid(iz,jz,kz,legendSequence,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,2),rel_heights = c(3))
   print(b_plot)
   dev.off()  
   
@@ -2571,8 +2618,8 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   kz90 <- kz90 + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
   print(kz90) 
         # Coplot -------------------------------------------------------------------
-  svglite("Hist-Function/Sequence-Function-only-90.svg",width = 10.00,height = 8.00)
-  b_plot90 <- plot_grid(iz90,jz90,kz90,legendSequence90,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,3),rel_heights = c(3))
+  svglite("Hist-Function/Sequence-Function-only-90.svg",width = 12.00,height = 6.00)
+  b_plot90 <- plot_grid(iz90,jz90,kz90,legendSequence90,  ncol = 4, nrow = 1, rel_widths = c(3,3,3,2),rel_heights = c(3))
   print(b_plot90)
   dev.off()  
   
@@ -2815,8 +2862,8 @@ futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
   ly <- ly + labs(x="Dates",y="Séquences (%)") + theme(legend.position = "none")
   print(ly) 
       # Coplot -------------------------------------------------------------------
-  svglite("Hist-Function/Sequence-Function-Total.svg",width = 14.00,height = 6.00)
-  b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
+  svglite("Hist-Function/Sequence-Function-Total.svg",width = 12.00,height = 7.00)
+  b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,2),rel_heights = c(3))
   print(b_plot)
   dev.off()
   # Polar ------------------------------------------------------
@@ -2928,7 +2975,7 @@ totalCycleOTU <- rbind(totalJourOTU,totalNuitOTU)
 
 #Figure
 ay <- ggplot(totalCycleOTU, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette) + 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 legendOTU <- get_legend(ay)
 ay <- ay + labs(x="Cycles",y="OTUs (%)") + theme(legend.position = "none")
 print(ay)
@@ -2976,7 +3023,7 @@ totalAnoxiqueOTU$Sum <- sum(totalAnoxiqueOTU$Count)
 totalZoneOTU <- rbind(totalOxiqueOTU,totalAnoxiqueOTU)
 #Figure
 by <- ggplot(totalZoneOTU, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette) + 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 by <- by + labs(x="Zones",y="OTUs (%)") + theme(legend.position = "none")
 print(by)
 
@@ -3023,7 +3070,7 @@ totalGrandeOTU$Sum <- sum(totalGrandeOTU$Count)
 totalFractionOTU <- rbind(totalPetiteOTU,totalGrandeOTU)
 #Figure
 cy <- ggplot(totalFractionOTU, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 cy <- cy + labs(x="Fractions",y="OTUs (%)") + theme(legend.position = "none")
 print(cy) 
     # Date -------------------------------------------------------------------
@@ -3107,11 +3154,11 @@ total11OTU$Sum <- sum(total11OTU$Count)
 totalDateOTU <- rbind(total04OTU,total06OTU,total09OTU,total11OTU)
 #Figure
 dy <- ggplot(totalDateOTU, mapping = aes(y= value, x = Date, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
-  geom_label(aes(y = 104,label = paste(Sum," OTUs",sep ="")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 106,label = paste(Sum," OTUs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 dy <- dy + theme(legend.position = "none") + labs(x="Dates",y="OTUs (%)")
 print(dy) 
     # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/OTU-Total.svg",width = 14.00,height = 6.00)
+svglite("Hist-Taxomy/OTU-Total.svg",width = 12.00,height = 6.00)
 b_plot <- plot_grid(ay,by,cy,dy,legendOTU, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
 print(b_plot)
 dev.off()
@@ -3260,7 +3307,7 @@ cz <- ggplot(onlyFractionOTU, mapping = aes(y= value, x = Fraction, fill = Divis
 cz <- cz + labs(x="Fractions",y="OTUs (%)") #+ theme(legend.position = "none")
 print(cz) 
     # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/OTU-only.svg",width = 10.00,height = 8.00)
+svglite("Hist-Taxomy/OTU-only.svg",width = 12.00,height = 6.00)
 b_plot <- plot_grid(az,bz,cz,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
@@ -3327,7 +3374,7 @@ totalCycleSequence$percent <- paste("(",round(totalCycleSequence$Sum*100/(colSum
 #Figure
 iy <- ggplot(totalCycleSequence, mapping = aes(y= value, x = Cycle, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
   scale_fill_manual(values = palette) + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 108,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 legendSequence <- get_legend(iy)
 iy <- iy + labs(x="Cycles",y="Séquences (%)") + theme(legend.position = "none")
 print(iy)
@@ -3378,7 +3425,7 @@ totalZoneSequence$percent <- paste("(",round(totalZoneSequence$Sum*100/(colSums(
 #Figure
 jy <- ggplot(totalZoneSequence, mapping = aes(y= value, x = Zone, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
   scale_fill_manual(values = palette) + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 108,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 jy <- jy + labs(x="Zones",y="Séquences (%)") + theme(legend.position = "none")
 print(jy)    
     # Fraction -------------------------------------------------------------------
@@ -3427,7 +3474,7 @@ totalFractionSequence$percent <- paste("(",round(totalFractionSequence$Sum*100/(
 #Figure
 ky <- ggplot(totalFractionSequence, mapping = aes(y= value, x = Fraction, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
   scale_fill_manual(values = palette) + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 108,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 ky <- ky + labs(x="Fractions",y="Séquences (%)") + theme(legend.position = "none")
 print(ky) 
     # Date -------------------------------------------------------------------
@@ -3514,12 +3561,12 @@ totalDateSequence$percent <- paste("(",round(totalDateSequence$Sum*100/(colSums(
 #Figure
 ly <- ggplot(totalDateSequence, mapping = aes(y= value, x = Date, fill = Division, group = Division), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
   scale_fill_manual(values = palette) + 
-  geom_label(aes(y = 106,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
+  geom_label(aes(y = 108,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
 ly <- ly + labs(x="Dates",y="Séquences (%)") + theme(legend.position = "none")
 print(ly) 
     # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/Sequence-Total.svg",width = 14.00,height = 6.00)
-b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,3),rel_heights = c(3))
+svglite("Hist-Taxomy/Sequence-Total.svg",width = 12.00,height = 7.00)
+b_plot <- plot_grid(iy,jy,ky,ly, legendSequence, ncol = 5, nrow = 1, rel_widths = c(3,3,3,5,2.5),rel_heights = c(3))
 print(b_plot)
 dev.off()
   # Séquence ONLY---------------------------------------------------------------------
@@ -3668,7 +3715,7 @@ kz <- ggplot(onlyFractionSequence, mapping = aes(y= value, x = Fraction, fill = 
 kz <- kz + labs(x="Fractions",y="Séquences (%)") #+ theme(legend.position = "none")
 print(kz) 
       # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/Sequence-only-100.svg",width = 10.00,height = 8.00)
+svglite("Hist-Taxomy/Sequence-only-100.svg",width = 12.00,height = 6.00)
 b_plot <- plot_grid(iz,jz,kz,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
@@ -3833,7 +3880,7 @@ kz90 <- ggplot(onlyFractionSequence90, mapping = aes(y= value, x = Fraction90, f
 kz90 <- kz90 + labs(x="Fractions",y="Séquences (%)") #+ theme(legend.position = "none")
 print(kz90) 
       # Coplot -------------------------------------------------------------------
-svglite("Hist-Taxomy/Sequence-only-90.svg",width = 10.00,height = 8.00)
+svglite("Hist-Taxomy/Sequence-only-90.svg",width = 12.00,height = 6.00)
 b_plot <- plot_grid(iz90,jz90,kz90,  ncol = 3, nrow = 1, rel_widths = c(3,3,3),rel_heights = c(3))
 print(b_plot)
 dev.off()  
@@ -3873,7 +3920,7 @@ for (i in rownames(Polar_seq)) {
 for (i in rownames(Polar_seq)) {
   if (is.na(Polar_seq[i,"label"]) == FALSE) { Polar_seq[i,"label"] <- paste(Polar_seq[i,"Division"]," : ",Polar_seq[i,"label"], sep = "")}}
 ##Figure
-svglite("Composition/Polar-Total-seq.svg",width = 4.00,height = 4.00)
+svglite("Composition/Polar-Total-seq.svg",width = 4.50,height = 4.50)
 ax <- ggplot(Polar_seq, mapping = aes(y= Total, x = 2, fill = Division), Rowv = NA, col = colMain, scale = "column") +
   geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
   geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +
@@ -3904,7 +3951,7 @@ for (i in rownames(Polar_otu)) {
 for (i in rownames(Polar_otu)) {
   if (is.na(Polar_otu[i,"label"]) == FALSE) { Polar_otu[i,"label"] <- paste(Polar_otu[i,"Division"]," : ",Polar_otu[i,"label"], sep = "")}}
 ##Figure
-svglite("Composition/Polar-Total-otu.svg",width = 4.00,height = 4.00)
+svglite("Composition/Polar-Total-otu.svg",width = 4.50,height = 4.50)
 bx <- ggplot(Polar_otu, mapping = aes(y= Total, x = 2, fill = Division), Rowv = NA, col = colMain, scale = "column") +
   geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
   geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5) +

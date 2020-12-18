@@ -13,10 +13,10 @@
 # Set directory, input, output and import packages -----------------------------------------------------------
 #
 #output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-095-215/OTU_distribution_tax.txt"
+#input <- "../dataPANAM/PANAM2/V4-result-unified-095-2151/OTU_distribution_tax.txt"
 #region <- "V4"
-#sortop <- "no"
-#UnifyYoN <- "yes"
+#sortop <- "OnlyOne"
+#UnifyYoN <- "no"
 rarecurvecolor <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
@@ -177,6 +177,36 @@ amplicon <- grep(pattern = "OSTA", colnames(tableVinput), value = TRUE)
 samples_df <- merge(samples_df, tibble(amplicon), by.x = "Amplicon", by.y = "amplicon")
 # Select V4 or V9 ---------------------------------------------------------
 samples_df<-filter(samples_df, Region == region)
+# Create sort Condition pattern -------------------------------------------
+#Cycle
+CycleJour <- samples_df %>% filter(Cycle == "Jour") %>% filter(Replicat == 1)
+CycleJour <- CycleJour$Amplicon
+CycleNuit <- samples_df %>% filter(Cycle == "Nuit") %>% filter(Replicat == 1)
+CycleNuit <- CycleNuit$Amplicon
+#Zone
+ZoneOxique <- samples_df %>% filter(`Zone` == "Oxique") %>% filter(Replicat == 1)
+ZoneOxique <- ZoneOxique$Amplicon
+ZoneAnoxique <- samples_df %>% filter(`Zone` == "Anoxique") %>% filter(Replicat == 1)
+ZoneAnoxique <- ZoneAnoxique$Amplicon
+#Fraction
+FractionPetite <- samples_df %>% filter(`Fraction` == "Petite") %>% filter(Replicat == 1)
+FractionPetite <- FractionPetite$Amplicon
+FractionGrande <- samples_df %>% filter(`Fraction` == "Grande") %>% filter(Replicat == 1)
+FractionGrande <- FractionGrande$Amplicon
+#Date
+Date04 <- samples_df %>% filter(Date == "04") %>% filter(Replicat == 1)
+Date04 <- Date04$Amplicon
+Date06 <- samples_df %>% filter(Date == "06") %>% filter(Replicat == 1)
+Date06 <- Date06$Amplicon
+Date09 <- samples_df %>% filter(Date == "09") %>% filter(Replicat == 1)
+Date09 <- Date09$Amplicon
+Date11 <- samples_df %>% filter(Date == "11") %>% filter(Replicat == 1)
+Date11 <- Date11$Amplicon
+
+
+
+
+
 # Prepare Object Nopool-------------------------------------------------
   ## Prepare seq_mat ---------------------------------------------------------------------
 amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
@@ -200,8 +230,53 @@ dev.off()
 #pdf("Rarecurve/Nopool/Rarecurve-all-Raw.pdf",width = 5.00,height = 5.00)
 #curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
 #dev.off()
+
+## Total Cycle Raw
+total_Jour_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(CycleJour)))
+total_Jour_raw <- t(colSums(total_Jour_raw)) ; row.names(total_Jour_raw) <- "Jour"
+total_Nuit_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(CycleNuit)))
+total_Nuit_raw <- t(colSums(total_Nuit_raw)) ; row.names(total_Nuit_raw) <- "Nuit"
+total_Cycle_raw <- rbind(total_Jour_raw,total_Nuit_raw)
+Color <- c("#F8766D","#00A5FF")
+pdf("Rarecurve/Nopool/Rarecurve-CycleSum-Rawdata.pdf", width = 5.00, height = 5.00)
+curve_a <- quickRareCurve(total_Cycle_raw, col = Color, cex = 0.6)
+legend("topleft", inset=.02, title="Cycle",
+       c("Day","Night"), fill = c("#F8766D","#00A5FF"), horiz=TRUE, cex=0.6)
+print(curve_a)
+dev.off()
+
+## Total Zone Raw
+total_Oxique_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(ZoneOxique)))
+total_Oxique_raw <- t(colSums(total_Oxique_raw)) ; row.names(total_Oxique_raw) <- "Oxique"
+total_Anoxique_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(ZoneAnoxique)))
+total_Anoxique_raw <- t(colSums(total_Anoxique_raw)) ; row.names(total_Anoxique_raw) <- "Anoxique"
+total_Zone_raw <- rbind(total_Oxique_raw,total_Anoxique_raw)
+Color <- c("#F8766D","#00A5FF")
+pdf("Rarecurve/Nopool/Rarecurve-ZoneSum-Rawdata.pdf", width = 5.00, height = 5.00)
+curve_b <- quickRareCurve(total_Zone_raw, col = Color, cex = 0.6)
+legend("topleft", inset=.02, title="Zone",
+       c("Oxique","Anoxique"), fill = c("#F8766D","#00A5FF"), horiz=TRUE, cex=0.6)
+print(curve_b)
+dev.off()
+
+## Total Fraction Raw
+total_Petite_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(FractionPetite)))
+total_Petite_raw <- t(colSums(total_Petite_raw)) ; row.names(total_Petite_raw) <- "Petite"
+total_Grande_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(FractionGrande)))
+total_Grande_raw <- t(colSums(total_Grande_raw)) ; row.names(total_Grande_raw) <- "Grande"
+total_Fraction_raw <- rbind(total_Petite_raw,total_Grande_raw)
+Color <- c("#F8766D","#00A5FF")
+pdf("Rarecurve/Nopool/Rarecurve-FractionSum-Rawdata.pdf", width = 5.00, height = 5.00)
+curve_c <- quickRareCurve(total_Fraction_raw, col = Color, cex = 0.6)
+legend("topleft", inset=.02, title="Fraction",
+       c("Petite","Grande"), fill = c("#F8766D","#00A5FF"), horiz=TRUE, cex=0.6)
+print(curve_c)
+dev.off()
+
+## Color 
+
 if (rarecurvecolor == "yes") {
-#Color
+
 colraw <- as.data.frame(rownames(rawcurve))
 colnames(colraw) <- "sample"
 w <- 0
@@ -1039,8 +1114,53 @@ dev.off()
     #pdf("Rarecurve/Pool/Rarecurve-all-Raw.pdf",width = 5.00,height = 5.00)
     #curve <- quickRareCurve(rawcurve_all, col = "black", cex = 0.6)
     #dev.off()
+    ## Total Cycle Raw
+    rawcurve <- seq_mat_poolt
+    total_Jour_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(CycleJour)))
+    total_Jour_raw <- t(colSums(total_Jour_raw)) ; row.names(total_Jour_raw) <- "Jour"
+    total_Nuit_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(CycleNuit)))
+    total_Nuit_raw <- t(colSums(total_Nuit_raw)) ; row.names(total_Nuit_raw) <- "Nuit"
+    total_Cycle_raw <- rbind(total_Jour_raw,total_Nuit_raw)
+    Color <- c("#F8766D","#00A5FF")
+    pdf("Rarecurve/Pool/Rarecurve-CycleSum-Rawdata.pdf", width = 5.00, height = 5.00)
+    curve_x <- quickRareCurve(total_Cycle_raw, col = Color, cex = 0.6)
+    legend("topleft", inset=.02, title="Cycle",
+           c("Day","Night"), fill = c("#F8766D","#00A5FF"), horiz=TRUE, cex=0.6)
+    print(curve_x)
+    dev.off()
+    
+    ## Total Zone Raw
+    total_Oxique_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(ZoneOxique)))
+    total_Oxique_raw <- t(colSums(total_Oxique_raw)) ; row.names(total_Oxique_raw) <- "Oxique"
+    total_Anoxique_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(ZoneAnoxique)))
+    total_Anoxique_raw <- t(colSums(total_Anoxique_raw)) ; row.names(total_Anoxique_raw) <- "Anoxique"
+    total_Zone_raw <- rbind(total_Oxique_raw,total_Anoxique_raw)
+    Color <- c("#F8766D","#00A5FF")
+    pdf("Rarecurve/Pool/Rarecurve-ZoneSum-Rawdata.pdf", width = 5.00, height = 5.00)
+    curve_y <- quickRareCurve(total_Zone_raw, col = Color, cex = 0.6)
+    legend("topleft", inset=.02, title="Zone",
+           c("Oxique","Anoxique"), fill = c("#F8766D","#00A5FF"), horiz=TRUE, cex=0.6)
+    print(curve_y)
+    dev.off()
+    
+    ## Total Fraction Raw
+    total_Petite_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(FractionPetite)))
+    total_Petite_raw <- t(colSums(total_Petite_raw)) ; row.names(total_Petite_raw) <- "Petite"
+    total_Grande_raw <- (as.data.frame(rawcurve) %>% filter(row.names(rawcurve) %in% all_of(FractionGrande)))
+    total_Grande_raw <- t(colSums(total_Grande_raw)) ; row.names(total_Grande_raw) <- "Grande"
+    total_Fraction_raw <- rbind(total_Petite_raw,total_Grande_raw)
+    Color <- c("#F8766D","#00A5FF")
+    pdf("Rarecurve/Pool/Rarecurve-FractionSum-Rawdata.pdf", width = 5.00, height = 5.00)
+    curve_z <- quickRareCurve(total_Fraction_raw, col = Color, cex = 0.6)
+    legend("topleft", inset=.02, title="Fraction",
+           c("Petite","Grande"), fill = c("#F8766D","#00A5FF"), horiz=TRUE, cex=0.6)
+    print(curve_z)
+    dev.off()
+    
+    ## Color
+    
     if (rarecurvecolor == "yes") {
-    #Color
+
     colraw <- as.data.frame(rownames(seq_mat_poolt))
     colnames(colraw) <- "sample"
     w <- 0
