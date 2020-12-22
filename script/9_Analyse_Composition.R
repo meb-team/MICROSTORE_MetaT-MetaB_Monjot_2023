@@ -21,6 +21,7 @@
 #Group <- "Eukaryota"
 #RarefyYoN <- "yes"
 #UnifyYoN <- "no"
+#SortBH <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -38,7 +39,7 @@ output <- args[2]
 input <- args[1]
 
 # Import package and palette -----------------------------------------------------------
-pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram")
+pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram","stringr")
 lapply(pkg, require, character.only = TRUE)
 
 #palette <-  sample(c(pal_locuszoom(alpha = 0.8)(7), pal_lancet(alpha = 0.8)(9)))
@@ -73,7 +74,7 @@ if (length(args)==2) {
   str(Mode);
   cat( "\n" )}
 if (length(args)>2) {
-  Mode <- args[8]
+  Mode <- args[9]
 }
 
 if (Mode == "Phylum") {
@@ -84,7 +85,7 @@ if (Mode == "Phylum") {
     str(Group);
     cat( "\n" )}
   if (length(args)>2) {
-    Group <- args[9]}
+    Group <- args[10]}
 }
 if (Mode == "Class") {
   if (length(args)==2) {
@@ -94,7 +95,7 @@ if (Mode == "Class") {
     str(Group);
     cat( "\n" )}
   if (length(args)>2) {
-    Group <- args[9]}
+    Group <- args[10]}
 }
 # Theme unique Dark perso -------------------------------------------------------
 theme_unique_dark <- function (base_size = 12, base_family = "") {
@@ -435,10 +436,30 @@ tax_table$OTU_Id <- row.names(tax_table)
 tax_table <- separate(tax_table, all_of(Taxonomy), c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
 tax_table[tax_table == ""] <- NA
 tax_table[tax_table == " "] <- NA
+## Treshold for BH table 
+### Define sortBH
+  if (length(args)==2) {
+    cat("Should I sort BH taxonomy(%) (yes or no) : ");
+    SortBH <- readLines("stdin",n=1);
+    cat("You entered")
+    str(SortBH);
+    cat( "\n" )}
+  if (length(args)>2) {
+    SortBH <- args[8]}
+
+if (SortBH == "yes") {
+if (Taxonomy == "Best_hit_identity") {
+  for (i in row.names(tableVinput)) { if ( i == tax_table[i,"OTU_Id"]) { tax_table[i,"Identity"] <-  tableVinput[i,"Identity...."]}}
+  for (i in row.names(tax_table)) { 
+    if (tax_table[i,"Identity"] < 85) { tax_table[i, "Phylum"] <- NA}
+    if (tax_table[i,"Identity"] < 70) { tax_table[i, "Superphylum"] <- NA}}
+}}
+## Continue Treatment tax_table
 for (i in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus")) {
   j <- grep(i, colnames(tax_table)) + 1
   for (f in rownames(tax_table)) { 
     if (is.na(tax_table[f,i]) == TRUE) { tax_table[f,j] <- NA }}}
+
 tax_tablemix <- tax_table
 tax_tablemix$Taxonomy <- paste(tax_table[,"Domain"],tax_table[,"Superphylum"],tax_table[,"Phylum"],tax_table[,"Class"],tax_table[,"Order"],tax_table[,"Family"],tax_table[,"Genus"],tax_table[,"Species"], sep = ";")
 tax_tablemix <- tax_tablemix %>% select(OTU_Id, Taxonomy)
@@ -492,6 +513,8 @@ if (Taxonomy == "Best_hit_identity") {
   BH_table <- tableVinput %>% select(Identity....)
   BH_table$OTU_Id <- rownames(BH_table)
   BH_table <- merge(BH_table, tax_table, by = "OTU_Id")
+  amplicon <- c(grep(pattern = "OSTA", colnames(seq_mat_pool_rare), value = TRUE))
+  BH_table$Total <- rowSums(seq_mat_pool_rare %>% select(all_of(amplicon)))
   
   ## x scale
   w <- 0
@@ -499,22 +522,42 @@ if (Taxonomy == "Best_hit_identity") {
   while ( i < max(BH_table$`Identity....`)+1) { print (i) 
     w <- c(w,i)
     i <- i+5}
+  
+  ## y scale
+  x <- 0
+  i <- 0
+  while ( i < max(BH_table$`Total`)+1) { print (i) 
+    x <- c(x,i)
+    i <- i+10^(str_length(max(BH_table$Total))-1)}
+  BH_Contingency <- data.frame(table(round(BH_table$Identity....)))
+  BH_Contingencybis <- aggregate(BH_table$Total, by = list(round(BH_table$Identity...., 1)), FUN = sum)
+  BH_bis <- as.data.frame(rep(BH_Contingencybis$Group.1,BH_Contingencybis$x), ncol = 1, byrow = TRUE) ; colnames(BH_bis) <- "Abondances"
+  ## Unity
+  y1 <- -str_length(max(BH_Contingency$Freq))+1 #-2
+  y2 <- -str_length(max(BH_table$Total))+1 #-5
+  iBH <- round(max(BH_Contingency$Freq), y1) #800
+  jBH <- round(max(BH_Contingency$Freq)+0.1*max(BH_Contingency$Freq), y1) #900
+  y3 <- jBH/100+1 # 10
+  kBH <- round(max(BH_table$Total), y2) #6e+05
+  
   ## plot
   svglite("Stat-Analyse/BH-Stat.svg",width = 8.00,height = 6.00)
     ### Hist
   Histstat <- ggplot(BH_table, aes(x = `Identity....`)) +
     geom_histogram(binwidth = 1,color = "white", fill = "#1212ff", alpha = 0.5) +
-    scale_y_continuous() +
+    geom_line(aes(x = `Identity....`, y=Total * iBH / kBH), stat = "identity") +
+    scale_y_continuous(breaks = seq(0,jBH, length = y3), sec.axis = sec_axis(~ . * kBH / iBH, name = "Abondance", breaks = x)) +
     scale_x_continuous(breaks = w, limits = c(min(BH_table$`Identity....`)-1,max(BH_table$`Identity....`)+1)) +
-    labs(y="OTU #") +
+    labs(y="Richesse") +
     theme(legend.title = element_text(face="bold"),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(color = "black", face = "bold"),
+          axis.title.y.left = element_text(color = "#1212FFCC", face = "bold",angle = 0, vjust = 1),
+          axis.title.y.right = element_text(color = "black", face = "bold",angle = 0, vjust = 1),
           strip.text.x = element_text(color = "black", face = "bold", size = 12),
           axis.text.x = element_blank())
-    ### Boxplot
+    ### Boxplot #1 : répartition des OTU en BH%
   fun_mean <- function(x){return(data.frame(y=mean(x),label=round(mean(x,na.rm=T),2)))}
-  Boxstat <- ggplot(BH_table, aes(x = "", y = `Identity....`)) +
+  Boxstat1 <- ggplot(BH_table, aes(x = "", y = `Identity....`)) +
     stat_boxplot(geom ='errorbar', width = 0.2) +
     geom_boxplot(outlier.colour = "#1212ff", alpha = 0.1) +
     coord_flip() +
@@ -525,8 +568,25 @@ if (Taxonomy == "Best_hit_identity") {
           axis.title.x = element_text(color = "black", face = "bold"),
           axis.title.y = element_blank(),
           strip.text.x = element_text(color = "black", face = "bold", size = 12),
+          axis.text.x = element_blank()) +
+    #labs(y = "Richesse")
+    labs(y = NULL)
+    ### Boxplot #2 : répartition des Séquences en BH%
+  Boxstat2 <- ggplot(BH_bis, aes(x = "", y = Abondances)) +
+    stat_boxplot(geom ='errorbar', width = 0.2) +
+    geom_boxplot(outlier.colour = "black", alpha = 0.1) +
+    coord_flip() +
+    scale_y_continuous(breaks = w, limits = c(min(BH_table$`Identity....`)-1,max(BH_table$`Identity....`)+1)) +
+    stat_summary(fun = mean, colour = "black", geom = "point", shape = 18, size = 3, alpha = 0.5) +
+    stat_summary(fun.data = fun_mean, geom="text", vjust=-0.7, size = 3, fontface = "bold", alpha = 0.8) +
+    labs(y = NULL) +
+    theme(legend.title = element_text(face="bold"),
+          axis.title.x = element_text(color = "black", face = "bold"),
+          axis.title.y = element_blank(),
+          strip.text.x = element_text(color = "black", face = "bold", size = 12),
           axis.text.x = element_text(angle = 45, hjust = 1))
-  BH_stat <- plot_grid(Histstat,Boxstat, align = "v", nrow = 2, rel_heights = c(4/5,1/5))
+    ### Cowplot
+  BH_stat <- plot_grid(Histstat,Boxstat1, Boxstat2, align = "v", nrow = 3, rel_heights = c(4/5.75,0.75/5.75,1/5.75))
   print(BH_stat)
   dev.off()
 }

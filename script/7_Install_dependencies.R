@@ -17,6 +17,7 @@ system("conda install -y -c conda-forge imagemagick")
 
 setwd("..")
 install.packages("parallel", repos="http://cran.rstudio.com/")
+install.packages("stringr", repos="http://cran.rstudio.com/")
 install.packages("GUniFrac", repos="http://cran.rstudio.com/")
 install.packages("ggplot2", repos="http://cran.rstudio.com/")
 install.packages("dplyr", repos="http://cran.rstudio.com/")
@@ -36,7 +37,7 @@ install.packages("VennDiagram", repos="http://cran.rstudio.com/")
 #BiocManager::install("phyloseq")
 
 #dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite","vegan","picante","cluster","MASS","phyloseq")
-dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","VennDiagram","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite")
+dependencies <- c("parallel","GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","VennDiagram","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite", "stringr")
 check <- as.logical(dependencies %in% rownames(installed.packages()))
 ok <- as.logical(rep(TRUE, each = length(dependencies)))
 w <- 0
