@@ -42,6 +42,13 @@ FILTER=$(cat $inifile | grep "FILTER" | awk -F"\t" '{ print $2 }')
 echo "Bokulich filter: "$FILTER
 TAXONOMY=$(cat $inifile | grep "TAXONOMY" | awk -F"\t" '{ print $2 }')
 echo "Taxonomy mode: "$TAXONOMY
+if [ $TAXONOMY == "BH" ]
+then
+SORTBH=$(cat $inifile | grep "SORTBH" | awk -F"\t" '{ print $2 }')
+echo "Sort BH by Identify(%): "$SORTBH
+else
+SORTBH=$(echo "no")
+fi
 UNIFY=$(cat $inifile | grep "UNIFY" | awk -F"\t" '{ print $2 }')
 echo "Unify duplicat: "$UNIFY
 RAREFY=$(cat $inifile | grep "RAREFY" | awk -F"\t" '{ print $2 }')
@@ -54,7 +61,7 @@ echo "ID: "$IDENTIFIER
 ## set auto output
 if [ $OUTPUT == "auto" ]
 then
-OUTPUT=$(echo "Composition-"$REGION"-"$IDENTIFIER"-Filter"$FILTER"-Unify"$UNIFY"-Rarefy"$RAREFY"-"$TAXONOMY"-"$DIVISION)
+OUTPUT=$(echo "Composition-"$REGION"-"$IDENTIFIER"-Filter"$FILTER"-Unify"$UNIFY"-Rarefy"$RAREFY"-SortBH"$SORTBH"-"$TAXONOMY"-"$DIVISION)
 fi
 echo "Output file: "$OUTPUT
 
@@ -65,9 +72,9 @@ nohup Rscript 8_Analyse_Duplicat_AFC.R $INPUT $OUTPUT $REGION $FILTER $RAREFY >>
 ## Launch Analyse_composition
 if [ $MODE == "Superphylum" ]
 then
-nohup Rscript 9_Analyse_Composition.R $INPUT $OUTPUT $REGION $FILTER $TAXONOMY $UNIFY $RAREFY $MODE >> Ranalyse.log
+nohup Rscript 9_Analyse_Composition.R $INPUT $OUTPUT $REGION $FILTER $TAXONOMY $UNIFY $RAREFY $SORTBH $MODE >> Ranalyse.log
 else
-nohup Rscript 9_Analyse_Composition.R $INPUT $OUTPUT $REGION $FILTER $TAXONOMY $UNIFY $RAREFY $MODE $DIVISION >> Ranalyse.log
+nohup Rscript 9_Analyse_Composition.R $INPUT $OUTPUT $REGION $FILTER $TAXONOMY $UNIFY $RAREFY $SORTBH $MODE $DIVISION >> Ranalyse.log
 fi
 ## Launch Calcul_Rarecurve
 if [ $RARECURVE == "yes" ]
