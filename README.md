@@ -4,7 +4,7 @@
 
 ## DATA
 
-The compressed paired end reads (R1.fastq.gz and R2.fastq.gz) are placed in a directory identified by the name of the corresponding amplicon: "AC" for example.
+The paired end reads (R1 and R2) are placed in a directory identified by the name of the corresponding amplicon: "AC" for example.
 These directories ("AC", "FO", etc.) are placed in "reads" directory.
 
 	*******************************
@@ -59,21 +59,20 @@ These directories ("AC", "FO", etc.) are placed in "reads" directory.
 	5. x coordinate on the tile : 17317
 	6. y coordinate on the tile : 1262
 
-## PANAM2 ANALYSIS
+## Pre-process
 
 A table containing the name ("AC", "FO", etc.), the condition (DNOG, DJAP, etc.), the date (04, 06, 09 or 11), the region (V4 or V9) and replicate ID (1 or 2) corresponding to each amplicon must be produced.
 
-* Here, Genoscope provides the following table: "data-inf.txt".
+* Genoscope provides the following table: "data-inf.txt".
+* The "reads" directory and the "data-inf.txt" table are placed in the "rawdata" directory located in "Microstore-metabarcoding".
 
-The "reads" directory and the "data-inf.txt" table are placed in the "rawdata" directory located in "Microstore-metabarcoding".
+### 1. Pre-process and PANAM2 installation
 
-### 1. Pre-processing and PANAM2 installation
+Define current directory: `cd Microstore-metabarcoding/script/`
 
-Define current directory: `cd Microstore-metabarcoding/`
+Run script responsible for formatting reads and installing PANAM2: `bash 1_Pre-process.sh`
 
-Run script responsible for formatting reads and installing PANAM2: `bash PANAM_preprocess.sh`
-
-PANAM2 is installed in dataPANAM directory : `cd /dataPANAM/PANAM2/`
+PANAM2 is installed in dataPANAM directory : `cd ../dataPANAM/PANAM2`
 
     WARNING : one line in panam2.pl must be modified ! :
     replace line 169 : $panam_ini=$path_results."/panam.ini";
@@ -81,7 +80,7 @@ PANAM2 is installed in dataPANAM directory : `cd /dataPANAM/PANAM2/`
 
 ### 2. PANAM2 initialization
 
-Different initialization files (".ini") are created (from the "test2-panam2.ini" file found in "PANAM2" and corresponding to the data sets used):
+Different initialization files (".ini") are created (from the "test2-panam2.ini" file found in PANAM2 and corresponding to the data sets used):
     
     * V4-panam2-095.ini (√)
         Parameters :
@@ -115,7 +114,7 @@ Different initialization files (".ini") are created (from the "test2-panam2.ini"
 
 These initialization files are placed in the "PANAM2" directory
 
-### 3. PANAM2 processing
+### 3. PANAM2 ANALYSIS
 
 Run PANAM2 :
 
@@ -123,55 +122,52 @@ Run PANAM2 :
 
 * V9 with clustering threshold = 0.97: `nohup perl panam2.pl -ini V9-panam2-097.ini > V9-097.out`
 
-## R ANALYSIS
+### 4. R ANALYSIS
 
-### 1. R installation (+ dependencies)
-
-Return in initial directory : `cd ../../`
+Return in script directory : `cd ../../script`
 
 * **Requires R version 3.6.3**
 
-Miniconda is downloaded: `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
+Miniconda is downloaded:  `wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh`
 
 and installed: `bash Miniconda3-latest-Linux-x86_64.sh`
-        
-To finilize the miniconda installation, close the currently terminal and open a new one.
-        
-Define current directory: `cd Microstore-metabarcoding/`
-        
-Install R and dependencies: `bash R_setup.sh`
 
-### 2. R initialization
+In a new terminal, a conda environment is created to install R 3.6.3: `conda create -y -n REnv -c conda-forge r-base=3.6.3 ; conda activate REnv`
 
-Initialization file (".ini") is created (from the "file.ini" file found in "Microstore-metabarcoding"):
+A script is used to install the dependencies necessary for the analyzes: `Rscript 7_Install_dependencies.R`
 
-For example:
-        
-        ## Input OTU table [1]
-            INPUT    dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt
-        ## Output file (enter "auto" for automatic result file) [2]
-            OUTPUT    auto
-        ## Region [3]
-            REGION    V4
-        ## Taxonomic level (Superphylum, Phylum or Class) [8]
-            MODE    Phylum
-        ## Division for Phylum or Class level [9]
-            DIVISION    Fungi
-        ## Filter (if yes enter filter mode : "Bokulich", 'Doubleton' or "OnlyOne" ; if no enter "no") [4]
-            FILTER    OnlyOne
-        ## Taxonomy mode (NN, LCA or BH) [5]
-            TAXONOMY    NN
-        ## Unify duplicat (yes or no) [6]
-            UNIFY    no
-        ## Rarefy global data (yes or no) [7]
-            RAREFY    yes
-        ## Rarecurve Calcul (yes or no) ? It make a while [10]
-            RARECURVE    no
-        ## Note ? (optional)
-            IDENTIFIER    095-Vsearch215
+#### A. Duplicate analysis
 
-### 3. R processing
+A first analysis is carried out in order to test the difference between amplicons of the same duplicate: `Rscript 8_Analyse_Duplicat_AFC.R input output`
 
-Run R workflow: `bash R_process.sh file.ini`
+for exemple: `Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
 
-Results are generated in "result" file.
+Enter Info (region / 0.0005filter / rarefy).
+
+**PS : to execute script silently** : `nohup Rscript 8_Analyse_Duplicat_AFC.R input output region(V4 or V9) 0.0005 filter(yes or no) rarefy(yes or no)`
+
+for example : `nohup Rscript 8_Analyse_Duplicat_AFC.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes yes > V4-095_Analyse_Duplicat.out`
+
+#### B. Composition Analysis
+
+The composition and abundance analysis is performed with a second script: `Rscript 9_Analyse_Composition.R input output`
+
+for example :  `Rscript 9_Analyse_Composition.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
+
+Enter Info (region / mode / group[optional] / 0.0005filter / taxonomy / unify /rarefy).
+
+**PS : to execute script silently** : `nohup Rscript 9_Analyse_Composition.R input output region(V4 or V9) 0.0005filter(yes or no) taxonomy(NN, LCA, or Best_HIT) unify(yes or no) rarefy(yes or no) mode(Superphylum or Phylum) phylum(Fungi, Alveolata, etc)[optional]`
+
+for example : `nohup Rscript 9_Analyse_Composition.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes LCA yes yes Phylum Alveolata > V4-095_Analyse_Composition.out`
+
+#### C. Rarefaction curves and diversity indices
+
+Rarefaction curves and diversity indices can be calculated using a third script : `Rscript 10_Calcul_Rarecurve.R input output`
+
+for example :  `Rscript 10_Calcul_Rarecurve.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch`
+
+Enter Info (region / 0.0005filter).
+
+**PS : to execute script silently** : `nohup Rscript 10_Calcul_Rarecurve.R input output region(V4 or V9) 0.0005filter(yes or no)`
+
+for example : `nohup Rscript 10_Calcul_Rarecurve.R ../dataPANAM/PANAM2/V4-result-095/OTU_distribution_tax.txt Analyse-Composition-Rarefy-V4-095-Vsearch V4 yes > V4-095_Composition_Rarefy.out`
