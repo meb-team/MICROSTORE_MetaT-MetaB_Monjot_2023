@@ -1,4 +1,4 @@
-# **MÉTABARCODING ANALYSIS**
+# **METABARCODING ANALYSIS**
 
 **This is a workflow to process the metabarcoding sequencing data from the Microstore project (2018).**
 
