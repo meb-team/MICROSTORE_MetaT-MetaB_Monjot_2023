@@ -165,6 +165,7 @@ do
     mv $file PANAM2/$file ; gzip PANAM2/$file/*.fastq
 done
 
+# End
 echo Pre-process completed !
     
     
