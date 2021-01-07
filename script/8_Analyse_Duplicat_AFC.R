@@ -11,13 +11,19 @@
 #
 # Script Duplicat
 # Set directory, input, output and import packages -----------------------------------------------------------
+# Detect R or Rstudio
+se <- Sys.getenv()
+if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) > 0 ) { inputmode <- TRUE }
+if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) == 0 ) { inputmode <- FALSE }
 #
-#output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
-#region <- "V4"
-#sortop <- "Doubleton"
-#Taxonomy <- "LCA"
-
+# Input argument if using Rstudio
+if (inputmode == TRUE) {
+output <- "test"
+input <- "../dataPANAM/PANAM2/V4-result-unified-095-215/OTU_distribution_tax.txt"
+region <- "V4"
+sortop <- "Doubleton"
+Taxonomy <- "LCA"
+}
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -30,10 +36,10 @@ cat( "\n" )}
 if (length(args)>2) {
 region <- args[3]
 }
-
+if ( inputmode == FALSE ) {
 output <- args[2]
 input <- args[1]
-
+}
 # Import packages and create result directory ---------------------------------------------------------
 pkg <- c("parallel","ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
 lapply(pkg, require, character.only = TRUE)

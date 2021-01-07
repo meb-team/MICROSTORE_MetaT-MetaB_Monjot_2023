@@ -11,17 +11,24 @@
 #
 # Script Composition
 # Set directory, input and output -----------------------------------------------------------
+# Detect R or Rstudio
+se <- Sys.getenv()
+if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) > 0 ) { inputmode <- TRUE }
+if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) == 0 ) { inputmode <- FALSE }
 #
-#output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-2151/OTU_distribution_tax.txt"
-#region <- "V4"
-#sortop <- "OnlyOne"
-#Taxonomy <- "BH"
-#Mode <- "Superphylum"
-#Group <- "Eukaryota"
-#RarefyYoN <- "yes"
-#UnifyYoN <- "no"
-#SortBH <- "no"
+# Input argument if using Rstudio
+if (inputmode == TRUE) {
+output <- "test"
+input <- "../dataPANAM/PANAM2/V4-result-095-unified/OTU_distribution_tax.txt"
+region <- "V4"
+sortop <- "OnlyOne"
+Taxonomy <- "BH"
+Mode <- "Superphylum"
+Group <- "Eukaryota"
+RarefyYoN <- "yes"
+UnifyYoN <- "no"
+SortBH <- "yes"
+}
 #
 args = commandArgs(trailingOnly=TRUE)
 
@@ -34,10 +41,10 @@ if (length(args)==2) {
 if (length(args)>2) {
   region <- args[3]
 }
-
+if ( inputmode == FALSE ) {
 output <- args[2]
 input <- args[1]
-
+}
 # Import package and palette -----------------------------------------------------------
 pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram","stringr")
 lapply(pkg, require, character.only = TRUE)
@@ -63,6 +70,7 @@ system("mkdir AFC-Distribution")
 system("mkdir Table")
 system("mkdir Biplot")
 system("mkdir Venn")
+system("mkdir OTU-Table")
 
 
 # Enter mode and Group to study -------------------------------------------
@@ -433,7 +441,7 @@ dev.off()
 ## Create Tax stat table
 tax_table <- tableVinput %>% select(all_of(Taxonomy))
 tax_table$OTU_Id <- row.names(tax_table)
-tax_table <- separate(tax_table, all_of(Taxonomy), c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
+tax_table <- separate(tax_table, all_of(Taxonomy), c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species","Taxo9","Taxo10","Taxo11"), sep =";")
 tax_table[tax_table == ""] <- NA
 tax_table[tax_table == " "] <- NA
 ## Treshold for BH table 
@@ -455,13 +463,13 @@ if (Taxonomy == "Best_hit_identity") {
     if (tax_table[i,"Identity"] < 70) { tax_table[i, "Superphylum"] <- NA}}
 }}
 ## Continue Treatment tax_table
-for (i in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus")) {
+for (i in c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species","Taxo9","Taxo10")) {
   j <- grep(i, colnames(tax_table)) + 1
   for (f in rownames(tax_table)) { 
     if (is.na(tax_table[f,i]) == TRUE) { tax_table[f,j] <- NA }}}
 
 tax_tablemix <- tax_table
-tax_tablemix$Taxonomy <- paste(tax_table[,"Domain"],tax_table[,"Superphylum"],tax_table[,"Phylum"],tax_table[,"Class"],tax_table[,"Order"],tax_table[,"Family"],tax_table[,"Genus"],tax_table[,"Species"], sep = ";")
+tax_tablemix$Taxonomy <- paste(tax_table[,"Domain"],tax_table[,"Superphylum"],tax_table[,"Phylum"],tax_table[,"Class"],tax_table[,"Order"],tax_table[,"Family"],tax_table[,"Genus"],tax_table[,"Species"],tax_table[,"Taxo9"],tax_table[,"Taxo10"],tax_table[,"Taxo11"], sep = ";")
 tax_tablemix <- tax_tablemix %>% select(OTU_Id, Taxonomy)
 
 ## Add taxonomy to seq and otu matrix
@@ -626,6 +634,19 @@ ggplot(OTU_stat, aes(x = `OTU Abuncance`)) +facet_grid(.~type) +
         strip.text.x = element_text(color = "black", face = "bold", size = 12),
         axis.text.x = element_text(angle = 45, hjust = 1))
 dev.off()
+# Save OTU Tables ------------------------------------------------------------
+#seq_mat_pool_rare$Total <- FALSE
+#for (i in rownames(seq_mat_pool_rare)) {
+#  if (rowSums(seq_mat_pool_rare %>% filter(rownames(seq_mat_pool_rare) == i) %>% select(all_of(amplicon))) == 0) { seq_mat_pool_rare[i,"Total"] <- TRUE }}
+
+write.table(seq_mat, file = "OTU-Table/Seq-mat.csv", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(seq_mat_pool, file = "OTU-Table/Seq-mat-pool.csv", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(seq_mat_pool_rare, file = "OTU-Table/Seq-mat-pool-rare.csv", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(otu_mat, file = "OTU-Table/OTU-mat.csv", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(otu_mat_pool, file = "OTU-Table/OTU-mat-pool.csv", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+write.table(otu_mat_pool_rare, file = "OTU-Table/OTU-mat-pool-rare.csv", sep = "\t", col.names = TRUE, row.names = TRUE, quote = FALSE)
+
+
 # Create sort Condition pattern -------------------------------------------
 #Cycle
 CycleJour <- samples_df %>% filter(Cycle == "Jour") %>% filter(Replicat == 1)
@@ -4209,4 +4230,6 @@ totalDateTable <- merge(totalDateTable,tax_tablemix, by = "OTU_Id")
 write.table(totalDateTable, file = "Table/Total_Dates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(totalDateOTU, file = "Table/Total_Dates_OTU.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 write.table(totalDateSequence, file = "Table/Total_Dates_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+
 

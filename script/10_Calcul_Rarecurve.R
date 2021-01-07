@@ -11,12 +11,19 @@
 #
 # Script Rarecurve
 # Set directory, input, output and import packages -----------------------------------------------------------
+# Detect R or Rstudio
+se <- Sys.getenv()
+if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) > 0 ) { inputmode <- TRUE }
+if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) == 0 ) { inputmode <- FALSE }
 #
-#output <- "test"
-#input <- "../dataPANAM/PANAM2/V4-result-unified-095-2151/OTU_distribution_tax.txt"
-#region <- "V4"
-#sortop <- "OnlyOne"
-#UnifyYoN <- "no"
+# Input argument if using Rstudio
+if (inputmode == TRUE) {
+output <- "test"
+input <- "../dataPANAM/PANAM2/V4-result-unified-095-2151/OTU_distribution_tax.txt"
+region <- "V4"
+sortop <- "OnlyOne"
+UnifyYoN <- "no"
+}
 rarecurvecolor <- "no"
 #
 args = commandArgs(trailingOnly=TRUE)
@@ -31,9 +38,10 @@ if (length(args)>2) {
 region <- args[3]
 }
 
+if ( inputmode == FALSE ) {
 output <- args[2]
 input <- args[1]
-
+}
 # Import packages ---------------------------------------------------------
 #if (!require("pacman")) {install.packages("pacman", repos="http://cran.rstudio.com/")}
 #pacman::p_load("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","gplots","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite")
