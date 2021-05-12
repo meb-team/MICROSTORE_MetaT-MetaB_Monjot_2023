@@ -13,6 +13,11 @@
 # Set directory and import package -----------------------------------------------------------
 system("conda install -y -c bioconda r-factominer ; conda install -y -c conda-forge r-factoextra ; conda install -y -c r r-reshape2 ; conda install -y -c conda-forge r-ggpubr ; conda install -y -c conda-forge r-hrbrthemes ; conda install -y -c conda-forge r-svglite")
 system("conda install -y -c conda-forge imagemagick")
+system("conda install -y -c anaconda wget")
+system("wget https://github.com/marbl/Krona/releases/download/v2.8/KronaTools-2.8.tar")
+system("tar -xvf KronaTools-2.8.tar")
+system("perl KronaTools-2.8/install.pl --prefix ./KronaTools-2.8")
+system("rm KronaTools-2.8.tar")
 #system("conda install -y -c bioconda bioconductor-phyloseq")
 
 setwd("..")

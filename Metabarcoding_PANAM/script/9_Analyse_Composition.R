@@ -19,7 +19,7 @@ if (length(se[grepl("rstudio",se,ignore.case=TRUE)]) == 0 ) { inputmode <- FALSE
 # Input argument if using Rstudio
 if (inputmode == TRUE) {
 output <- "test"
-input <- "../dataPANAM/PANAM2/V4-result-095-unified/OTU_distribution_tax.txt"
+input <- "../dataPANAM/PANAM2/DATA/ASV_Table_with_PANAM2Affilitaion.csv"
 region <- "V4"
 sortop <- "OnlyOne"
 Taxonomy <- "BH"
@@ -71,6 +71,7 @@ system("mkdir Table")
 system("mkdir Biplot")
 system("mkdir Venn")
 system("mkdir OTU-Table")
+system("mkdir Krona")
 
 
 # Enter mode and Group to study -------------------------------------------
@@ -958,12 +959,46 @@ Dim2otu <- paste("Dim 2 [",round(Xotu %>% filter(dim == 2) %>% select(eig),1),"%
 data_seq_tax <- data_seq
 colnames(tax_tablemix) <- c("OTU_Id",Taxonomy)
 data_seq_tax <- merge(data_seq_tax,tax_tablemix, by = "OTU_Id")
-data_seq_tax <- separate(data_seq_tax, all_of(Taxonomy),c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species"), sep =";")
+data_seq_tax <- separate(data_seq_tax, all_of(Taxonomy),c("Domain","Superphylum","Phylum","Class","Order","Family","Genus","Species","Taxo9","Taxo10","Taxo11"), sep =";")
 data_seq_tax[data_seq_tax == ""] <- NA
 data_seq_tax[data_seq_tax == " "] <- NA
 data_seq_tax[data_seq_tax == "NA"] <- NA
 data_seq_tax[is.na(data_seq_tax) == TRUE] <- "Not Affiliated"
 
+# Export data_seq_tax for Krona -------------------------------------------
+## Jour
+write.table(data_seq_tax %>% select(TotalJour, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Jour.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Nuit
+write.table(data_seq_tax %>% select(TotalNuit, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Nuit.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Oxique
+write.table(data_seq_tax %>% select(TotalOxique, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Oxique.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Anoxique
+write.table(data_seq_tax %>% select(TotalAnoxique, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Anoxique.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Grande
+write.table(data_seq_tax %>% select(TotalGrande, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Grande.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Petite
+write.table(data_seq_tax %>% select(TotalPetite, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Petite.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Avril
+write.table(data_seq_tax %>% select(Total04, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Avril.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Juin
+write.table(data_seq_tax %>% select(Total06, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Juin.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Septembre
+write.table(data_seq_tax %>% select(Total09, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Septembre.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Novembre
+write.table(data_seq_tax %>% select(Total11, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Novembre.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+## Total
+data_seq_tax_Sum <- data_seq_tax %>% select(TotalJour, TotalNuit, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11)
+data_seq_tax_Sum$Total <- data_seq_tax_Sum$TotalJour + data_seq_tax_Sum$TotalNuit
+data_seq_tax_Sum <- data_seq_tax_Sum %>% select(Total, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11)
+write.table(data_seq_tax_Sum %>% select(Total, Domain, Superphylum, Phylum, Class, Order, Family, Genus, Species,Taxo9,Taxo10,Taxo11), file = "Krona/data_seq_Total.csv", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+
+## Launch Krona
+system("for t in $(ls Krona/)
+do
+perl ../../script/KronaTools-2.8/scripts/ImportText.pl Krona/$t -o Krona/$t.html
+done")
+
+# Sort interest division
 if (Mode == "Class") {
   data_seq_tax <- data_seq_tax %>% filter(Phylum == all_of(Group))
   data_seq_tax$Division <- data_seq_tax$Class }
