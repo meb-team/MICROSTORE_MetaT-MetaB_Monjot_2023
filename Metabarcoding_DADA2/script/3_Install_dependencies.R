@@ -22,6 +22,7 @@ if (inputmode == TRUE) {
 # Set directory and import package -----------------------------------------------------------
 system("conda install -y python=3.9")
 system("conda install -y -c bioconda cutadapt")
+system("conda install -y -c conda-forge r-gert")
 system("conda install -y -c bioconda r-factominer ; conda install -y -c conda-forge r-factoextra ; conda install -y -c r r-reshape2 ; conda install -y -c conda-forge r-ggpubr ; conda install -y -c conda-forge r-hrbrthemes ; conda install -y -c conda-forge r-svglite")
 system("conda install -y -c conda-forge imagemagick")
 system("conda install -y -c anaconda wget")
