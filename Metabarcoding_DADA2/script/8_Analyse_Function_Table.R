@@ -484,16 +484,16 @@
 #
 # Code-Table_Last.Group ---------------------------------------------------
 ## Code Table
-  if (nbofGroupi == "8 groups"){
-    data[,"nbGroup"][data[,"nbGroup"]==1]<-"Group 1 : Pot. PARA"
-    data[,"nbGroup"][data[,"nbGroup"]==2]<-"Group 2 & 6 : HET"
-    data[,"nbGroup"][data[,"nbGroup"]==3]<-"Group 3 : PARA"
-    data[,"nbGroup"][data[,"nbGroup"]==4]<-"Group 4 : SAP"
-    data[,"nbGroup"][data[,"nbGroup"]==5]<-"Group 5 : HCOV and SWAT"
-    data[,"nbGroup"][data[,"nbGroup"]==6]<-"Group 2 & 6 : HET"
-    data[,"nbGroup"][data[,"nbGroup"]==7]<-"Group 7 : MIXO"
-    data[,"nbGroup"][data[,"nbGroup"]==8]<-"Group 8 : FLAT"
-  }
+  #if (nbofGroupi == "8 groups"){
+  #  data[,"nbGroup"][data[,"nbGroup"]==1]<-"Group 1 : Pot. PARA"
+  #  data[,"nbGroup"][data[,"nbGroup"]==2]<-"Group 2 & 6 : HET"
+  #  data[,"nbGroup"][data[,"nbGroup"]==3]<-"Group 3 : PARA"
+  #  data[,"nbGroup"][data[,"nbGroup"]==4]<-"Group 4 : SAP"
+  #  data[,"nbGroup"][data[,"nbGroup"]==5]<-"Group 5 : HCOV and SWAT"
+  #  data[,"nbGroup"][data[,"nbGroup"]==6]<-"Group 2 & 6 : HET"
+  #  data[,"nbGroup"][data[,"nbGroup"]==7]<-"Group 7 : MIXO"
+  #  data[,"nbGroup"][data[,"nbGroup"]==8]<-"Group 8 : FLAT"
+  #}
 ## Write table
   write.table(data,"Functional-Analyse/Group_FUNCTION/data_Last.Group.csv",row.names = FALSE,sep=";")
 #
@@ -1270,17 +1270,17 @@
     seq_table_class_grp <- seq_table_class_grp %>% group_by(Domain,Supergroup,Division,Class,Order,RangInterest) %>% summarise_all(sum) %>% arrange(RangInterest)
     write.table(seq_table_class_grp, file="Functional-Analyse/Composition_Function/Table-seq-grp.csv",row.names = F, quote = F,sep="\t")
   ## Table >2% by groups
-    SUP2_seq_grp <- data_seq_tax %>% select(ASV_Id,TotalMixolimnion,TotalMonimolimnion,TotalLarge,TotalSmall,Domain,Supergroup,Division,Class,Order,Family,Genus,Species,Last,RangInterest)
-    SUP2_seq_grp$Abundance <- SUP2_seq_grp$TotalMixolimnion+SUP2_seq_grp$TotalMonimolimnion
-    SUP2_seq_grp13 <- SUP2_seq_grp %>% filter(RangInterest=="Group 1 & 3 : HET") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grp2 <- SUP2_seq_grp %>% filter(RangInterest=="Group 2 : SAP") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grp6 <- SUP2_seq_grp %>% filter(RangInterest=="Group 6 : PARA") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grp4 <- SUP2_seq_grp %>% filter(RangInterest=="Group 4 : FLAT") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grp5 <- SUP2_seq_grp %>% filter(RangInterest=="Group 5 : MIXO") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grp7 <- SUP2_seq_grp %>% filter(RangInterest=="Group 7 : Pot. PARA") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grp8 <- SUP2_seq_grp %>% filter(RangInterest=="Group 8 : HCOV and SWAT") %>% filter(Abundance > 0.01*sum(Abundance))
-    SUP2_seq_grpT <- rbind(SUP2_seq_grp13,SUP2_seq_grp2,SUP2_seq_grp4,SUP2_seq_grp5,SUP2_seq_grp6,SUP2_seq_grp7,SUP2_seq_grp8)
-    write.table(SUP2_seq_grpT, file="Functional-Analyse/Composition_Function/SUP2_seq_grpT.csv",row.names = F, quote = F,sep="\t")
+    #SUP2_seq_grp <- data_seq_tax %>% select(ASV_Id,TotalMixolimnion,TotalMonimolimnion,TotalLarge,TotalSmall,Domain,Supergroup,Division,Class,Order,Family,Genus,Species,Last,RangInterest)
+    #SUP2_seq_grp$Abundance <- SUP2_seq_grp$TotalMixolimnion+SUP2_seq_grp$TotalMonimolimnion
+    #SUP2_seq_grp13 <- SUP2_seq_grp %>% filter(RangInterest=="Group 1 & 3 : HET") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grp2 <- SUP2_seq_grp %>% filter(RangInterest=="Group 2 : SAP") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grp6 <- SUP2_seq_grp %>% filter(RangInterest=="Group 6 : PARA") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grp4 <- SUP2_seq_grp %>% filter(RangInterest=="Group 4 : FLAT") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grp5 <- SUP2_seq_grp %>% filter(RangInterest=="Group 5 : MIXO") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grp7 <- SUP2_seq_grp %>% filter(RangInterest=="Group 7 : Pot. PARA") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grp8 <- SUP2_seq_grp %>% filter(RangInterest=="Group 8 : HCOV and SWAT") %>% filter(Abundance > 0.01*sum(Abundance))
+    #SUP2_seq_grpT <- rbind(SUP2_seq_grp13,SUP2_seq_grp2,SUP2_seq_grp4,SUP2_seq_grp5,SUP2_seq_grp6,SUP2_seq_grp7,SUP2_seq_grp8)
+    #write.table(SUP2_seq_grpT, file="Functional-Analyse/Composition_Function/SUP2_seq_grpT.csv",row.names = F, quote = F,sep="\t")
 #
   # ASV ----------------------------------------------------------------
   ## Total column
