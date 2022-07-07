@@ -239,7 +239,7 @@
   dissimilarity.mtrx.csv.content = as.matrix(gower.dissimilarity.mtrx,na.rm=TRUE)
   dissimilarity.mtrx.csv.content[is.na(dissimilarity.mtrx.csv.content)==TRUE]<-0
 #
-  # PCoA --------------------------------------------------------------------
+  # PCA --------------------------------------------------------------------
     res.pca<-PCA(dissimilarity.mtrx.csv.content,ncp=7,graph = FALSE)
     p <- get_pca_ind(res.pca)
     coord <- p$coord
@@ -342,7 +342,7 @@
       labs(x=Dim7seq,y=Dim1seq,color = factor, alpha = factor, linetype = factor) + theme(legend.position = "none")
     d<-d + theme(legend.position = "none")
   
-    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCoA_",factor,".svg"),width = 12.00,height = 4.00)
+    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCA_",factor,".svg"),width = 12.00,height = 4.00)
     All_plot <- plot_grid(plotlist=list(a,b,c,d,legend),ncol = 5, nrow = 1)
     print(All_plot)
     dev.off()
@@ -360,7 +360,7 @@
   nbofGroupi<- as.character(nbofGroup %>% filter(ssi==max(nbofGroup$ssi)) %>% select(Group))
   data_Group_seq <- merge(x = data_Group %>% select(all_of(nbofGroupi)), y = data_seq_trait, by = 'row.names')
 #
-  # Plot Kmean-ssi PCoA --------------------------------------------------------------------
+  # Plot Kmean-ssi PCA --------------------------------------------------------------------
     data <- data_Group_seq
     colnames(data)<-c("Row.names","nbGroup","Dim.1","Dim.2","Dim.3","Dim.4","Dim.5","Dim.6","Dim.7","Size.min","Size.max","Cover","Shape","Spicule","Symmetry","Polarity","Colony","Motility","Plast.origin","Ingestion.mode","Symbiontic","Resting.stage","Suspected.trophism")
     data$nbGroup <- as.character(data$nbGroup)
@@ -428,7 +428,7 @@
     d <- d + theme(legend.position = "none")
     c <- c + theme(legend.position = "none")
   ## Plot  
-    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCoA_","Kmean-ssi",".svg"),width = 12.00,height = 4.00)
+    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCA_","Kmean-ssi",".svg"),width = 12.00,height = 4.00)
     All_plot <- plot_grid(plotlist=list(a,b,c,d,legend),ncol = 5, nrow = 1)
     print(All_plot)
     dev.off()
