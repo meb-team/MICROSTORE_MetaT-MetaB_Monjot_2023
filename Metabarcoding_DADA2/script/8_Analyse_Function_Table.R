@@ -231,7 +231,7 @@
   tableTraits$Count<-0
   for (i in row.names(tableTraits)) {
     if (sum(is.na(tableTraits[i,])) > 9) {tableTraits[i,"Count"]<-1}}
-  tableTraits<- tableTraits %>% filter(Count ==0) %>% select(-Count)
+  tableTraits<- tableTraits %>% filter(Count == 0) %>% select(-Count)
 
 # Gower distance ----------------------------------------------------------
   tableTraits[,all_of(facteur)] <- lapply(tableTraits[,all_of(facteur)], as.factor)
@@ -239,20 +239,21 @@
   dissimilarity.mtrx.csv.content = as.matrix(gower.dissimilarity.mtrx,na.rm=TRUE)
   dissimilarity.mtrx.csv.content[is.na(dissimilarity.mtrx.csv.content)==TRUE]<-0
 #
-  # PCA --------------------------------------------------------------------
-    res.pca<-PCA(dissimilarity.mtrx.csv.content,ncp=7,graph = FALSE)
-    p <- get_pca_ind(res.pca)
-    coord <- p$coord
+  # PCoA --------------------------------------------------------------------
+    set.seed(123)
+    res.pcoa<-cmdscale(dissimilarity.mtrx.csv.content,eig = T,k=7)
+    p <- res.pcoa$points[,1:7]
+    coord <- p ; colnames(coord) <- c("Dim.1","Dim.2","Dim.3","Dim.4","Dim.5","Dim.6","Dim.7")
     coord <- as.data.frame(coord)
-    coord$Last <- row.names(coord) ; coord <- coord %>% select(-Last)
-    eigtable <- as.data.frame(get_eigenvalue(res.pca))
-    Dim1seq <- paste("Dim 1 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.1") %>% select(variance.percent),1),"%]", sep = "")
-    Dim2seq <- paste("Dim 2 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.2") %>% select(variance.percent),1),"%]", sep = "")
-    Dim3seq <- paste("Dim 3 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.3") %>% select(variance.percent),1),"%]", sep = "")
-    Dim4seq <- paste("Dim 4 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.4") %>% select(variance.percent),1),"%]", sep = "")
-    Dim5seq <- paste("Dim 5 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.5") %>% select(variance.percent),1),"%]", sep = "")
-    Dim6seq <- paste("Dim 6 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.6") %>% select(variance.percent),1),"%]", sep = "")
-    Dim7seq <- paste("Dim 7 [",round(eigtable %>% filter(row.names(eigtable) == "Dim.7") %>% select(variance.percent),1),"%]", sep = "")
+    eigtable <- res.pcoa$eig[1:7]
+    eigtable <- as.data.frame(eigtable) ; eigtable$row.names <- c("Dim.1","Dim.2","Dim.3","Dim.4","Dim.5","Dim.6","Dim.7")
+    Dim1seq <- paste("Dim 1 [",round(eigtable %>% filter(row.names == "Dim.1") %>% select(eigtable),1),"%]", sep = "")
+    Dim2seq <- paste("Dim 2 [",round(eigtable %>% filter(row.names == "Dim.2") %>% select(eigtable),1),"%]", sep = "")
+    Dim3seq <- paste("Dim 3 [",round(eigtable %>% filter(row.names == "Dim.3") %>% select(eigtable),1),"%]", sep = "")
+    Dim4seq <- paste("Dim 4 [",round(eigtable %>% filter(row.names == "Dim.4") %>% select(eigtable),1),"%]", sep = "")
+    Dim5seq <- paste("Dim 5 [",round(eigtable %>% filter(row.names == "Dim.5") %>% select(eigtable),1),"%]", sep = "")
+    Dim6seq <- paste("Dim 6 [",round(eigtable %>% filter(row.names == "Dim.6") %>% select(eigtable),1),"%]", sep = "")
+    Dim7seq <- paste("Dim 7 [",round(eigtable %>% filter(row.names == "Dim.7") %>% select(eigtable),1),"%]", sep = "")
   ## Fusion with trait
     data_seq_trait <- merge(x = coord, y = tableTraits, by = 'row.names')
     row.names(data_seq_trait) <- data_seq_trait$Row.names ; data_seq_trait <- data_seq_trait %>% select(-Row.names)
@@ -342,7 +343,7 @@
       labs(x=Dim7seq,y=Dim1seq,color = factor, alpha = factor, linetype = factor) + theme(legend.position = "none")
     d<-d + theme(legend.position = "none")
   
-    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCA_",factor,".svg"),width = 12.00,height = 4.00)
+    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCoA_",factor,".svg"),width = 12.00,height = 4.00)
     All_plot <- plot_grid(plotlist=list(a,b,c,d,legend),ncol = 5, nrow = 1)
     print(All_plot)
     dev.off()
@@ -350,7 +351,7 @@
 #
 # Kmean Cluster ----------------------------------------------
   set.seed(123)
-  spe.KM.cascade_bis <- cascadeKM(coord %>% select(Dim.1,Dim.2), inf.gr=3, sup.gr=15, iter=500, criterion="ssi")
+  spe.KM.cascade_bis <- cascadeKM(coord %>% select(Dim.1,Dim.2), inf.gr=3, sup.gr=15, iter=1000, criterion="ssi")
   KM.cascade.data <- spe.KM.cascade_bis
   svglite(paste0("Functional-Analyse/Group_FUNCTION/","Kmeans-ssi",".svg"),width = 10.00,height = 6.00)
   plot(KM.cascade.data, sortg=TRUE)
@@ -359,8 +360,9 @@
   nbofGroup<-as.data.frame(KM.cascade.data[["results"]]["ssi",]) ; colnames(nbofGroup) <- "ssi" ; nbofGroup$Group <- row.names(nbofGroup)
   nbofGroupi<- as.character(nbofGroup %>% filter(ssi==max(nbofGroup$ssi)) %>% select(Group))
   data_Group_seq <- merge(x = data_Group %>% select(all_of(nbofGroupi)), y = data_seq_trait, by = 'row.names')
+  Ngrp <- as.numeric(length(unique(data_Group[,nbofGroupi])))
 #
-  # Plot Kmean-ssi PCA --------------------------------------------------------------------
+  # Plot Kmean-ssi PCoA --------------------------------------------------------------------
     data <- data_Group_seq
     colnames(data)<-c("Row.names","nbGroup","Dim.1","Dim.2","Dim.3","Dim.4","Dim.5","Dim.6","Dim.7","Size.min","Size.max","Cover","Shape","Spicule","Symmetry","Polarity","Colony","Motility","Plast.origin","Ingestion.mode","Symbiontic","Resting.stage","Suspected.trophism")
     data$nbGroup <- as.character(data$nbGroup)
@@ -368,45 +370,45 @@
       geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
       geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
       stat_ellipse(aes(linetype = nbGroup, alpha = nbGroup),geom = "polygon",type = "norm") +
-      scale_linetype_manual(values = rep(2,8)) +
+      scale_linetype_manual(values = rep(2,Ngrp)) +
       theme(axis.title = element_text(face="bold", size=12), 
             axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
             title = element_text(face="bold", size=14),
             legend.title = element_text(face="bold"),
             legend.position = "right",
             legend.text = element_text(size=10)) +
-      scale_alpha_manual(values = rep(0,8)) +
-      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC")) +
+      scale_alpha_manual(values = rep(0,Ngrp)) +
+      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC",'lightgrey',"lightblue","#d7c11c","darkblue")) +
       labs(x=Dim1seq,y=Dim2seq,color = "Functional groups", alpha = "Functional groups", linetype = "Functional groups") + theme(legend.position = "none")
     print(a)
     b <- ggplot(data, aes(y = `Dim.4`, x = `Dim.3`, color = nbGroup)) + geom_point(size = 2) +
       geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
       geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
       stat_ellipse(aes(linetype = nbGroup, alpha = nbGroup),geom = "polygon",type = "norm") +
-      scale_linetype_manual(values = rep(2,8)) +
+      scale_linetype_manual(values = rep(2,Ngrp)) +
       theme(axis.title = element_text(face="bold", size=12), 
             axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
             title = element_text(face="bold", size=14),
             legend.title = element_text(face="bold"),
             legend.position = "right",
             legend.text = element_text(size=10)) +
-      scale_alpha_manual(values = rep(0,8)) +
-      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC")) +
+      scale_alpha_manual(values = rep(0,Ngrp)) +
+      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC",'lightgrey',"lightblue","#d7c11c","darkblue")) +
       labs(x=Dim3seq,y=Dim4seq,color = "Functional groups", alpha = "Functional groups", linetype = "Functional groups") + theme(legend.position = "none")
     print(b)
     c <- ggplot(data, aes(y = `Dim.6`, x = `Dim.5`, color = nbGroup)) + geom_point(size = 2) +
       geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
       geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
       stat_ellipse(aes(linetype = nbGroup, alpha = nbGroup),geom = "polygon",type = "norm") +
-      scale_linetype_manual(values = rep(2,8)) +
+      scale_linetype_manual(values = rep(2,Ngrp)) +
       theme(axis.title = element_text(face="bold", size=12), 
             axis.text.x = element_text(angle=0, size=10, hjust = 1, vjust=0.5), 
             title = element_text(face="bold", size=14),
             legend.title = element_text(face="bold"),
             legend.position = "right",
             legend.text = element_text(size=10)) +
-      scale_alpha_manual(values = rep(0,8)) +
-      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC")) +
+      scale_alpha_manual(values = rep(0,Ngrp)) +
+      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC",'lightgrey',"lightblue","#d7c11c","darkblue")) +
       labs(x=Dim5seq,y=Dim6seq,color = "Functional groups", alpha = "Functional groups", linetype = "Functional groups")
     print(c)
     legend<-get_legend(c)
@@ -421,14 +423,14 @@
             legend.title = element_text(face="bold"),
             legend.position = "right",
             legend.text = element_text(size=10)) +
-      scale_alpha_manual(values = rep(0,8)) +
-      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC")) +
+      scale_alpha_manual(values = rep(0,Ngrp)) +
+      scale_color_manual(values = c("#F8766D","#0099B4CC","#00A5FF","#AD002ACC","#EEA236CC","#00468BCC","#c2d1fcCC","#64908aCC",'lightgrey',"lightblue","#d7c11c","darkblue")) +
       labs(x=Dim7seq,y=Dim1seq,color = "Functional groups", alpha = "Functional groups", linetype = "Functional groups")
     print(d)
     d <- d + theme(legend.position = "none")
     c <- c + theme(legend.position = "none")
   ## Plot  
-    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCA_","Kmean-ssi",".svg"),width = 12.00,height = 4.00)
+    svglite(paste0("Functional-Analyse/Group_FUNCTION/","PCoA_","Kmean-ssi",".svg"),width = 12.00,height = 4.00)
     All_plot <- plot_grid(plotlist=list(a,b,c,d,legend),ncol = 5, nrow = 1)
     print(All_plot)
     dev.off()
