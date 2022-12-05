@@ -21,6 +21,11 @@ if (inputmode == TRUE) {
 #
 # Set directory and import package -----------------------------------------------------------
 setwd("..")
+#
+getOption("Ncpus", 1L)
+halfcore <- parallel::detectCores()/2
+options(Ncpus = halfcore)
+#
 install.packages("gert", repos="http://cran.rstudio.com/")
 install.packages("FactoMineR", repos="http://cran.rstudio.com/")
 install.packages("factoextra", repos="http://cran.rstudio.com/")
