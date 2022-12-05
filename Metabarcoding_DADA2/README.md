@@ -140,7 +140,7 @@ For example:
         MAXMISMATCH    0
 
         ## Number of threads to process data [9]
-        NTHREADS    32
+        NTHREADS    16
 
         ## Primer Forward [10]
         FWD    GTGYCAGCMGCCGCGGTA
