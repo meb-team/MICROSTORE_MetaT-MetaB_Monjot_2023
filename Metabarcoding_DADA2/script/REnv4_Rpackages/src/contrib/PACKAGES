@@ -1,0 +1,2147 @@
+Package: abind
+Version: 1.4-5
+Depends: R (>= 1.5.0)
+Imports: methods, utils
+License: LGPL (>= 2)
+MD5sum: 136f981e1c4f618b64a87faaa7797c97
+NeedsCompilation: no
+
+Package: ape
+Version: 5.6-2
+Depends: R (>= 3.2.0)
+Imports: nlme, lattice, graphics, methods, stats, tools, utils,
+        parallel, Rcpp (>= 0.12.0)
+LinkingTo: Rcpp
+Suggests: gee, expm, igraph, phangorn
+License: GPL-2 | GPL-3
+MD5sum: 86b03d39937cbcad18e9e83b3143154c
+NeedsCompilation: yes
+
+Package: askpass
+Version: 1.1
+Imports: sys (>= 2.1)
+Suggests: testthat
+License: MIT + file LICENSE
+MD5sum: a00d6599ff99f501534c1d965a1fd3b4
+NeedsCompilation: yes
+
+Package: assertthat
+Version: 0.2.1
+Imports: tools
+Suggests: testthat, covr
+License: GPL-3
+MD5sum: 9f2eae3d20a9d6b40856a6fed013cb05
+NeedsCompilation: no
+
+Package: backports
+Version: 1.4.1
+Depends: R (>= 3.0.0)
+License: GPL-2 | GPL-3
+MD5sum: 1cc19c4a800a38f30b4d48eccd2478c4
+NeedsCompilation: yes
+
+Package: base64enc
+Version: 0.1-3
+Depends: R (>= 2.9.0)
+Enhances: png
+License: GPL-2 | GPL-3
+MD5sum: 0f476dacdd11a3e0ad56d13f5bc2f190
+NeedsCompilation: yes
+
+Package: BH
+Version: 1.78.0-0
+License: BSL-1.0
+MD5sum: d839e79b0618e6bab500b7ca7dda66bf
+NeedsCompilation: no
+
+Package: bitops
+Version: 1.0-7
+License: GPL (>= 2)
+MD5sum: b5294b9769a5a9de1e5dc869fdac2bad
+NeedsCompilation: yes
+
+Package: boot
+Version: 1.3-28.1
+Priority: recommended
+Depends: R (>= 3.0.0), graphics, stats
+Suggests: MASS, survival
+License: Unlimited
+MD5sum: 9e1c42204f278de069d4bf795fbf725b
+NeedsCompilation: no
+
+Package: brew
+Version: 1.0-8
+Suggests: testthat (>= 3.0.0)
+License: GPL-2
+MD5sum: 856a288da514a38bcd8793ae471275bc
+NeedsCompilation: no
+
+Package: brio
+Version: 1.1.3
+Suggests: covr, testthat (>= 2.1.0)
+License: MIT + file LICENSE
+MD5sum: 33560fedf56bcd9507892631a527507a
+NeedsCompilation: yes
+
+Package: broom
+Version: 1.0.1
+Depends: R (>= 3.1)
+Imports: backports, dplyr (>= 1.0.0), ellipsis, generics (>= 0.0.2),
+        glue, purrr, rlang, stringr, tibble (>= 3.0.0), tidyr (>=
+        1.0.0), ggplot2
+Suggests: AER, AUC, bbmle, betareg, biglm, binGroup, boot, btergm (>=
+        1.10.6), car, carData, caret, cluster, cmprsk, coda, covr, drc,
+        e1071, emmeans, epiR, ergm (>= 3.10.4), fixest (>= 0.9.0), gam
+        (>= 1.15), gee, geepack, glmnet, glmnetUtils, gmm, Hmisc,
+        irlba, interp, joineRML, Kendall, knitr, ks, Lahman, lavaan,
+        leaps, lfe, lm.beta, lme4, lmodel2, lmtest (>= 0.9.38),
+        lsmeans, maps, maptools, margins, MASS, mclust, mediation,
+        metafor, mfx, mgcv, mlogit, modeldata, modeltests, muhaz,
+        multcomp, network, nnet, orcutt (>= 2.2), ordinal, plm, poLCA,
+        psych, quantreg, rgeos, rmarkdown, robust, robustbase, rsample,
+        sandwich, sp, spdep (>= 1.1), spatialreg, speedglm, spelling,
+        survey, survival, systemfit, testthat (>= 2.1.0), tseries,
+        vars, zoo
+License: MIT + file LICENSE
+MD5sum: 84a9043d045ad0825fc4ee10d6b805a1
+NeedsCompilation: no
+
+Package: bslib
+Version: 0.4.1
+Depends: R (>= 2.10)
+Imports: grDevices, htmltools (>= 0.5.2), jsonlite, sass (>= 0.4.0),
+        jquerylib (>= 0.1.3), rlang, cachem, memoise (>= 2.0.1)
+Suggests: shiny (>= 1.6.0), rmarkdown (>= 2.7), thematic, knitr,
+        testthat, withr, rappdirs, curl, magrittr
+License: MIT + file LICENSE
+MD5sum: 0374b3addc2cc06d1afc13f7f34ee0b8
+NeedsCompilation: no
+
+Package: cachem
+Version: 1.0.6
+Imports: rlang, fastmap
+Suggests: testthat
+License: MIT + file LICENSE
+MD5sum: dda8ecf0d6c2b287134bb926824f3551
+NeedsCompilation: yes
+
+Package: callr
+Version: 3.7.3
+Depends: R (>= 3.4)
+Imports: processx (>= 3.6.1), R6, utils
+Suggests: asciicast, cli (>= 1.1.0), covr, mockery, ps, rprojroot,
+        spelling, testthat (>= 3.0.0), withr (>= 2.3.0)
+License: MIT + file LICENSE
+MD5sum: 12151339c31433137a1534c2f5656206
+NeedsCompilation: no
+
+Package: car
+Version: 3.1-1
+Depends: R (>= 3.5.0), carData (>= 3.0-0)
+Imports: abind, MASS, mgcv, nnet, pbkrtest (>= 0.4-4), quantreg,
+        grDevices, utils, stats, graphics, lme4 (>= 1.1-27.1), nlme,
+        scales
+Suggests: alr4, boot, coxme, effects, knitr, leaps, lmtest, Matrix,
+        MatrixModels, mvtnorm, rgl (>= 0.93.960), rio, sandwich,
+        SparseM, survival, survey
+License: GPL (>= 2)
+MD5sum: 692874effb2bf9f1b4ab3bd09e9a30f6
+NeedsCompilation: no
+
+Package: carData
+Version: 3.0-5
+Depends: R (>= 3.5.0)
+Suggests: car (>= 3.0-0)
+License: GPL (>= 2)
+MD5sum: 88dc01e1d94d67652d4c4c38d33a8981
+NeedsCompilation: no
+
+Package: caTools
+Version: 1.18.2
+Depends: R (>= 3.6.0)
+Imports: bitops
+Suggests: MASS, rpart
+License: GPL-3
+MD5sum: c95edd3f71a8fe1ad2cfd0ae274ad9ab
+NeedsCompilation: yes
+
+Package: cli
+Version: 3.4.1
+Depends: R (>= 3.4)
+Imports: utils
+Suggests: callr, covr, digest, glue (>= 1.6.0), grDevices, htmltools,
+        htmlwidgets, knitr, methods, mockery, processx, ps (>=
+        1.3.4.9000), rlang (>= 1.0.2.9003), rmarkdown, rprojroot,
+        rstudioapi, testthat, tibble, whoami, withr
+License: MIT + file LICENSE
+MD5sum: 82dbedde9ce898654259d7884694887e
+NeedsCompilation: yes
+
+Package: clipr
+Version: 0.8.0
+Imports: utils
+Suggests: covr, knitr, rmarkdown, rstudioapi (>= 0.5), testthat (>=
+        2.0.0)
+License: GPL-3
+MD5sum: 558ddf145114bbc0272e6aed05b8e5fe
+NeedsCompilation: no
+
+Package: clue
+Version: 0.3-63
+Depends: R (>= 3.2.0)
+Imports: stats, cluster, graphics, methods
+Suggests: e1071, lpSolve (>= 5.5.7), quadprog (>= 1.4-8), relations
+Enhances: RWeka, ape, cba, cclust, flexclust, flexmix, kernlab, mclust,
+        movMF, modeltools
+License: GPL-2
+MD5sum: 5ebd63a18189d110496ec451ff0229be
+NeedsCompilation: yes
+
+Package: cluster
+Version: 2.1.4
+Priority: recommended
+Depends: R (>= 3.5.0)
+Imports: graphics, grDevices, stats, utils
+Suggests: MASS, Matrix
+License: GPL (>= 2)
+MD5sum: c931e26b94475ff8c6ead1b9c4a3d628
+NeedsCompilation: yes
+
+Package: codetools
+Version: 0.2-18
+Priority: recommended
+Depends: R (>= 2.1)
+License: GPL
+MD5sum: 2603f5eea6378e889b198f8af5cb5985
+NeedsCompilation: no
+
+Package: colorspace
+Version: 2.0-3
+Depends: R (>= 3.0.0), methods
+Imports: graphics, grDevices, stats
+Suggests: datasets, utils, KernSmooth, MASS, kernlab, mvtnorm, vcd,
+        tcltk, shiny, shinyjs, ggplot2, dplyr, scales, grid, png, jpeg,
+        knitr, rmarkdown, RColorBrewer, rcartocolor, scico, viridis,
+        wesanderson
+License: BSD_3_clause + file LICENSE
+MD5sum: 9e8ca3d4343ce80c0decfc5d02b9105c
+NeedsCompilation: yes
+
+Package: colourpicker
+Version: 1.2.0
+Depends: R (>= 3.1.0)
+Imports: ggplot2, htmltools, htmlwidgets (>= 0.7), jsonlite, miniUI (>=
+        0.1.1), shiny (>= 0.11.1), shinyjs (>= 2.0.0), utils
+Suggests: knitr (>= 1.7), rmarkdown, rstudioapi (>= 0.5),
+        shinydisconnect
+License: MIT + file LICENSE
+MD5sum: fba88c9f6981c8b241e8ed0ed93b9efa
+NeedsCompilation: no
+
+Package: commonmark
+Version: 1.8.1
+Suggests: curl, testthat, xml2
+License: BSD_2_clause + file LICENSE
+MD5sum: befd4d1261c898b147a75da4b91e4232
+NeedsCompilation: yes
+
+Package: corrplot
+Version: 0.92
+Suggests: seriation, knitr, RColorBrewer, rmarkdown, magrittr,
+        prettydoc, testthat
+License: MIT + file LICENSE
+MD5sum: 487452ee9efd5cfbf710e379321f42f8
+NeedsCompilation: no
+
+Package: cowplot
+Version: 1.1.1
+Depends: R (>= 3.5.0)
+Imports: ggplot2 (> 2.2.1), grid, gtable, grDevices, methods, rlang,
+        scales
+Suggests: Cairo, covr, dplyr, forcats, gridGraphics (>= 0.4-0), knitr,
+        lattice, magick, maps, PASWR, patchwork, rmarkdown, ragg,
+        testthat (>= 1.0.0), tidyr, vdiffr (>= 0.3.0), VennDiagram
+License: GPL-2
+MD5sum: 9fed5f48aefe378a414388b80a8743db
+NeedsCompilation: no
+
+Package: cpp11
+Version: 0.4.3
+Suggests: bench, brio, callr, cli, covr, decor, desc, ggplot2, glue,
+        knitr, lobstr, mockery, progress, rmarkdown, scales, Rcpp,
+        testthat, tibble, utils, vctrs, withr
+License: MIT + file LICENSE
+MD5sum: af41a95ad71f4179f680c8e3138d5ba5
+NeedsCompilation: no
+
+Package: crayon
+Version: 1.5.2
+Imports: grDevices, methods, utils
+Suggests: mockery, rstudioapi, testthat, withr
+License: MIT + file LICENSE
+MD5sum: 7c5b681dd3da578b5d154b2b01491c02
+NeedsCompilation: no
+
+Package: credentials
+Version: 1.3.2
+Imports: openssl (>= 1.3), sys (>= 2.1), curl, jsonlite, askpass
+Suggests: testthat, knitr, rmarkdown
+License: MIT + file LICENSE
+MD5sum: cd41107f631771258b8cca3a1bfa3556
+NeedsCompilation: no
+
+Package: crosstalk
+Version: 1.2.0
+Imports: htmltools (>= 0.3.6), jsonlite, lazyeval, R6
+Suggests: shiny, ggplot2, testthat (>= 2.1.0), sass, bslib
+License: MIT + file LICENSE
+MD5sum: feedcbb378b9db469ef858fcd8c63000
+NeedsCompilation: no
+
+Package: curl
+Version: 4.3.3
+Depends: R (>= 3.0.0)
+Suggests: spelling, testthat (>= 1.0.0), knitr, jsonlite, rmarkdown,
+        magrittr, httpuv (>= 1.4.4), webutils
+License: MIT + file LICENSE
+MD5sum: a1c03176bb842c83104bb101ecf40a33
+NeedsCompilation: yes
+
+Package: data.table
+Version: 1.14.6
+Depends: R (>= 3.1.0)
+Imports: methods
+Suggests: bit64 (>= 4.0.0), bit (>= 4.0.4), curl, R.utils, xts,
+        nanotime, zoo (>= 1.8-1), yaml, knitr, rmarkdown
+License: MPL-2.0 | file LICENSE
+MD5sum: c44c9540ff0ce8e0015871a44e9a9b4c
+NeedsCompilation: yes
+
+Package: deldir
+Version: 1.0-6
+Depends: R (>= 3.5.0)
+Imports: graphics, grDevices
+Suggests: polyclip
+License: GPL (>= 2)
+MD5sum: 77e079f780fb571c180855daabf40df8
+NeedsCompilation: yes
+
+Package: dendextend
+Version: 1.16.0
+Depends: R (>= 3.0.0)
+Imports: utils, stats, datasets, magrittr (>= 1.0.1), ggplot2, viridis
+Suggests: knitr, rmarkdown, testthat, seriation, colorspace, ape,
+        microbenchmark, gplots, heatmaply, dynamicTreeCut, pvclust,
+        corrplot, DendSer, MASS, cluster, fpc, circlize (>= 0.2.5),
+        covr
+Enhances: ggdendro, dendroextras, Hmisc, data.table, rpart, WGCNA,
+        moduleColor, distory, phangorn, zoo
+License: GPL-2 | GPL-3
+MD5sum: 2a958b2afea0fc6eec7a5b1c239d619e
+NeedsCompilation: no
+
+Package: desc
+Version: 1.4.2
+Depends: R (>= 3.4)
+Imports: cli, R6, rprojroot, utils
+Suggests: callr, covr, gh, spelling, testthat, whoami, withr
+License: MIT + file LICENSE
+MD5sum: 99d01929865e08ea01627e9c3bbcff3f
+NeedsCompilation: no
+
+Package: devtools
+Version: 2.4.5
+Depends: R (>= 3.0.2), usethis (>= 2.1.6)
+Imports: cli (>= 3.3.0), desc (>= 1.4.1), ellipsis (>= 0.3.2), fs (>=
+        1.5.2), lifecycle (>= 1.0.1), memoise (>= 2.0.1), miniUI (>=
+        0.1.1.1), pkgbuild (>= 1.3.1), pkgdown (>= 2.0.6), pkgload (>=
+        1.3.0), profvis (>= 0.3.7), rcmdcheck (>= 1.4.0), remotes (>=
+        2.4.2), rlang (>= 1.0.4), roxygen2 (>= 7.2.1), rversions (>=
+        2.1.1), sessioninfo (>= 1.2.2), stats, testthat (>= 3.1.5),
+        tools, urlchecker (>= 1.0.1), utils, withr (>= 2.5.0)
+Suggests: BiocManager (>= 1.30.18), callr (>= 3.7.1), covr (>= 3.5.1),
+        curl (>= 4.3.2), digest (>= 0.6.29), DT (>= 0.23), foghorn (>=
+        1.4.2), gh (>= 1.3.0), gmailr (>= 1.0.1), httr (>= 1.4.3),
+        knitr (>= 1.39), lintr (>= 3.0.0), MASS, mockery (>= 0.4.3),
+        pingr (>= 2.0.1), rhub (>= 1.1.1), rmarkdown (>= 2.14),
+        rstudioapi (>= 0.13), spelling (>= 2.2)
+License: MIT + file LICENSE
+MD5sum: 1ed0f5c335c961d5681a31698088468b
+NeedsCompilation: no
+
+Package: diffobj
+Version: 0.3.5
+Depends: R (>= 3.1.0)
+Imports: crayon (>= 1.3.2), tools, methods, utils, stats
+Suggests: knitr, rmarkdown
+License: GPL-2 | GPL-3
+MD5sum: dffa0a111b1f8766d0b64a2cd7138d09
+NeedsCompilation: yes
+
+Package: digest
+Version: 0.6.30
+Depends: R (>= 3.3.0)
+Imports: utils
+Suggests: tinytest, simplermarkdown
+License: GPL (>= 2)
+MD5sum: 4bc51f89512014eb14708bc927f88768
+NeedsCompilation: yes
+
+Package: dirmult
+Version: 0.1.3-5
+Depends: R (>= 2.5.0)
+License: GPL (>= 2)
+MD5sum: 253ce25a8287c81ad68a716cd2fe2ab6
+NeedsCompilation: no
+
+Package: downlit
+Version: 0.4.2
+Depends: R (>= 3.4.0)
+Imports: brio, desc, digest, evaluate, fansi, memoise, rlang, vctrs,
+        withr, yaml
+Suggests: covr, htmltools, jsonlite, MASS, MassSpecWavelet, pkgload,
+        rmarkdown, testthat (>= 3.0.0), xml2
+License: MIT + file LICENSE
+MD5sum: 690f4992c239d14227d29b3948dd9aac
+NeedsCompilation: no
+
+Package: dplyr
+Version: 1.0.10
+Depends: R (>= 3.4.0)
+Imports: generics, glue (>= 1.3.2), lifecycle (>= 1.0.1), magrittr (>=
+        1.5), methods, R6, rlang (>= 1.0.2), tibble (>= 2.1.3),
+        tidyselect (>= 1.1.1), utils, vctrs (>= 0.4.1), pillar (>=
+        1.5.1)
+Suggests: bench, broom, callr, covr, DBI, dbplyr (>= 1.4.3), ggplot2,
+        knitr, Lahman, lobstr, microbenchmark, nycflights13, purrr,
+        rmarkdown, RMySQL, RPostgreSQL, RSQLite, testthat (>= 3.1.1),
+        tidyr, withr
+License: MIT + file LICENSE
+MD5sum: ebf8827b372abc1a6c188d69df534a3e
+NeedsCompilation: yes
+
+Package: DT
+Version: 0.26
+Imports: htmltools (>= 0.3.6), htmlwidgets (>= 1.3), jsonlite (>=
+        0.9.16), magrittr, crosstalk, jquerylib, promises
+Suggests: knitr (>= 1.8), rmarkdown, shiny (>= 1.6), bslib, future,
+        testit
+License: GPL-3 | file LICENSE
+MD5sum: b26227feb2aaa60cca3b9ccc651cf00d
+NeedsCompilation: no
+
+Package: ellipse
+Version: 0.4.3
+Depends: R (>= 2.0.0),graphics,stats
+Suggests: MASS
+License: GPL (>= 2)
+MD5sum: d3754086f28a4fa0a1a25b226b43a9cb
+NeedsCompilation: no
+
+Package: ellipsis
+Version: 0.3.2
+Depends: R (>= 3.2)
+Imports: rlang (>= 0.3.0)
+Suggests: covr, testthat
+License: MIT + file LICENSE
+MD5sum: c453b4514da3717af5d5b97f0e3d2415
+NeedsCompilation: yes
+
+Package: emmeans
+Version: 1.8.2
+Depends: R (>= 4.1.0)
+Imports: estimability (>= 1.4.1), graphics, methods, numDeriv, stats,
+        utils, mvtnorm, xtable (>= 1.8-2)
+Suggests: bayesplot, bayestestR, biglm, brms, car, coda (>= 0.17),
+        ggplot2, lattice, logspline, mediation, mgcv, multcomp,
+        multcompView, nlme, ordinal (>= 2014.11-12), pbkrtest (>=
+        0.4-1), lme4, lmerTest (>= 2.0.32), MASS, MuMIn, rsm, knitr,
+        rmarkdown, sandwich, scales, splines, testthat
+Enhances: CARBayes, coxme, gee, geepack, MCMCglmm, MCMCpack, mice,
+        nnet, pscl, rstanarm, sommer, survival
+License: GPL-2 | GPL-3
+MD5sum: 22e8e7f25e2e9bbc35774abc3b28ace9
+NeedsCompilation: no
+
+Package: estimability
+Version: 1.4.1
+Depends: stats
+License: GPL (>= 3)
+MD5sum: ca07f605e63b51168a096ea3b8e5f545
+NeedsCompilation: no
+
+Package: evaluate
+Version: 0.18
+Depends: R (>= 3.0.2)
+Imports: methods
+Suggests: covr, ggplot2, lattice, testthat
+License: MIT + file LICENSE
+MD5sum: 6b37c990f93f92e88340f8959ad73dcd
+NeedsCompilation: no
+
+Package: extrafont
+Version: 0.18
+Depends: R (>= 2.15)
+Imports: extrafontdb, grDevices, utils, Rttf2pt1
+Suggests: fontcm
+License: GPL-2
+MD5sum: 910aa5efae92688992dfea3615a3c276
+NeedsCompilation: no
+
+Package: extrafontdb
+Version: 1.0
+Depends: R (>= 2.14)
+License: GPL-2
+MD5sum: 69f3ce30cdd568e31369bdea7583943c
+NeedsCompilation: no
+
+Package: factoextra
+Version: 1.0.7
+Depends: R (>= 3.1.2), ggplot2 (>= 2.2.0)
+Imports: abind, cluster, dendextend, FactoMineR, ggpubr(>= 0.1.5),
+        grid, stats, reshape2, ggrepel, tidyr
+Suggests: ade4, ca, igraph, MASS, knitr, mclust
+License: GPL-2
+MD5sum: eb077fa358a4b7a279d88ff041fa6e60
+NeedsCompilation: no
+
+Package: FactoMineR
+Version: 2.6
+Depends: R (>= 4.0)
+Imports:
+        car,cluster,DT,ellipse,emmeans,flashClust,graphics,grDevices,lattice,leaps,MASS,multcompView,scatterplot3d,stats,utils,ggplot2,ggrepel
+Suggests: missMDA,knitr,Factoshiny,markdown
+License: GPL (>= 2)
+MD5sum: 80bc4916d7f81a7cdbe98294684bf1df
+NeedsCompilation: yes
+
+Package: fansi
+Version: 1.0.3
+Depends: R (>= 3.1.0)
+Imports: grDevices, utils
+Suggests: unitizer, knitr, rmarkdown
+License: GPL-2 | GPL-3
+MD5sum: 2485d507e99ef05314f873a486a7723d
+NeedsCompilation: yes
+
+Package: farver
+Version: 2.1.1
+Suggests: covr, testthat (>= 3.0.0)
+License: MIT + file LICENSE
+MD5sum: 8a6b2956ba4d30911c3f2e8593eac362
+NeedsCompilation: yes
+
+Package: fastmap
+Version: 1.1.0
+Suggests: testthat (>= 2.1.1)
+License: MIT + file LICENSE
+MD5sum: 0a13d52751d2f910ab907d3b44756108
+NeedsCompilation: yes
+
+Package: fBasics
+Version: 4021.93
+Depends: R (>= 2.15.1)
+Imports: timeDate, timeSeries, stats, grDevices, graphics, methods,
+        utils, MASS, spatial, gss, stabledist
+Suggests: interp, RUnit, tcltk
+License: GPL (>= 2)
+MD5sum: d92306f19372705de6700d076e8ac240
+NeedsCompilation: yes
+
+Package: flashClust
+Version: 1.01-2
+Depends: R (>= 2.3.0)
+License: GPL (>= 2)
+MD5sum: 23409aeeef98bf35d0b3d5dd755fdeff
+NeedsCompilation: yes
+
+Package: fontawesome
+Version: 0.4.0
+Depends: R (>= 3.3.0)
+Imports: rlang (>= 0.4.10), htmltools (>= 0.5.1.1)
+Suggests: covr, dplyr (>= 1.0.8), knitr (>= 1.31), testthat (>= 3.0.0),
+        rsvg
+License: MIT + file LICENSE
+MD5sum: 4099a6075a3c1d0fe6c9abdba3798e6e
+NeedsCompilation: no
+
+Package: foreach
+Version: 1.5.2
+Depends: R (>= 2.5.0)
+Imports: codetools, utils, iterators
+Suggests: randomForest, doMC, doParallel, testthat, knitr, rmarkdown
+License: Apache License (== 2.0)
+MD5sum: 726beb5a50a3cec75261b4405158386c
+NeedsCompilation: no
+
+Package: formatR
+Version: 1.12
+Depends: R (>= 3.2.3)
+Suggests: rstudioapi, shiny, testit, rmarkdown, knitr
+License: GPL
+MD5sum: 0721ba310b7ca43c5140f3cc0a39e78f
+NeedsCompilation: no
+
+Package: fs
+Version: 1.5.2
+Depends: R (>= 3.1)
+Imports: methods
+Suggests: testthat, covr, pillar (>= 1.0.0), tibble (>= 1.1.0), crayon,
+        rmarkdown, knitr, withr, spelling, vctrs (>= 0.3.0)
+License: MIT + file LICENSE
+MD5sum: ede4b1754cafa17e91fbafb4a80a4184
+NeedsCompilation: yes
+
+Package: futile.logger
+Version: 1.4.3
+Depends: R (>= 3.0.0)
+Imports: utils, lambda.r (>= 1.1.0), futile.options
+Suggests: testthat, jsonlite
+License: LGPL-3
+MD5sum: ba0e8d2dfb5a970b51c21907bbf8bfc2
+NeedsCompilation: no
+
+Package: futile.options
+Version: 1.0.1
+Depends: R (>= 2.8.0)
+License: LGPL-3
+MD5sum: 040daac5089839c104ffd0e0fbedb98d
+NeedsCompilation: no
+
+Package: gdtools
+Version: 0.2.4
+Imports: Rcpp (>= 0.12.12), systemfonts (>= 0.1.1)
+LinkingTo: Rcpp
+Suggests: htmltools, testthat, fontquiver (>= 0.2.0), curl
+License: GPL-3 | file LICENSE
+MD5sum: 455c459c126f7a275213b701d19f3d2e
+NeedsCompilation: yes
+
+Package: generics
+Version: 0.1.3
+Depends: R (>= 3.2)
+Imports: methods
+Suggests: covr, pkgload, testthat (>= 3.0.0), tibble, withr
+License: MIT + file LICENSE
+MD5sum: 655261e97ea23c9193b047a27eee5d0e
+NeedsCompilation: no
+
+Package: gert
+Version: 1.9.1
+Imports: askpass, credentials (>= 1.2.1), openssl (>= 2.0.3),
+        rstudioapi (>= 0.11), sys, zip (>= 2.1.0)
+Suggests: spelling, knitr, rmarkdown, testthat
+License: MIT + file LICENSE
+MD5sum: 90f40dab166eab65827256c7fed30ace
+NeedsCompilation: yes
+
+Package: ggExtra
+Version: 0.10.0
+Depends: R (>= 3.1.0)
+Imports: colourpicker (>= 1.0), ggplot2 (>= 2.2.0), grDevices, grid (>=
+        3.1.3), gtable (>= 0.2.0), miniUI (>= 0.1.1), scales (>=
+        0.2.0), shiny (>= 0.13.0), shinyjs (>= 0.5.2), utils, R6
+Suggests: knitr (>= 1.7), rmarkdown, rstudioapi (>= 0.5), testthat,
+        vdiffr, fontquiver, shinydisconnect, svglite, withr, devtools
+License: MIT + file LICENSE
+MD5sum: 7ed2ca2fa8f61cb75e6fdd5e9e747679
+NeedsCompilation: no
+
+Package: ggfittext
+Version: 0.9.1
+Depends: R (>= 3.6)
+Imports: grid (>= 3.1), stringi (>= 1.1.2), ggplot2 (>= 2.2.1), shades
+        (>= 1.3.1)
+Suggests: knitr, rmarkdown, testthat, vdiffr, spelling
+License: GPL-2
+MD5sum: 419861f7d93c0af064d7890b6f1eb3ce
+NeedsCompilation: no
+
+Package: ggplot2
+Version: 3.4.0
+Depends: R (>= 3.3)
+Imports: cli, glue, grDevices, grid, gtable (>= 0.1.1), isoband,
+        lifecycle (> 1.0.1), MASS, mgcv, rlang (>= 1.0.0), scales (>=
+        1.2.0), stats, tibble, vctrs (>= 0.5.0), withr (>= 2.5.0)
+Suggests: covr, dplyr, ggplot2movies, hexbin, Hmisc, knitr, lattice,
+        mapproj, maps, maptools, multcomp, munsell, nlme, profvis,
+        quantreg, ragg, RColorBrewer, rgeos, rmarkdown, rpart, sf (>=
+        0.7-3), svglite (>= 1.2.0.9001), testthat (>= 3.1.2), vdiffr
+        (>= 1.0.0), xml2
+Enhances: sp
+License: MIT + file LICENSE
+MD5sum: f528c4558b9077b13477d0d880a8f525
+NeedsCompilation: no
+
+Package: ggpubr
+Version: 0.5.0
+Depends: R (>= 3.1.0), ggplot2 (>= 3.4.0)
+Imports: ggrepel, grid, ggsci, stats, utils, tidyr, purrr, dplyr (>=
+        0.7.1), cowplot, ggsignif, scales, gridExtra, glue, polynom,
+        rlang (>= 0.4.6), rstatix (>= 0.7.1), tibble, magrittr
+Suggests: grDevices, knitr, RColorBrewer, gtable, testthat
+License: GPL-2
+MD5sum: 69096e9d3f002bb7d73bbea26e450509
+NeedsCompilation: no
+
+Package: ggrepel
+Version: 0.9.2
+Depends: R (>= 3.0.0), ggplot2 (>= 2.2.0)
+Imports: grid, Rcpp, rlang (>= 0.3.0), scales (>= 0.5.0)
+LinkingTo: Rcpp
+Suggests: knitr, rmarkdown, testthat, svglite, vdiffr, gridExtra,
+        devtools, prettydoc, ggbeeswarm, dplyr, magrittr, readr,
+        stringr, withr
+License: GPL-3 | file LICENSE
+MD5sum: e98ea505926a675b496f83b615fa1237
+NeedsCompilation: yes
+
+Package: ggsci
+Version: 2.9
+Depends: R (>= 3.0.2)
+Imports: grDevices, scales, ggplot2 (>= 2.0.0)
+Suggests: knitr, rmarkdown, gridExtra, reshape2
+License: GPL-3 | file LICENSE
+MD5sum: 8d96ac0575cb6264d1b748d2ae9efe8e
+NeedsCompilation: no
+
+Package: ggsignif
+Version: 0.6.4
+Imports: ggplot2 (>= 3.3.5)
+Suggests: knitr, rmarkdown, testthat, vdiffr (>= 1.0.2)
+License: GPL-3 | file LICENSE
+MD5sum: 0321f3399b29485e880c3ce3dd980b9b
+NeedsCompilation: no
+
+Package: gh
+Version: 1.3.1
+Depends: R (>= 3.4)
+Imports: cli (>= 3.0.1), gitcreds, httr (>= 1.2), ini, jsonlite
+Suggests: covr, knitr, mockery, rmarkdown, rprojroot, spelling,
+        testthat (>= 3.0.0), withr
+License: MIT + file LICENSE
+MD5sum: b060d7d19457418f797ec869eec093a2
+NeedsCompilation: no
+
+Package: gitcreds
+Version: 0.1.2
+Depends: R (>= 3.4)
+Suggests: codetools, covr, knitr, mockery, oskeyring, rmarkdown,
+        testthat (>= 3.0.0), withr
+License: MIT + file LICENSE
+MD5sum: b79f9a70433189507d3eb0bdc07fae6e
+NeedsCompilation: no
+
+Package: glue
+Version: 1.6.2
+Depends: R (>= 3.4)
+Imports: methods
+Suggests: covr, crayon, DBI, dplyr, forcats, ggplot2, knitr, magrittr,
+        microbenchmark, R.utils, rmarkdown, rprintf, RSQLite, stringr,
+        testthat (>= 3.0.0), vctrs (>= 0.3.0), waldo (>= 0.3.0), withr
+License: MIT + file LICENSE
+MD5sum: 4a92a6b8f8015a2ac8b0bfeac7f163fc
+NeedsCompilation: yes
+
+Package: gplots
+Version: 3.1.3
+Depends: R (>= 3.0)
+Imports: gtools, stats, caTools, KernSmooth, methods
+Suggests: grid, MASS, knitr, r2d2
+License: GPL-2
+MD5sum: 00da75ab2e323f138ee297b78394af36
+NeedsCompilation: no
+
+Package: gridBase
+Version: 0.4-7
+Depends: R (>= 2.3.0)
+Imports: graphics, grid
+Suggests: lattice
+License: GPL
+MD5sum: 6d5064a85f5c966a92ee468ae44c5f1f
+NeedsCompilation: no
+
+Package: gridExtra
+Version: 2.3
+Imports: gtable, grid, grDevices, graphics, utils
+Suggests: ggplot2, egg, lattice, knitr, testthat
+License: GPL (>= 2)
+MD5sum: 01e0ea88610756a0fd3b260e83c9bd43
+NeedsCompilation: no
+
+Package: gss
+Version: 2.2-3
+Depends: R (>= 3.0.0), stats
+License: GPL (>= 2)
+MD5sum: dd23a2054c08536c6d7173257ee82b2d
+NeedsCompilation: yes
+
+Package: gtable
+Version: 0.3.1
+Depends: R (>= 3.0)
+Imports: grid
+Suggests: covr, testthat, knitr, rmarkdown, ggplot2, profvis
+License: MIT + file LICENSE
+MD5sum: eb8514fe9ed922814a1d250844dabac5
+NeedsCompilation: no
+
+Package: gtools
+Version: 3.9.4
+Depends: methods, stats, utils
+Suggests: car, gplots, knitr, rstudioapi, SGP, taxize
+License: GPL-2
+MD5sum: e76b59c1eff674bc0bd2e4aa990a9395
+NeedsCompilation: yes
+
+Package: GUniFrac
+Version: 1.7
+Depends: R (>= 3.5.0)
+Imports: Rcpp (>= 0.12.13), vegan, ggplot2, matrixStats, Matrix, ape,
+        parallel, stats, utils, statmod, rmutil, dirmult, MASS,
+        ggrepel, foreach, modeest
+LinkingTo: Rcpp
+Suggests: ade4, knitr, markdown, ggpubr
+License: GPL-3
+MD5sum: 726e37bdea8e5579a623af51e4acdc5f
+NeedsCompilation: yes
+
+Package: highr
+Version: 0.9
+Depends: R (>= 3.2.3)
+Imports: xfun (>= 0.18)
+Suggests: knitr, markdown, testit
+License: GPL
+MD5sum: 74b31b4b2b8ac835d261c4faf6f600b7
+NeedsCompilation: no
+
+Package: hrbrthemes
+Version: 0.8.0
+Depends: R (>= 3.4.0)
+Imports: ggplot2 (>= 3.3.0), grDevices, grid, scales, extrafont, knitr,
+        rmarkdown, htmltools, tools, magrittr, gdtools
+Suggests: testthat, dplyr, gridExtra, hunspell, stringi, gcookbook,
+        clipr, vdiffr, svglite
+License: MIT + file LICENSE
+MD5sum: 164d952f9627188cff499edd1cce9c5c
+NeedsCompilation: no
+
+Package: htmltools
+Version: 0.5.3
+Depends: R (>= 2.14.1)
+Imports: utils, digest, grDevices, base64enc, rlang (>= 0.4.10),
+        fastmap (>= 1.1.0)
+Suggests: markdown, testthat, withr, Cairo, ragg, shiny
+Enhances: knitr
+License: GPL (>= 2)
+MD5sum: bd17e78a113d081a42e30de276f3fac4
+NeedsCompilation: yes
+
+Package: htmlwidgets
+Version: 1.5.4
+Imports: grDevices, htmltools (>= 0.3), jsonlite (>= 0.9.16), yaml
+Suggests: knitr (>= 1.8), rmarkdown, testthat
+Enhances: shiny (>= 1.1)
+License: MIT + file LICENSE
+MD5sum: 848e70649e90133fb3aa1c1f41d05e0f
+NeedsCompilation: no
+
+Package: httpuv
+Version: 1.6.6
+Depends: R (>= 2.15.1)
+Imports: Rcpp (>= 1.0.7), utils, R6, promises, later (>= 0.8.0)
+LinkingTo: Rcpp, later
+Suggests: testthat, callr, curl, websocket
+License: GPL (>= 2) | file LICENSE
+MD5sum: 86ff16fe5624168ea90e4245df1637fa
+NeedsCompilation: yes
+
+Package: httr
+Version: 1.4.4
+Depends: R (>= 3.2)
+Imports: curl (>= 3.0.0), jsonlite, mime, openssl (>= 0.8), R6
+Suggests: covr, httpuv, jpeg, knitr, png, readr, rmarkdown, testthat
+        (>= 0.8.0), xml2
+License: MIT + file LICENSE
+MD5sum: b8f5827c0b236e6d8872629f66149c68
+NeedsCompilation: no
+
+Package: hwriter
+Version: 1.3.2.1
+Depends: R (>= 2.6.0)
+License: LGPL-2.1
+MD5sum: 2d97b0dcf19b3c9d6d60840b4703453f
+NeedsCompilation: no
+
+Package: igraph
+Version: 1.3.5
+Depends: methods
+Imports: graphics, grDevices, magrittr, Matrix, pkgconfig (>= 2.0.0),
+        rlang, stats, utils
+Suggests: ape, graph, igraphdata, rgl, scales, stats4, tcltk, testthat,
+        withr, digest
+License: GPL (>= 2)
+MD5sum: 6e6fc0390704ca836af1b5b57527acc2
+NeedsCompilation: yes
+
+Package: ini
+Version: 0.3.1
+Suggests: testthat
+License: GPL-3
+MD5sum: b0e2d7388fc69327d3c4bbaab9067f3d
+NeedsCompilation: no
+
+Package: interp
+Version: 1.1-3
+Depends: R (>= 3.5.0)
+Imports: Rcpp (>= 0.12.9), deldir
+LinkingTo: Rcpp, RcppEigen
+Suggests: sp, Deriv, Ryacas, ggplot2, gridExtra, lattice, stringi,
+        stringr
+Enhances: RcppEigen
+License: GPL (>= 2)
+MD5sum: 906ce6db6f7be71d260201e32eebfbd7
+NeedsCompilation: yes
+
+Package: isoband
+Version: 0.2.6
+Imports: grid, utils
+Suggests: covr, ggplot2, knitr, magick, microbenchmark, rmarkdown, sf,
+        testthat, xml2
+License: MIT + file LICENSE
+MD5sum: e56cf4c4e6bd2c7859afa0fab7cc0972
+NeedsCompilation: yes
+
+Package: iterators
+Version: 1.0.14
+Depends: R (>= 2.5.0), utils
+Suggests: RUnit, foreach
+License: Apache License (== 2.0)
+MD5sum: e1d875f0ddec6834dd33e56c4f04a706
+NeedsCompilation: no
+
+Package: jpeg
+Version: 0.1-10
+Depends: R (>= 2.9.0)
+License: GPL-2 | GPL-3
+MD5sum: a8b2893917c1766343f0876459784435
+NeedsCompilation: yes
+
+Package: jquerylib
+Version: 0.1.4
+Imports: htmltools
+Suggests: testthat
+License: MIT + file LICENSE
+MD5sum: 3607a34ac45ff420bc325d84eab4b0cb
+NeedsCompilation: no
+
+Package: jsonlite
+Version: 1.8.3
+Depends: methods
+Suggests: httr, vctrs, testthat, knitr, rmarkdown, R.rsp, sf
+License: MIT + file LICENSE
+MD5sum: 0ac9139f6f5b5c33ed3648108ac8700b
+NeedsCompilation: yes
+
+Package: KernSmooth
+Version: 2.23-20
+Priority: recommended
+Depends: R (>= 2.5.0), stats
+Suggests: MASS, carData
+License: Unlimited
+MD5sum: 3d15faea61f2c6fe8bc5a435d501ab18
+NeedsCompilation: yes
+
+Package: knitr
+Version: 1.41
+Depends: R (>= 3.3.0)
+Imports: evaluate (>= 0.15), highr, methods, stringr (>= 0.6), yaml (>=
+        2.1.19), xfun (>= 0.34), tools
+Suggests: markdown (>= 1.3), formatR, testit, digest, rgl (>=
+        0.95.1201), codetools, rmarkdown, htmlwidgets (>= 0.7),
+        webshot, tikzDevice (>= 0.10), tinytex, reticulate (>= 1.4),
+        JuliaCall (>= 0.11.1), magick, png, jpeg, gifski, xml2 (>=
+        1.2.0), httr, DBI (>= 0.4-1), showtext, tibble, sass, bslib,
+        ragg, gridSVG, styler (>= 1.2.0), targets (>= 0.6.0)
+License: GPL
+MD5sum: a72b9a60e87e745d91ee441371c8d354
+NeedsCompilation: no
+
+Package: labeling
+Version: 0.4.2
+Imports: stats, graphics
+License: MIT + file LICENSE | Unlimited
+MD5sum: 22504b44a870cd438ed4e515f6601100
+NeedsCompilation: no
+
+Package: lambda.r
+Version: 1.2.4
+Depends: R (>= 3.0.0)
+Imports: formatR
+Suggests: testit
+License: LGPL-3
+MD5sum: 861157dc2fe66ce8ed1e755578a57e47
+NeedsCompilation: no
+
+Package: later
+Version: 1.3.0
+Imports: Rcpp (>= 0.12.9), rlang
+LinkingTo: Rcpp
+Suggests: knitr, rmarkdown, testthat (>= 2.1.0)
+License: MIT + file LICENSE
+MD5sum: 87b6dae5e7c3f822dd86a20b3a52059f
+NeedsCompilation: yes
+
+Package: lattice
+Version: 0.20-45
+Priority: recommended
+Depends: R (>= 3.0.0)
+Imports: grid, grDevices, graphics, stats, utils
+Suggests: KernSmooth, MASS, latticeExtra
+Enhances: chron
+License: GPL (>= 2)
+MD5sum: df6d9b8d8a919fcf96334c9c67a883c3
+NeedsCompilation: yes
+
+Package: latticeExtra
+Version: 0.6-30
+Depends: R (>= 3.6.0), lattice
+Imports: grid, stats, utils, grDevices, png, jpeg, RColorBrewer,
+        interp, MASS
+Suggests: maps, mapproj, deldir, quantreg, zoo, mgcv
+License: GPL (>= 2)
+MD5sum: 81d8786cc01105f5a4043036b5165ab0
+NeedsCompilation: no
+
+Package: lazyeval
+Version: 0.2.2
+Depends: R (>= 3.1.0)
+Suggests: knitr, rmarkdown (>= 0.2.65), testthat, covr
+License: GPL-3
+MD5sum: 1de725fe0cd496a2535020867458641a
+NeedsCompilation: yes
+
+Package: leaps
+Version: 3.1
+Suggests: biglm
+License: GPL (>= 2)
+MD5sum: 2535d3b89f1457e8a3918345629d802f
+NeedsCompilation: yes
+
+Package: lifecycle
+Version: 1.0.3
+Depends: R (>= 3.4)
+Imports: cli (>= 3.4.0), glue, rlang (>= 1.0.6)
+Suggests: covr, crayon, knitr, lintr, rmarkdown, testthat (>= 3.0.1),
+        tibble, tidyverse, tools, vctrs, withr
+License: MIT + file LICENSE
+MD5sum: 023bff9f9b99ca56ed01b705a41a8bed
+NeedsCompilation: no
+
+Package: lme4
+Version: 1.1-31
+Depends: R (>= 3.5.0), Matrix (>= 1.2-1), methods, stats
+Imports: graphics, grid, splines, utils, parallel, MASS, lattice, boot,
+        nlme (>= 3.1-123), minqa (>= 1.1.15), nloptr (>= 1.0.4)
+LinkingTo: Rcpp (>= 0.10.5), RcppEigen
+Suggests: knitr, rmarkdown, MEMSS, testthat (>= 0.8.1), ggplot2,
+        mlmRev, optimx (>= 2013.8.6), gamm4, pbkrtest, HSAUR3,
+        numDeriv, car, dfoptim, mgcv, statmod, rr2, semEff, tibble,
+        merDeriv
+License: GPL (>= 2)
+MD5sum: 2b4ec617fa0b75b31e63f2bcf54686cc
+NeedsCompilation: yes
+
+Package: magrittr
+Version: 2.0.3
+Depends: R (>= 3.4.0)
+Suggests: covr, knitr, rlang, rmarkdown, testthat
+License: MIT + file LICENSE
+MD5sum: 86a110ed23536ebe26c51ff90f2a1435
+NeedsCompilation: yes
+
+Package: MASS
+Version: 7.3-58.1
+Priority: recommended
+Depends: R (>= 3.3.0), grDevices, graphics, stats, utils
+Imports: methods
+Suggests: lattice, nlme, nnet, survival
+License: GPL-2 | GPL-3
+MD5sum: ac20a20a32975f4dd46ab294deef7642
+NeedsCompilation: yes
+
+Package: Matrix
+Version: 1.5-3
+Priority: recommended
+Depends: R (>= 3.5.0), methods
+Imports: graphics, grid, lattice, stats, utils
+Suggests: expm, MASS
+Enhances: MatrixModels, graph, SparseM, sfsmisc, igraph, maptools, sp,
+        spdep
+License: GPL (>= 2) | file LICENCE
+MD5sum: a589071a4c35ea46779d936d4b745912
+NeedsCompilation: yes
+
+Package: MatrixModels
+Version: 0.5-1
+Depends: R (>= 3.6.0)
+Imports: stats, methods, Matrix (>= 1.4-2)
+License: GPL (>= 2)
+MD5sum: c23f5e0bcac869616edebab2d282102b
+NeedsCompilation: no
+
+Package: matrixStats
+Version: 0.63.0
+Depends: R (>= 2.12.0)
+Suggests: base64enc, ggplot2, knitr, markdown, microbenchmark,
+        R.devices, R.rsp
+License: Artistic-2.0
+MD5sum: 6decb1781329fb47cf6db785a6fb829e
+NeedsCompilation: yes
+
+Package: memoise
+Version: 2.0.1
+Imports: rlang (>= 0.4.10), cachem
+Suggests: digest, aws.s3, covr, googleAuthR, googleCloudStorageR, httr,
+        testthat
+License: MIT + file LICENSE
+MD5sum: 89da4ce771967d851db47132b762ce6f
+NeedsCompilation: no
+
+Package: mgcv
+Version: 1.8-41
+Priority: recommended
+Depends: R (>= 3.6.0), nlme (>= 3.1-64)
+Imports: methods, stats, graphics, Matrix, splines, utils
+Suggests: parallel, survival, MASS
+License: GPL (>= 2)
+MD5sum: 5ead7b61662a96200f88f936c0f35aa8
+NeedsCompilation: yes
+
+Package: mime
+Version: 0.12
+Imports: tools
+License: GPL
+MD5sum: 7314f3b57f70474d9b4d2b831d6bb59d
+NeedsCompilation: yes
+
+Package: miniCRAN
+Version: 0.2.16
+Imports: graphics, httr, methods, stats, tools, utils, igraph,
+        assertthat (>= 0.2.0)
+Suggests: devtools, knitr, rmarkdown, testthat (>= 2.1.0), covr, withr,
+        mockery, testthis, roxygen2, mockr, spelling
+License: GPL-2
+MD5sum: 1b9b2157b7c66aa59b266dfe5ec5a949
+NeedsCompilation: no
+
+Package: miniUI
+Version: 0.1.1.1
+Imports: shiny (>= 0.13), htmltools (>= 0.3), utils
+License: GPL-3
+MD5sum: 4f174186bb12a76cc6b1249a1a13a4b0
+NeedsCompilation: no
+
+Package: minqa
+Version: 1.2.5
+Imports: Rcpp (>= 0.9.10)
+LinkingTo: Rcpp
+License: GPL-2
+MD5sum: 1fa91bd49e2dfaf76e6d1de68cc8bae8
+NeedsCompilation: yes
+
+Package: mnormt
+Version: 2.1.1
+Depends: R (>= 2.2.0)
+License: GPL-2 | GPL-3
+MD5sum: ba4df780cf81a10c7ace080973342390
+NeedsCompilation: yes
+
+Package: modeest
+Version: 2.4.0
+Depends: R (>= 3.2)
+Imports: fBasics, stable, stabledist, stats, statip (>= 0.2.3)
+Suggests: evd, knitr, mvtnorm, testthat, VGAM
+License: GPL-3
+MD5sum: 403dfa0b63b07db8e1856f401ab1a85b
+NeedsCompilation: no
+
+Package: multcompView
+Version: 0.1-8
+Imports: grid
+Suggests: multcomp, pgirmess, MASS
+License: GPL
+MD5sum: 0bc6539f7bb3c08e87ead391d1578cea
+NeedsCompilation: no
+
+Package: munsell
+Version: 0.5.0
+Imports: colorspace, methods
+Suggests: ggplot2, testthat
+License: MIT + file LICENSE
+MD5sum: b287f380a958399cfa12f665232e7f34
+NeedsCompilation: no
+
+Package: mvtnorm
+Version: 1.1-3
+Depends: R(>= 3.5.0)
+Imports: stats, methods
+License: GPL-2
+MD5sum: 0ba721bce42afccf77d76c0b55de8b1b
+NeedsCompilation: yes
+
+Package: NbClust
+Version: 3.0.1
+Depends: R (>= 3.1.0)
+License: GPL-2
+MD5sum: 797acb196fb81f0859acd43f08072546
+NeedsCompilation: no
+
+Package: nlme
+Version: 3.1-160
+Priority: recommended
+Depends: R (>= 3.5.0)
+Imports: graphics, stats, utils, lattice
+Suggests: Hmisc, MASS, SASmixed
+License: GPL (>= 2)
+MD5sum: 789c162cc69f2aaea04502969537d63d
+NeedsCompilation: yes
+
+Package: nloptr
+Version: 2.0.3
+LinkingTo: testthat
+Suggests: knitr, rmarkdown, xml2, testthat (>= 3.0.0), covr
+License: LGPL (>= 3)
+MD5sum: 2c18f48b3c02c62126bd678134f8e501
+NeedsCompilation: yes
+
+Package: nnet
+Version: 7.3-18
+Priority: recommended
+Depends: R (>= 3.0.0), stats, utils
+Suggests: MASS
+License: GPL-2 | GPL-3
+MD5sum: aad2614774b01a6dee25754be6cee386
+NeedsCompilation: yes
+
+Package: numDeriv
+Version: 2016.8-1.1
+Depends: R (>= 2.11.1)
+License: GPL-2
+MD5sum: f894081f6d73822a362f156e849c9657
+NeedsCompilation: no
+
+Package: openssl
+Version: 2.0.4
+Imports: askpass
+Suggests: curl, testthat (>= 2.1.0), digest, knitr, rmarkdown,
+        jsonlite, jose, sodium
+License: MIT + file LICENSE
+MD5sum: b968d21058f34ec5b84256ea252478dd
+NeedsCompilation: yes
+
+Package: paletteer
+Version: 1.5.0
+Depends: R (>= 2.10)
+Imports: prismatic, rematch2, rlang, rstudioapi
+Suggests: covr, ggplot2 (>= 3.3.0), ggthemes (>= 4.0.0), harrypotter
+        (>= 2.1.0), knitr, oompaBase, palr, pals, rmarkdown, scico,
+        testthat (>= 2.1.0), vdiffr, viridisLite
+License: GPL-3
+MD5sum: b4814df17b6c67809d2f3cfd9333ee08
+NeedsCompilation: no
+
+Package: pbkrtest
+Version: 0.5.1
+Depends: R (>= 3.5.0), lme4 (>= 1.1.10)
+Imports: broom, dplyr, magrittr, MASS, Matrix (>= 1.2.3), methods,
+        numDeriv, parallel, knitr
+License: GPL (>= 2)
+MD5sum: e0b5dafb53cd15b9b77741304fb6df2b
+NeedsCompilation: no
+
+Package: permute
+Version: 0.9-7
+Depends: R (>= 2.14.0)
+Imports: stats
+Suggests: vegan (>= 2.0-0), testthat (>= 0.5), parallel, knitr,
+        rmarkdown, bookdown, sessioninfo
+License: GPL-2
+MD5sum: 59ea7f860beed70245fe14ebdee3cb1e
+NeedsCompilation: no
+
+Package: pillar
+Version: 1.8.1
+Imports: cli (>= 2.3.0), fansi, glue, lifecycle, rlang (>= 1.0.2), utf8
+        (>= 1.1.0), utils, vctrs (>= 0.3.8)
+Suggests: bit64, debugme, DiagrammeR, dplyr, formattable, ggplot2,
+        knitr, lubridate, nanotime, nycflights13, palmerpenguins,
+        rmarkdown, scales, stringi, survival, testthat (>= 3.1.1),
+        tibble, units (>= 0.7.2), vdiffr, withr
+License: MIT + file LICENSE
+MD5sum: f6fe56e1875fd314344148c59807531f
+NeedsCompilation: no
+
+Package: pkgbuild
+Version: 1.4.0
+Depends: R (>= 3.4)
+Imports: callr (>= 3.2.0), cli (>= 3.4.0), crayon, desc, prettyunits,
+        processx, R6, rprojroot, withr (>= 2.3.0)
+Suggests: covr, cpp11, knitr, mockery, Rcpp, rmarkdown, testthat (>=
+        3.0.0)
+License: MIT + file LICENSE
+MD5sum: 8c26542a8ceb156e93b39087b812bfd9
+NeedsCompilation: no
+
+Package: pkgconfig
+Version: 2.0.3
+Imports: utils
+Suggests: covr, testthat, disposables (>= 1.0.3)
+License: MIT + file LICENSE
+MD5sum: 7b9ca1d45d941238381cb55d13ff4d68
+NeedsCompilation: no
+
+Package: pkgdown
+Version: 2.0.6
+Depends: R (>= 3.1.0)
+Imports: bslib (>= 0.3.1), callr (>= 2.0.2), cli, desc, digest, downlit
+        (>= 0.4.0), fs (>= 1.4.0), httr (>= 1.4.2), jsonlite, magrittr,
+        memoise, purrr, ragg, rlang (>= 1.0.0), rmarkdown (>=
+        1.1.9007), tibble, whisker, withr (>= 2.4.3), xml2 (>= 1.3.1),
+        yaml
+Suggests: covr, diffviewer, evaluate, htmltools, htmlwidgets, knitr,
+        lifecycle, methods, openssl, pkgload (>= 1.0.2), rsconnect,
+        rstudioapi, rticles, sass, testthat (>= 3.1.3), tools
+License: MIT + file LICENSE
+MD5sum: 758d3295e3b340c4ac69d6ddc3d29962
+NeedsCompilation: no
+
+Package: pkgload
+Version: 1.3.2
+Depends: R (>= 3.4.0)
+Imports: cli (>= 3.3.0), crayon, desc, fs, glue, methods, rlang (>=
+        1.0.3), rprojroot, utils, withr (>= 2.4.3)
+Suggests: bitops, covr, mathjaxr, mockr, pak, pkgbuild, Rcpp, remotes,
+        rstudioapi, testthat (>= 3.1.0)
+License: GPL-3
+MD5sum: 7d46ab67942b30fc8c04a45a152c6794
+NeedsCompilation: no
+
+Package: plyr
+Version: 1.8.8
+Depends: R (>= 3.1.0)
+Imports: Rcpp (>= 0.11.0)
+LinkingTo: Rcpp
+Suggests: abind, covr, doParallel, foreach, iterators, itertools,
+        tcltk, testthat
+License: MIT + file LICENSE
+MD5sum: 0a22da16605ee765e7d4f1efc9f7a61f
+NeedsCompilation: yes
+
+Package: png
+Version: 0.1-8
+Depends: R (>= 2.9.0)
+License: GPL-2 | GPL-3
+MD5sum: 5667528b7bbdd8c058018ea7ac6573a7
+NeedsCompilation: yes
+
+Package: polynom
+Version: 1.4-1
+Imports: stats, graphics
+Suggests: knitr, rmarkdown
+License: GPL-2
+MD5sum: 5511178c91fd6eb33fdeefc64deb0546
+NeedsCompilation: no
+
+Package: praise
+Version: 1.0.0
+Suggests: testthat
+License: MIT + file LICENSE
+MD5sum: 9318724cec0454884b5f762bee2da6a1
+NeedsCompilation: no
+
+Package: prettyunits
+Version: 1.1.1
+Suggests: codetools, covr, testthat
+License: MIT + file LICENSE
+MD5sum: 0585a928696b8b7c259d2aaf8125762f
+NeedsCompilation: no
+
+Package: prismatic
+Version: 1.1.1
+Depends: R (>= 3.2)
+Imports: graphics, farver (>= 2.0.1), grDevices
+Suggests: covr, crayon, testthat (>= 3.0.0)
+License: MIT + file LICENSE
+MD5sum: 9b1eb9811f9c3a938f854e5a41c5f60b
+NeedsCompilation: no
+
+Package: processx
+Version: 3.8.0
+Depends: R (>= 3.4.0)
+Imports: ps (>= 1.2.0), R6, utils
+Suggests: callr (>= 3.7.0), cli (>= 3.3.0), codetools, covr, curl,
+        debugme, parallel, rlang (>= 1.0.2), testthat (>= 3.0.0), withr
+License: MIT + file LICENSE
+MD5sum: 6ced8df912eefa88ee6c3e2f053ba194
+NeedsCompilation: yes
+
+Package: profvis
+Version: 0.3.7
+Depends: R (>= 3.0)
+Imports: htmlwidgets (>= 0.3.2), stringr
+Suggests: knitr, ggplot2, rmarkdown, testthat, devtools, shiny,
+        htmltools
+License: GPL-3 | file LICENSE
+MD5sum: 4de691809b1d59d63b0b47b9a762cb28
+NeedsCompilation: yes
+
+Package: promises
+Version: 1.2.0.1
+Imports: R6, Rcpp, later, rlang, stats, magrittr
+LinkingTo: later, Rcpp
+Suggests: testthat, future (>= 1.21.0), fastmap (>= 1.1.0), purrr,
+        knitr, rmarkdown, vembedr, spelling
+License: MIT + file LICENSE
+MD5sum: adba783866d5496080f8a4e77576817b
+NeedsCompilation: yes
+
+Package: ps
+Version: 1.7.2
+Depends: R (>= 3.4)
+Imports: utils
+Suggests: callr, covr, curl, pillar, pingr, processx (>= 3.1.0), R6,
+        rlang, testthat (>= 3.0.0),
+License: MIT + file LICENSE
+MD5sum: 645518ebc2cca679190ced0d3f24ad66
+NeedsCompilation: yes
+
+Package: psych
+Version: 2.2.9
+Imports: mnormt,parallel,stats,graphics,grDevices,methods,lattice,nlme
+Suggests: psychTools, GPArotation, lavaan, lme4, Rcsdp, graph, knitr,
+        Rgraphviz
+License: GPL (>= 2)
+MD5sum: 4f44c93ff966d2589ca61cdc1e9bbcab
+NeedsCompilation: no
+
+Package: purrr
+Version: 0.3.5
+Depends: R (>= 3.2)
+Imports: magrittr (>= 1.5), rlang (>= 0.3.1)
+Suggests: covr, crayon, dplyr (>= 0.7.8), httr, knitr, rmarkdown,
+        testthat, tibble, tidyselect, vctrs
+License: GPL-3 | file LICENSE
+MD5sum: 96e6d7b4d4d2fd38e1fbad18b1257dc0
+NeedsCompilation: yes
+
+Package: quantreg
+Version: 5.94
+Depends: R (>= 3.5), stats, SparseM
+Imports: methods, graphics, Matrix, MatrixModels, survival, MASS
+Suggests: tripack, interp, rgl, logspline, nor1mix, Formula, zoo,
+        R.rsp, conquer
+License: GPL (>= 2)
+MD5sum: a2ea6b7e571ddffe9f29ac14bb3e0b96
+NeedsCompilation: yes
+
+Package: R6
+Version: 2.5.1
+Depends: R (>= 3.0)
+Suggests: testthat, pryr
+License: MIT + file LICENSE
+MD5sum: e84fd376e246738402e5529b6d52e101
+NeedsCompilation: no
+
+Package: ragg
+Version: 1.2.4
+Imports: systemfonts (>= 1.0.3), textshaping (>= 0.3.0)
+LinkingTo: systemfonts, textshaping
+Suggests: covr, graphics, grid, testthat
+License: MIT + file LICENSE
+MD5sum: 72cc3ec01a5a9e94115860993f22e86b
+NeedsCompilation: yes
+
+Package: rappdirs
+Version: 0.3.3
+Depends: R (>= 3.2)
+Suggests: roxygen2, testthat (>= 3.0.0), covr, withr
+License: MIT + file LICENSE
+MD5sum: cafdd5478c4a6094a9f3d7335fb4f889
+NeedsCompilation: yes
+
+Package: rcmdcheck
+Version: 1.4.0
+Imports: callr (>= 3.1.1.9000), cli (>= 3.0.0), curl, desc (>= 1.2.0),
+        digest, pkgbuild, prettyunits, R6, rprojroot, sessioninfo (>=
+        1.1.1), utils, withr, xopen
+Suggests: covr, knitr, mockery, processx, ps, rmarkdown, svglite,
+        testthat, webfakes
+License: MIT + file LICENSE
+MD5sum: a3d880f759b8d53de41155fc922c6b5c
+NeedsCompilation: no
+
+Package: RColorBrewer
+Version: 1.1-3
+Depends: R (>= 2.0.0)
+License: Apache License 2.0
+MD5sum: 9b687595bbe02a7e43fc195ba33f065c
+NeedsCompilation: no
+
+Package: Rcpp
+Version: 1.0.9
+Imports: methods, utils
+Suggests: tinytest, inline, rbenchmark, pkgKitten (>= 0.1.2)
+License: GPL (>= 2)
+MD5sum: 5c239588657c9970e0f8ed9192abb563
+NeedsCompilation: yes
+
+Package: RcppEigen
+Version: 0.3.3.9.3
+Depends: R (>= 3.6.0)
+Imports: Matrix (>= 1.1-0), Rcpp (>= 0.11.0), stats, utils
+LinkingTo: Rcpp
+Suggests: inline, tinytest, pkgKitten, microbenchmark
+License: GPL (>= 2) | file LICENSE
+MD5sum: a338f87aba690a031d5c1a6721ec23f3
+NeedsCompilation: yes
+
+Package: RcppParallel
+Version: 5.1.5
+Depends: R (>= 3.0.2)
+Suggests: Rcpp, RUnit, knitr, rmarkdown
+License: GPL (>= 3)
+MD5sum: bef92ac8a7c40268447920a47bee180f
+NeedsCompilation: yes
+
+Package: RCurl
+Version: 1.98-1.9
+Depends: R (>= 3.4.0), methods
+Imports: bitops
+Suggests: XML
+License: BSD_3_clause + file LICENSE
+MD5sum: 72a1ab759265c97b43aa609b481823f2
+NeedsCompilation: yes
+
+Package: rematch2
+Version: 2.1.2
+Imports: tibble
+Suggests: covr, testthat
+License: MIT + file LICENSE
+MD5sum: 41627df5d3fbf98f0cf98c027e14af00
+NeedsCompilation: no
+
+Package: remotes
+Version: 2.4.2
+Depends: R (>= 3.0.0)
+Imports: methods, stats, tools, utils
+Suggests: brew, callr, codetools, curl, covr, git2r (>= 0.23.0), knitr,
+        mockery, pkgbuild (>= 1.0.1), pingr, rmarkdown, rprojroot,
+        testthat, webfakes, withr
+License: MIT + file LICENSE
+MD5sum: 398c33ec98f43c3cf285f5c71a285d1f
+NeedsCompilation: no
+
+Package: reshape2
+Version: 1.4.4
+Depends: R (>= 3.1)
+Imports: plyr (>= 1.8.1), Rcpp, stringr
+LinkingTo: Rcpp
+Suggests: covr, lattice, testthat (>= 0.8.0)
+License: MIT + file LICENSE
+MD5sum: ab6b937ba184817a8f33690b5ed6ffcb
+NeedsCompilation: yes
+
+Package: rgl
+Version: 0.110.2
+Depends: R (>= 3.3.0)
+Imports: graphics, grDevices, stats, utils, htmlwidgets, htmltools,
+        knitr (>= 1.33), jsonlite (>= 0.9.20), magrittr, R6, base64enc,
+        mime
+Suggests: MASS, rmarkdown, deldir (>= 1.0-4), orientlib, lattice,
+        misc3d, magick, plotrix (>= 3.7-3), tripack, interp,
+        alphashape3d, tcltk, js (>= 1.2), webshot2 (>= 0.1.0), downlit
+        (>= 0.4.0), pkgdown (>= 2.0.0), extrafont, shiny,
+        manipulateWidget (>= 0.9.0), testthat, markdown, crosstalk, V8,
+        chromote
+Enhances: waldo
+License: GPL
+MD5sum: ff38f51b7705549995624f310cd74cb7
+NeedsCompilation: yes
+
+Package: rlang
+Version: 1.0.6
+Depends: R (>= 3.4.0)
+Imports: utils
+Suggests: cli (>= 3.1.0), covr, crayon, fs, glue, knitr, magrittr,
+        methods, pillar, rmarkdown, stats, testthat (>= 3.0.0), tibble,
+        usethis, vctrs (>= 0.2.3), withr
+Enhances: winch
+License: MIT + file LICENSE
+MD5sum: 907bc04039194b0c7edc19e9084b14fc
+NeedsCompilation: yes
+
+Package: rmarkdown
+Version: 2.18
+Depends: R (>= 3.0)
+Imports: bslib (>= 0.2.5.1), evaluate (>= 0.13), htmltools (>= 0.5.1),
+        jquerylib, jsonlite, knitr (>= 1.22), methods, stringr (>=
+        1.2.0), tinytex (>= 0.31), tools, utils, xfun (>= 0.30), yaml
+        (>= 2.1.19)
+Suggests: digest, dygraphs, fs, rsconnect, downlit (>= 0.4.0), katex
+        (>= 1.4.0), sass (>= 0.4.0), shiny (>= 1.6.0), testthat (>=
+        3.0.3), tibble, tufte, vctrs, withr (>= 2.4.2)
+License: GPL-3
+MD5sum: dff2a631205c93cdc90eb3ca459fef12
+NeedsCompilation: no
+
+Package: rmutil
+Version: 1.1.10
+Depends: R (>= 1.4)
+License: GPL (>= 2)
+MD5sum: b7b0dfa56534cab7cc4a8b57bac51317
+NeedsCompilation: yes
+
+Package: roxygen2
+Version: 7.2.2
+Depends: R (>= 3.3)
+Imports: brew, cli (>= 3.3.0), commonmark, desc (>= 1.2.0), digest,
+        knitr, methods, pkgload (>= 1.0.2), purrr (>= 0.3.3), R6 (>=
+        2.1.2), rlang (>= 1.0.0), stringi, stringr (>= 1.0.0), utils,
+        withr, xml2
+LinkingTo: cpp11
+Suggests: covr, R.methodsS3, R.oo, rmarkdown (>= 2.16), testthat (>=
+        3.1.2), yaml
+License: MIT + file LICENSE
+MD5sum: 9de93db7d142ab4768f6b6d73fcfd49e
+NeedsCompilation: yes
+
+Package: rpart
+Version: 4.1.19
+Priority: recommended
+Depends: R (>= 2.15.0), graphics, stats, grDevices
+Suggests: survival
+License: GPL-2 | GPL-3
+MD5sum: 9f46685165d4adbba31dd142c4979850
+NeedsCompilation: yes
+
+Package: rprojroot
+Version: 2.0.3
+Depends: R (>= 3.0.0)
+Suggests: covr, knitr, lifecycle, mockr, rmarkdown, testthat (>=
+        3.0.0), withr
+License: MIT + file LICENSE
+MD5sum: 125f24470bdd8d62fe94298f00bf8010
+NeedsCompilation: no
+
+Package: rstatix
+Version: 0.7.1
+Depends: R (>= 3.3.0)
+Imports: stats, utils, tidyr (>= 1.0.0), purrr, broom (>= 0.7.4), rlang
+        (>= 0.3.1), tibble (>= 2.1.3), dplyr (>= 0.7.1), magrittr,
+        corrplot, tidyselect (>= 1.0.0), car, generics (>= 0.0.2)
+Suggests: knitr, rmarkdown, ggpubr, graphics, emmeans, coin, boot,
+        testthat, spelling
+License: GPL-2
+MD5sum: b681c9cc973b0001ab050c3af4139458
+NeedsCompilation: no
+
+Package: rstudioapi
+Version: 0.14
+Suggests: testthat, knitr, rmarkdown, clipr, covr
+License: MIT + file LICENSE
+MD5sum: a4fbbac748b2a07a895556316a8a525a
+NeedsCompilation: no
+
+Package: Rttf2pt1
+Version: 1.3.11
+Depends: R (>= 2.15)
+License: file LICENSE
+License_is_FOSS: yes
+MD5sum: 2bfa679afa042c6263c8ed2ce663846c
+NeedsCompilation: yes
+
+Package: rversions
+Version: 2.1.2
+Imports: curl, utils, xml2 (>= 1.0.0)
+Suggests: covr, mockery, testthat
+License: MIT + file LICENSE
+MD5sum: 94a7f22e8be08c8693537a6b9ba10f50
+NeedsCompilation: no
+
+Package: sass
+Version: 0.4.4
+Imports: fs, rlang (>= 0.4.10), htmltools (>= 0.5.1), R6, rappdirs
+Suggests: testthat, knitr, rmarkdown, withr, shiny, curl
+License: MIT + file LICENSE
+MD5sum: ea74017b069519525ecd53b4ec3b27ca
+NeedsCompilation: yes
+
+Package: scales
+Version: 1.2.1
+Depends: R (>= 3.2)
+Imports: farver (>= 2.0.3), labeling, lifecycle, munsell (>= 0.5), R6,
+        RColorBrewer, rlang (>= 1.0.0), viridisLite
+Suggests: bit64, covr, dichromat, ggplot2, hms (>= 0.5.0), stringi,
+        testthat (>= 3.0.0), waldo (>= 0.4.0)
+License: MIT + file LICENSE
+MD5sum: 4c8e880115111cd19c59890ddd3ccc2b
+NeedsCompilation: no
+
+Package: scatterplot3d
+Version: 0.3-42
+Depends: R (>= 2.7.0)
+Imports: grDevices, graphics, stats
+License: GPL-2
+MD5sum: b452a383fc88a950cb8570ffcbd60e20
+NeedsCompilation: no
+
+Package: SciViews
+Version: 0.9-13.1
+Depends: R (>= 2.6.0)
+Imports: ellipse, grDevices, graphics, stats
+Suggests: MASS, covr, knitr, testthat
+Enhances: base
+License: GPL-2
+MD5sum: 05cae4ad06d935b6f0905856563f6854
+NeedsCompilation: no
+
+Package: sessioninfo
+Version: 1.2.2
+Depends: R (>= 2.10)
+Imports: cli (>= 3.1.0), tools, utils
+Suggests: callr, covr, mockery, reticulate, rmarkdown, testthat, withr
+License: GPL-2
+MD5sum: b373f83a971b68402825e699fce7cb4d
+NeedsCompilation: no
+
+Package: shades
+Version: 1.4.0
+Suggests: testthat, covr, ggplot2
+Enhances: colorspace
+License: BSD_3_clause + file LICENCE
+MD5sum: 84eb1e60ab7bc6d1fbbd662840230951
+NeedsCompilation: no
+
+Package: shiny
+Version: 1.7.3
+Depends: R (>= 3.0.2), methods
+Imports: utils, grDevices, httpuv (>= 1.5.2), mime (>= 0.3), jsonlite
+        (>= 0.9.16), xtable, fontawesome (>= 0.4.0), htmltools (>=
+        0.5.2), R6 (>= 2.0), sourcetools, later (>= 1.0.0), promises
+        (>= 1.1.0), tools, crayon, rlang (>= 0.4.10), fastmap (>=
+        1.1.0), withr, commonmark (>= 1.7), glue (>= 1.3.2), bslib (>=
+        0.3.0), cachem, ellipsis, lifecycle (>= 0.2.0)
+Suggests: datasets, Cairo (>= 1.5-5), testthat (>= 3.0.0), knitr (>=
+        1.6), markdown, rmarkdown, ggplot2, reactlog (>= 1.0.0),
+        magrittr, yaml, future, dygraphs, ragg, showtext, sass
+License: GPL-3 | file LICENSE
+MD5sum: beb2f71477798eb6859df3191bae9fe2
+NeedsCompilation: no
+
+Package: shinyjs
+Version: 2.1.0
+Depends: R (>= 3.1.0)
+Imports: digest (>= 0.6.8), jsonlite, shiny (>= 1.0.0)
+Suggests: htmltools (>= 0.2.9), knitr (>= 1.7), rmarkdown, shinyAce,
+        shinydisconnect, testthat (>= 0.9.1)
+License: MIT + file LICENSE
+MD5sum: 23479086c139ba2d7d00c557f1e8895d
+NeedsCompilation: no
+
+Package: snow
+Version: 0.4-4
+Depends: R (>= 2.13.1), utils
+Suggests: rlecuyer
+Enhances: Rmpi
+License: GPL
+MD5sum: 8a6ded9cae4a175619ad1e33cc31d4b9
+NeedsCompilation: no
+
+Package: sourcetools
+Version: 0.1.7
+Depends: R (>= 3.0.2)
+Suggests: testthat
+License: MIT + file LICENSE
+MD5sum: 04284c2d78a9626fe5f219942836c530
+NeedsCompilation: yes
+
+Package: SparseM
+Version: 1.81
+Depends: R (>= 2.15), methods
+Imports: graphics, stats, utils
+License: GPL (>= 2)
+MD5sum: 482572eed65ae53bb988a2753ce09718
+NeedsCompilation: yes
+
+Package: spatial
+Version: 7.3-15.1
+Priority: recommended
+Depends: R (>= 3.0.0), graphics, stats, utils
+Suggests: MASS
+License: GPL-2 | GPL-3
+MD5sum: 1cfa96a2ac37be7d625e91d8a9b328e5
+NeedsCompilation: yes
+
+Package: stable
+Version: 1.1.6
+Depends: R (>= 1.4), rmutil
+License: GPL (>= 2)
+MD5sum: 16a7ec353ed33075f93b03e8c92a296c
+NeedsCompilation: yes
+
+Package: stabledist
+Version: 0.7-1
+Depends: R (>= 3.1.0)
+Imports: stats
+Suggests: Matrix, fBasics, FMStable, RUnit, Rmpfr, sfsmisc
+License: GPL (>= 2)
+MD5sum: 0f6159d8f129e4c367a1adc5860079b0
+NeedsCompilation: no
+
+Package: statip
+Version: 0.2.3
+Depends: R (>= 3.1.3)
+Imports: clue, graphics, rpart, stats
+Suggests: knitr, testthat
+License: GPL-3
+MD5sum: afa8bc4b690cf4a275a785800dda055a
+NeedsCompilation: yes
+
+Package: statmod
+Version: 1.4.37
+Depends: R (>= 3.0.0)
+Imports: stats, graphics
+Suggests: MASS, tweedie
+License: GPL-2 | GPL-3
+MD5sum: 9e233f263d941b3d1270142d49ab651d
+NeedsCompilation: yes
+
+Package: stringi
+Version: 1.7.8
+Depends: R (>= 3.1)
+Imports: tools, utils, stats
+License: file LICENSE
+MD5sum: 821da53021629a0490618459a33f4ac2
+NeedsCompilation: yes
+
+Package: stringr
+Version: 1.5.0
+Depends: R (>= 3.3)
+Imports: cli, glue (>= 1.6.1), lifecycle (>= 1.0.3), magrittr, rlang
+        (>= 1.0.0), stringi (>= 1.5.3), vctrs
+Suggests: covr, htmltools, htmlwidgets, knitr, rmarkdown, testthat (>=
+        3.0.0)
+License: MIT + file LICENSE
+MD5sum: e17661377c0c9f97f0ef154ef891a523
+NeedsCompilation: no
+
+Package: survival
+Version: 3.4-0
+Priority: recommended
+Depends: R (>= 3.5.0)
+Imports: graphics, Matrix, methods, splines, stats, utils
+License: LGPL (>= 2)
+MD5sum: 2ab539ceef34331778c151f6be54c223
+NeedsCompilation: yes
+
+Package: svglite
+Version: 2.1.0
+Depends: R (>= 3.0.0)
+Imports: systemfonts (>= 1.0.0)
+LinkingTo: cpp11, systemfonts
+Suggests: htmltools, testthat, xml2 (>= 1.0.0), covr, fontquiver (>=
+        0.2.0), knitr, rmarkdown
+License: GPL (>= 2)
+MD5sum: e8aefbb5ac7ab5994c7891790486091b
+NeedsCompilation: yes
+
+Package: sys
+Version: 3.4.1
+Suggests: unix (>= 1.4), spelling, testthat
+License: MIT + file LICENSE
+MD5sum: e1a9e105f826b3a87d2b29a0baa9d3a7
+NeedsCompilation: yes
+
+Package: systemfonts
+Version: 1.0.4
+Depends: R (>= 3.2.0)
+LinkingTo: cpp11 (>= 0.2.1)
+Suggests: testthat (>= 2.1.0), covr, knitr, rmarkdown, tools
+License: MIT + file LICENSE
+MD5sum: b099fee0892289e48b34cd412dacc535
+NeedsCompilation: yes
+
+Package: testthat
+Version: 3.1.5
+Depends: R (>= 3.1)
+Imports: brio, callr (>= 3.5.1), cli (>= 3.4.0), desc, digest, ellipsis
+        (>= 0.2.0), evaluate, jsonlite, lifecycle, magrittr, methods,
+        pkgload, praise, processx, ps (>= 1.3.4), R6 (>= 2.2.0), rlang
+        (>= 1.0.1), utils, waldo (>= 0.4.0), withr (>= 2.4.3)
+Suggests: covr, curl (>= 0.9.5), diffviewer (>= 0.1.0), knitr, mockery,
+        rmarkdown, rstudioapi, shiny, usethis, vctrs (>= 0.1.0), xml2
+License: MIT + file LICENSE
+MD5sum: 3fe4b89018b51cc911c25e9a0a7456e9
+NeedsCompilation: yes
+
+Package: textshaping
+Version: 0.3.6
+Depends: R (>= 3.2.0)
+Imports: systemfonts (>= 1.0.0)
+LinkingTo: cpp11 (>= 0.2.1), systemfonts (>= 1.0.0)
+Suggests: covr, knitr, rmarkdown
+License: MIT + file LICENSE
+MD5sum: aa719e7479b76e990775e65bf0173e22
+NeedsCompilation: yes
+
+Package: tibble
+Version: 3.1.8
+Depends: R (>= 3.1.0)
+Imports: fansi (>= 0.4.0), lifecycle (>= 1.0.0), magrittr, methods,
+        pillar (>= 1.7.0), pkgconfig, rlang (>= 1.0.2), utils, vctrs
+        (>= 0.3.8)
+Suggests: bench, bit64, blob, brio, callr, cli, covr, crayon (>=
+        1.3.4), DiagrammeR, dplyr, evaluate, formattable, ggplot2, hms,
+        htmltools, knitr, lubridate, mockr, nycflights13, pkgbuild,
+        pkgload, purrr, rmarkdown, stringi, testthat (>= 3.0.2), tidyr,
+        withr
+License: MIT + file LICENSE
+MD5sum: 8ce0aca91502ee8772105c8f3575ad06
+NeedsCompilation: yes
+
+Package: tidyr
+Version: 1.2.1
+Depends: R (>= 3.1)
+Imports: dplyr (>= 1.0.0), ellipsis (>= 0.1.0), glue, lifecycle,
+        magrittr, purrr, rlang, tibble (>= 2.1.1), tidyselect (>=
+        1.1.0), utils, vctrs (>= 0.3.7)
+LinkingTo: cpp11 (>= 0.4.0)
+Suggests: covr, data.table, jsonlite, knitr, readr, repurrrsive (>=
+        1.0.0), rmarkdown, testthat (>= 3.0.0)
+License: MIT + file LICENSE
+MD5sum: b7043faf842388496c796cddf267dc60
+NeedsCompilation: yes
+
+Package: tidyselect
+Version: 1.2.0
+Depends: R (>= 3.4)
+Imports: cli (>= 3.3.0), glue (>= 1.3.0), lifecycle (>= 1.0.3), rlang
+        (>= 1.0.4), vctrs (>= 0.4.1), withr
+Suggests: covr, crayon, dplyr, knitr, magrittr, rmarkdown, stringr,
+        testthat (>= 3.1.1), tibble (>= 2.1.3)
+License: MIT + file LICENSE
+MD5sum: 147069ee8d8bc42f63f253311f6c1806
+NeedsCompilation: no
+
+Package: timeDate
+Version: 4021.106
+Depends: R (>= 3.6.0)
+Imports: graphics, utils, stats, methods
+Suggests: date, RUnit
+License: GPL (>= 2)
+MD5sum: 0aceb8156730b013ab4fceda495c2cd4
+NeedsCompilation: no
+
+Package: timeSeries
+Version: 4021.105
+Depends: R (>= 2.10), timeDate (>= 2150.95)
+Imports: graphics, grDevices, stats, utils, methods
+Suggests: RUnit, robustbase, xts, PerformanceAnalytics, fTrading
+License: GPL (>= 2)
+MD5sum: abbf07ed1980d61e65ea8d81a53c4b7e
+NeedsCompilation: no
+
+Package: tinytex
+Version: 0.42
+Imports: xfun (>= 0.29)
+Suggests: testit, rstudioapi
+License: MIT + file LICENSE
+MD5sum: 364a0fbef980aaaddc5e6924198059fa
+NeedsCompilation: no
+
+Package: treemap
+Version: 2.4-3
+Depends: R (>= 2.10)
+Imports: colorspace, data.table (>= 1.8.8), ggplot2, grid, gridBase,
+        igraph, methods, RColorBrewer, shiny (>= 0.12.0)
+Suggests: knitr, markdown
+License: GPL-3
+MD5sum: 03a830877d4da65fa79494934ab74fa0
+NeedsCompilation: no
+
+Package: treemapify
+Version: 2.5.5
+Depends: R (>= 3.6)
+Imports: ggplot2 (>= 2.2.1), ggfittext (>= 0.5.0), grid (>= 3.1)
+Suggests: knitr, rmarkdown, testthat, vdiffr, spelling
+License: GPL (>= 3)
+MD5sum: 5112e61fbfc5e6c229be574145c88990
+NeedsCompilation: no
+
+Package: urlchecker
+Version: 1.0.1
+Depends: R (>= 3.3)
+Imports: cli, curl, tools, xml2
+Suggests: covr
+License: GPL-3
+MD5sum: 7d59ef7e05f22dd95bb1693fc74bbea0
+NeedsCompilation: no
+
+Package: usethis
+Version: 2.1.6
+Depends: R (>= 3.4)
+Imports: cli (>= 3.0.1), clipr (>= 0.3.0), crayon, curl (>= 2.7), desc
+        (>= 1.4.0), fs (>= 1.3.0), gert (>= 1.4.1), gh (>= 1.2.1), glue
+        (>= 1.3.0), jsonlite, lifecycle (>= 1.0.0), purrr, rappdirs,
+        rlang (>= 1.0.0), rprojroot (>= 1.2), rstudioapi, stats, utils,
+        whisker, withr (>= 2.3.0), yaml
+Suggests: covr, knitr, magick, mockr, pkgload, rmarkdown, roxygen2 (>=
+        7.1.2), spelling (>= 1.2), styler (>= 1.2.0), testthat (>=
+        3.1.0)
+License: MIT + file LICENSE
+MD5sum: 21b827324e3504966805b2ad197574b4
+NeedsCompilation: no
+
+Package: utf8
+Version: 1.2.2
+Depends: R (>= 2.10)
+Suggests: cli, covr, knitr, rlang, rmarkdown, testthat (>= 3.0.0),
+        withr
+License: Apache License (== 2.0) | file LICENSE
+MD5sum: e7aa5fa292e3ca271e6573677f6a9c6f
+NeedsCompilation: yes
+
+Package: varhandle
+Version: 2.0.5
+Depends: R (>= 3.0.1),
+Imports: utils, graphics
+License: GPL (>= 2)
+MD5sum: 0653674a26e0956dda7fd50513143e6c
+NeedsCompilation: no
+
+Package: vctrs
+Version: 0.5.1
+Depends: R (>= 3.3)
+Imports: cli (>= 3.4.0), glue, lifecycle (>= 1.0.3), rlang (>= 1.0.6)
+Suggests: bit64, covr, crayon, dplyr (>= 0.8.5), generics, knitr,
+        pillar (>= 1.4.4), pkgdown (>= 2.0.1), rmarkdown, testthat (>=
+        3.0.0), tibble (>= 3.1.3), withr, xml2, waldo (>= 0.2.0),
+        zeallot
+License: MIT + file LICENSE
+MD5sum: fa0d59348c8b7dc737000174e1f105b9
+NeedsCompilation: yes
+
+Package: vegan
+Version: 2.6-4
+Depends: permute (>= 0.9-0), lattice, R (>= 3.4.0)
+Imports: MASS, cluster, mgcv
+Suggests: parallel, tcltk, knitr, markdown
+License: GPL-2
+MD5sum: 3e8bff267537730be8ec6dd3970a2b4a
+NeedsCompilation: yes
+
+Package: VennDiagram
+Version: 1.7.3
+Depends: R (>= 3.5.0), grid (>= 2.14.1), futile.logger
+Imports: methods
+Suggests: testthat
+License: GPL-2
+MD5sum: aacd2b2f97a705dba364e9b70704ad27
+NeedsCompilation: no
+
+Package: viridis
+Version: 0.6.2
+Depends: R (>= 2.10), viridisLite (>= 0.4.0)
+Imports: stats, ggplot2 (>= 1.0.1), gridExtra
+Suggests: hexbin (>= 1.27.0), scales, MASS, knitr, dichromat,
+        colorspace, raster, rasterVis, httr, mapproj, vdiffr, svglite
+        (>= 1.2.0), testthat, covr, rmarkdown, rgdal, maps
+License: MIT + file LICENSE
+MD5sum: 7d79c64e67e55c8aad12758199b58d53
+NeedsCompilation: no
+
+Package: viridisLite
+Version: 0.4.1
+Depends: R (>= 2.10)
+Suggests: hexbin (>= 1.27.0), ggplot2 (>= 1.0.1), testthat, covr
+License: MIT + file LICENSE
+MD5sum: ba3d99e2719472c461a0c47046a8b6da
+NeedsCompilation: no
+
+Package: waldo
+Version: 0.4.0
+Imports: cli, diffobj (>= 0.3.4), fansi, glue, methods, rematch2, rlang
+        (>= 1.0.0), tibble
+Suggests: covr, R6, testthat (>= 3.0.0), withr, xml2
+License: MIT + file LICENSE
+MD5sum: 86c5349c22a8ee831ebd186e999aba85
+NeedsCompilation: no
+
+Package: whisker
+Version: 0.4
+Suggests: markdown
+License: GPL-3
+MD5sum: ad148fdbb613eea8d5ec5981d5881d90
+NeedsCompilation: no
+
+Package: withr
+Version: 2.5.0
+Depends: R (>= 3.2.0)
+Imports: graphics, grDevices, stats
+Suggests: callr, covr, DBI, knitr, lattice, methods, rlang, rmarkdown
+        (>= 2.12), RSQLite, testthat (>= 3.0.0)
+License: MIT + file LICENSE
+MD5sum: 26006b3833199a6b6db70fda04126b87
+NeedsCompilation: no
+
+Package: xfun
+Version: 0.35
+Imports: stats, tools
+Suggests: testit, parallel, codetools, rstudioapi, tinytex (>= 0.30),
+        mime, markdown, knitr, htmltools, remotes, pak, rhub, renv,
+        curl, jsonlite, magick, rmarkdown
+License: MIT + file LICENSE
+MD5sum: 84033980cf5f6fbf661100f49d82adf2
+NeedsCompilation: yes
+
+Package: xml2
+Version: 1.3.3
+Depends: R (>= 3.1.0)
+Imports: methods
+Suggests: covr, curl, httr, knitr, magrittr, mockery, rmarkdown,
+        testthat (>= 2.1.0)
+License: MIT + file LICENSE
+MD5sum: 5052f23010ab90b27d16e62055791340
+NeedsCompilation: yes
+
+Package: xopen
+Version: 1.0.0
+Depends: R (>= 3.1)
+Imports: processx
+Suggests: ps, testthat
+License: MIT + file LICENSE
+MD5sum: 7c6b7c9c953fe8e758ea88ca533d3e03
+NeedsCompilation: no
+
+Package: xtable
+Version: 1.8-4
+Depends: R (>= 2.10.0)
+Imports: stats, utils
+Suggests: knitr, plm, zoo, survival
+License: GPL (>= 2)
+MD5sum: 0a7da6c3b34b2974110a7d00fe9afa79
+NeedsCompilation: no
+
+Package: yaml
+Version: 2.3.6
+Suggests: RUnit
+License: BSD_3_clause + file LICENSE
+MD5sum: 4c18c3a6d1621d5d96d607f8ceb59846
+NeedsCompilation: yes
+
+Package: zip
+Version: 2.2.2
+Suggests: covr, processx, R6, testthat, withr
+License: MIT + file LICENSE
+MD5sum: f4c02a28bd7cb498e6131775bcb5e67b
+NeedsCompilation: yes

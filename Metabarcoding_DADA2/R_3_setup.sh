@@ -14,6 +14,10 @@
 cd script/
 PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
 source $PATHCONDA'/etc/profile.d/conda.sh'
-conda create -y -n REnv4 -c conda-forge r-base=4.0.5 ; conda activate REnv4
-conda install -y -c conda-forge glib
+conda env create -f environment_REnv4.yml ; conda activate REnv4
+wget https://github.com/marbl/Krona/releases/download/v2.8/KronaTools-2.8.tar
+tar -xvf KronaTools-2.8.tar
+perl KronaTools-2.8/install.pl --prefix ./KronaTools-2.8
+rm KronaTools-2.8.tar
+
 Rscript 3_Install_dependencies.R
