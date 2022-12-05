@@ -1,3 +1,4 @@
+#!/bin/bash
 #                                 _       _
 #     /\                         (_)     | |
 #    /  \   _ __ ___   ___  _ __  _  ___ | |_
@@ -8,7 +9,6 @@
 #                              |__/
 # 19/04/2021
 #
-#!/bin/bash
 BEFORE=$SECONDS
 PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
 source $PATHCONDA'/etc/profile.d/conda.sh'
