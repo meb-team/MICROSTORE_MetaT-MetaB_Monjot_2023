@@ -177,10 +177,10 @@ Prepare the Trait table and place it on rawdata directory in csv format.
 Run Functionnal analysis script:
     
     * script: R_6_Functional_analysis.sh
-    * argument 1: name of the trait table in csv format
+    * argument 1: name of the trait table in tsv format
     * argument 2: name of the taxonomic analysis results directory
     * argument 3: Region (V4 or V9)
 
-For example: `bash R_6_Functional_analysis.sh Taxonomic_Profil_Table_Final_5.csv V4-unified-correct-paired-out-compo V4`
+For example: `bash R_6_Functional_analysis.sh Trait-table.tsv V4-unified-correct-paired-out-compo V4`
 
 Results are generated in "result" file wich is located in dataDADA2 directory.

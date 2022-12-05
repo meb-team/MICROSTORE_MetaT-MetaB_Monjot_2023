@@ -22,6 +22,9 @@ if (inputmode == TRUE) {
 # Set directory and import package -----------------------------------------------------------
 pkgs <- c("GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","VennDiagram","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite", "stringr","paletteer","gtools","vegan","SciViews","cluster","NbClust","tibble","treemapify","psych","gplots","ggExtra","devtools","data.table","rgl","car","scatterplot3d")
 #
+getOption("Ncpus", 1L)
+halfcore <- parallel::detectCores()/2
+options(Ncpus = halfcore)
 install.packages(pkgs, 
                  repos = paste0("file:",getwd(),"/REnv4_Rpackages"),
                  type = "source")
