@@ -172,7 +172,11 @@ Run DADA2 workflow: `bash R_4_DADA2_process.sh V4-DADA2.ini`
 
 Run Taxonomic analysis script: `bash R_5_Taxonomic_analysis.sh V4-DADA2.ini`
 
-Prepare the Trait table and place it on rawdata directory in csv format.
+The previous step annotate taxonomic references using marine trait table described in Ramond et al. 2019.
+
+The resulting table is located in "result" file wich is located in dataDADA2 directory.
+
+Prepare your trait table using the previously generated table and place it on rawdata directory in tsv format or use our trait table already present in rawdata directory.
 
 Run Functionnal analysis script:
     
