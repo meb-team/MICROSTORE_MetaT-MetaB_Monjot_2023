@@ -91,7 +91,7 @@ To complete this, run script 2 :
     * argument 3: forward primer
     * argument 4: reverse primer
 
-For example: `bash DADA2_2_reorient_py.sh V4-unified 32 "GTG[CT]CAGC[AC]GCCGCGGTA" "TTGG[CT][AG]AATGCTTTCGC"`
+For example: `bash DADA2_2_reorient_py.sh V4-unified 16 "GTG[CT]CAGC[AC]GCCGCGGTA" "TTGG[CT][AG]AATGCTTTCGC"`
 
 ### 2. DADA2 initialization
 
