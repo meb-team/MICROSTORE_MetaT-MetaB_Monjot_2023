@@ -21,11 +21,6 @@ if (inputmode == TRUE) {
 #
 # Set directory and import package -----------------------------------------------------------
 setwd("..")
-#
-getOption("Ncpus", 1L)
-halfcore <- parallel::detectCores()/2
-options(Ncpus = halfcore)
-#
 install.packages("gert", repos="http://cran.rstudio.com/")
 install.packages("FactoMineR", repos="http://cran.rstudio.com/")
 install.packages("factoextra", repos="http://cran.rstudio.com/")
@@ -59,6 +54,7 @@ install.packages("rgl", repos="http://cran.rstudio.com/")
 install.packages("data.table", repos="http://cran.rstudio.com/")
 install.packages("car", repos="http://cran.rstudio.com/")
 install.packages("scatterplot3d", repos="http://cran.rstudio.com/")
+install.packages('R.utils', repos="http://cran.rstudio.com/")
 
 
 
@@ -69,7 +65,7 @@ devtools::install_github("benjjneb/dada2", ref="v1.18")
 #BiocManager::install(version = '3.12', ask = FALSE)
 #BiocManager::install("dada2", version = "3.12", ask = FALSE)
 
-dependencies <- c("GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","VennDiagram","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite", "stringr","dada2","paletteer","elementalist","gtools","vegan","SciViews","cluster","NbClust","tibble","treemapify","psych","gplots","ggExtra","devtools","data.table","rgl","car","scatterplot3d")
+dependencies <- c("GUniFrac","ggplot2","dplyr","cowplot","ggrepel","ggsci","scales","varhandle","treemap","VennDiagram","FactoMineR","factoextra","reshape2","ggpubr","hrbrthemes","svglite", "stringr","dada2","paletteer","elementalist","gtools","vegan","SciViews","cluster","NbClust","tibble","treemapify","psych","gplots","ggExtra","devtools","data.table","rgl","car","scatterplot3d","R.utils")
 
 check <- as.logical(dependencies %in% rownames(installed.packages()))
 ok <- as.logical(rep(TRUE, each = length(dependencies)))
