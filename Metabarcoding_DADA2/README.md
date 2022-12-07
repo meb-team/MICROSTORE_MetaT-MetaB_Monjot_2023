@@ -191,7 +191,7 @@ First, inputs and metadata file must be placed in rawdata directory.
 
 * Genoscope provides the following metadata table: "data-inf-metaT.txt".
 
-* We use unigene table and taxonomy table provided by Damien Courtine: respectively "main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv" and "table_taxonomy.perUnigene.allUnigenes.tsv" ; KO id definition table generated from https://www.genome.jp/kegg-bin/show_brite?ko00001.keg and the database used in the trait-based approcach (i.e. PR2)
+* We use unigene table and taxonomy table provided by Damien Courtine: respectively "main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv" and "table_taxonomy.perUnigene.allUnigenes.tsv" ; KO id definition table generated from https://www.genome.jp/kegg-bin/show_brite?ko00001.keg and the database used in the trait-based approcach (i.e. PR2).
 
 Initialization file (".ini") is then created (from the "MetaT.ini" file found in "Metabarcoding_DADA2"):
 
