@@ -1444,6 +1444,33 @@ License: GPL (>= 2)
 MD5sum: a2ea6b7e571ddffe9f29ac14bb3e0b96
 NeedsCompilation: yes
 
+Package: R.methodsS3
+Version: 1.8.2
+Depends: R (>= 2.13.0)
+Imports: utils
+Suggests: codetools
+License: LGPL (>= 2.1)
+MD5sum: 8af7a9c90f4f1daebfa0e6c7722e05b8
+NeedsCompilation: no
+
+Package: R.oo
+Version: 1.25.0
+Depends: R (>= 2.13.0), R.methodsS3 (>= 1.8.1)
+Imports: methods, utils
+Suggests: tools
+License: LGPL (>= 2.1)
+MD5sum: bc0f25fc30c140ae25247488f342c0d8
+NeedsCompilation: no
+
+Package: R.utils
+Version: 2.12.2
+Depends: R (>= 2.14.0), R.oo
+Imports: methods, utils, tools, R.methodsS3
+Suggests: datasets, digest (>= 0.6.10)
+License: LGPL (>= 2.1)
+MD5sum: 05d7545f7cde9ea581f6d60da4339a6a
+NeedsCompilation: no
+
 Package: R6
 Version: 2.5.1
 Depends: R (>= 3.0)

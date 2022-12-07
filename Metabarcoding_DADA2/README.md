@@ -172,9 +172,7 @@ Run DADA2 workflow: `bash R_4_DADA2_process.sh V4-DADA2.ini`
 
 Run Taxonomic analysis script: `bash R_5_Taxonomic_analysis.sh V4-DADA2.ini`
 
-The previous step annotate taxonomic references using marine trait table described in Ramond et al. 2019.
-
-The resulting table is located in "result" file wich is located in dataDADA2 directory.
+The previous step annotate taxonomic references using marine trait table described in Ramond et al. 2019. The resulting table is generated in "result" file which is located in dataDADA2 directory.
 
 Prepare your trait table using the previously generated table and place it on rawdata directory in tsv format or use our trait table already present in rawdata directory.
 
@@ -188,3 +186,33 @@ Run Functionnal analysis script:
 For example: `bash R_6_Functional_analysis.sh Trait-table.tsv V4-unified-correct-paired-out-compo V4`
 
 Results are generated in "result" file wich is located in dataDADA2 directory.
+
+### 4. Implementation of metatranscriptomic data
+
+First, inputs and metadata file must be placed in rawdata directory.
+
+* Here, Genoscope provides the following table: "data-inf-metaT.txt".
+
+* We use unigene table and taxonomy table provided by Damien Courtine: respectively "main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv" and "table_taxonomy.perUnigene.allUnigenes.tsv" ; KO id definition table and the database used in the trait-based approcach
+
+Initialization file (".ini") is then created (from the "MetaT.ini" file found in "Metabarcoding_DADA2"):
+
+For example:
+    
+        ## Enter unigene table (.tsv) (located in rawdata directory) [1]
+        INPUT    main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv
+
+        ## Result path (the same of the composition script output) [2]
+        OUTPUT    V4-unified-correct-paired-out-compo
+
+        ## Unigene Taxonomy path (located in rawdata directory) [3]
+        TAX    table_taxonomy.perUnigene.allUnigenes.tsv
+
+        ## KO ID table path (located in rawdata directory) [4]
+        KO_CLASS    ko_to_hierarchy.txt
+
+        ## Database path used in the trait study (located in database directory) [5]
+        DATABASE    pr2_version_4.14.0_SSU_dada2.fasta.gz
+
+
+Run metatranscriptomic analysis script: `bash R_7_Metatranscriptomic_analysis.sh MetaT.ini`
