@@ -32,8 +32,6 @@ OUTPUT=$(cat $inifile | grep "OUTPUT" | awk -F"\t" '{ print $2 }')
 echo "Output: "$OUTPUT
 TAX=$(cat $inifile | grep "TAX" | awk -F"\t" '{ print $2 }')
 echo "Unigene Taxonomy: "$TAX
-KO=$(cat $inifile | grep "KO_CLASS" | awk -F"\t" '{ print $2 }')
-echo "KO ID Table: "$KO
 DATABASE=$(cat $inifile | grep "DATABASE" | awk -F"\t" '{ print $2 }')
 echo "Database path used in the trait study: "$DATABASE
 
@@ -47,7 +45,7 @@ echo "Duplicat analysis completed 0/1"
 
 ## Launch KO metatranscriptomics analysis
 echo "Start R processing: KO analysis 1/1"
-nohup Rscript 10_KO_Metatrans_analize.R $INPUT $OUTPUT $TAX $KO $DATABASE >> Ranalyse.log
+nohup Rscript 10_KO_Metatrans_analize.R $INPUT $OUTPUT $TAX $DATABASE >> Ranalyse.log
 echo "KO analysis completed 1/1"
 
 ELAPSED=$((($SECONDS-$BEFORE)/60))

@@ -206,10 +206,7 @@ For example:
         ## Unigene Taxonomy path (located in rawdata directory) [3]
         TAX    table_taxonomy.perUnigene.allUnigenes.tsv
 
-        ## KO ID table path (located in rawdata directory) [4]
-        KO_CLASS    ko_to_hierarchy.txt
-
-        ## Database path used in the trait study (located in database directory) [5]
+        ## Database path used in the trait study (located in database directory) [4]
         DATABASE    pr2_version_4.14.0_SSU_dada2.fasta.gz
 
 

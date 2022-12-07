@@ -22,7 +22,6 @@ if (inputmode == TRUE) {
 input <- "main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv"
 output <- "V4-unified-correct-paired-out-compo"
 tax <- "table_taxonomy.perUnigene.allUnigenes.tsv"
-ko2Met <- "ko_to_hierarchy.txt"
 pr2 <- "pr2_version_4.14.0_SSU_dada2.fasta.gz"
 }
 #
@@ -32,13 +31,11 @@ if ( inputmode == FALSE ) {
   input <- args[1]
   output <- args[2]
   tax <- args[3]
-  ko2Met <- args[4]
-  pr2 <- args[5]
+  pr2 <- args[4]
 }
 print(input)
 print(tax)
 print(output)
-print(ko2Met)
 print(pr2)
 #
 # Import package -----------------------------------------------------------
@@ -212,7 +209,7 @@ tableVinput <- fread(file = paste("../../../../rawdata/",input,sep = "/"), sep =
 # Taxo
 Tax_table <- fread(file = paste("../../../../rawdata",tax,sep = "/"), sep = "\t")
 # ko2_hierarachy
-ko2Met_Table <- fread(file = paste("../../../../rawdata",ko2Met,sep = "/"), sep = "\t")
+ko2Met_Table <- fread(file = "../../../../rawdata/ko_to_hierarchy.txt", sep = "\t")
 # Taxonomy reference in metabarcoding
 PR2_tax <- fread(file = paste("../../../../dataBase",pr2,sep = "/"), sep = "\t" , header = F, col.names = c("Taxonomy"))
 PR2_tax <- PR2_tax %>% dplyr::filter(grepl("Eukaryota;",Taxonomy)==T)
