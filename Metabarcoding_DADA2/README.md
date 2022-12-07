@@ -185,8 +185,6 @@ Run Functionnal analysis script:
 
 For example: `bash R_6_Functional_analysis.sh Trait-table.tsv V4-unified-correct-paired-out-compo V4`
 
-Results are generated in "result" file wich is located in dataDADA2 directory.
-
 ### 4. Implementation of metatranscriptomic data
 
 First, inputs and metadata file must be placed in rawdata directory.
@@ -216,3 +214,5 @@ For example:
 
 
 Run metatranscriptomic analysis script: `bash R_7_Metatranscriptomic_analysis.sh MetaT.ini`
+
+Results are generated in "result" file wich is located in dataDADA2 directory.
