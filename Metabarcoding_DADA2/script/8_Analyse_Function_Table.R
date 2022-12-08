@@ -32,7 +32,7 @@
   }
 #
 # Import package -----------------------------------------------------------
-  pkg <- c("ggplot2","vegan","readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram","stringr","cluster","NbClust","tibble","treemapify","psych","gplots","ggExtra","paletteer","elementalist")
+  pkg <- c("ggplot2","vegan","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram","stringr","cluster","NbClust","tibble","treemapify","psych","gplots","ggExtra","paletteer","elementalist")
   lapply(pkg, require, character.only = TRUE)
 #
 # Theme unique Dark perso -------------------------------------------------------
