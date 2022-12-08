@@ -224,7 +224,7 @@ set.seed(1)
   infdataini <- infdataini %>% select(-"empty")
   infdataini<-as.data.frame(infdataini)
   col <- c("Amplicon","Technologie","Region","ADN","Cycle","Zone","Fraction","Date","Replicat")
-  samples_df <- infdataini[,all_of(col)]
+  samples_df <- infdataini[,col]
   samples_df$Condition <- paste(samples_df$ADN,samples_df$Cycle,samples_df$Zone,samples_df$Fraction, sep = "")
   for (i in row.names(samples_df)) {
   if (samples_df[i,"Cycle"] == "J") { samples_df[i,"Cycle"] <- "Day"}
@@ -413,7 +413,7 @@ set.seed(1)
       scale_color_manual(values = c("#0000FF00","black")) +
       scale_alpha_manual(values = c(0,0.5)) +
       scale_linetype_manual(values = c("blank","dashed")) +
-      guides(fill=guide_legend("Affiliation"), color = FALSE, linetype = FALSE) +
+      guides(fill=guide_legend("Affiliation"), color = "none", linetype = "none") +
       labs(x="Taxonomic level",y="ASVs") +
       theme(legend.title = element_text(face="bold"),
             axis.title = element_text(color = "black", face = "bold"))
@@ -506,7 +506,7 @@ set.seed(1)
       stat_bin(binwidth = 1,color = "white", aes(fill = Zone), alpha = 1, position = "dodge2") +
       scale_y_continuous() +
       scale_x_continuous(trans = log2_trans(),breaks = w) +
-      labs(y="ASVs") + geom_vline(xintercept = 182, linetype=2,color = "darkgrey", size=0.5) +
+      labs(y="ASVs") + geom_vline(xintercept = 182, linetype=2,color = "darkgrey", linewidth=0.5) +
       theme(legend.title = element_text(face="bold"),
             axis.title = element_text(color = "black", face = "bold"),
             strip.text.x = element_text(color = "black", face = "bold", size = 12),
@@ -641,7 +641,7 @@ set.seed(1)
     dt <- as.data.frame(seq_mat_rare)
     dt <- dt %>% select(-"Taxonomy")
   ## CA
-    res.ca <- CA(dt, graph = FALSE,ncp = 2 )
+    res.ca <- CA(dt, graph = FALSE,ncp = 2)
     fviz_ca_row(res.ca, repel = FALSE, label = "none")
     p <- get_ca_row(res.ca)
     coord <- p$coord
@@ -765,32 +765,61 @@ set.seed(1)
 # Beta diversity script ---------------------------------------------------
   dt <- as.data.frame(seq_mat_rare)
   dt <- t(dt %>% select(-"Taxonomy"))
-  NMDS_tab=metaMDS(dt,distance = "bray")
+  dt <- merge(dt, samples_df %>% select(Amplicon, Cycle, Date, Fraction, Zone), by.x = "row.names", by.y = "Amplicon")
+  dtx <- dt %>% select(-Cycle,-Date, -Fraction, -Zone, -Row.names)
+  NMDS_tab=metaMDS(dtx,distance = "bray")
 ## Plot
-  Condition <-samples_df$Zone
+  Condition <-dt$Zone
   plot(NMDS_tab)
   ordiellipse(NMDS_tab,groups = Condition,label = T)
   orditorp(NMDS_tab,display="sites")
 ## ggplot
   scores(NMDS_tab,display="sites") %>%
-    cbind(samples_df) %>%
+    cbind(dt %>% select(Row.names, Cycle, Date, Fraction, Zone)) %>%
     cbind(statRarefy) %>%
     ggplot(aes(x = NMDS1, y = NMDS2)) +
     geom_point(aes(size = `apRarefy-ASV`, color = Zone)) +
     facet_grid(~Fraction) +
-    stat_ellipse(geom = "polygon", aes(group = Zone, color = Zone), alpha = 0.1) +
+    stat_ellipse(geom = "polygon", aes(group = Zone, color = Zone), alpha = 0.1, level = 0.95) +
     annotate("text", x = min(scores(NMDS_tab,display="sites")), y = max(scores(NMDS_tab,display="sites"))+1.2, label = paste0("stress: ", format(NMDS_tab$stress, digits = 4)), hjust = 0) +
     theme_bw() + scale_color_jco() # + geom_text(aes(label = Amplicon))
   ggsave("Betadisp/NMDS.svg", device = "svg", width = 5, height = 5)
-## Adonis
-  capture.output(adonis2(formula = dt~samples_df$Zone+samples_df$Fraction+samples_df$Cycle+samples_df$Date,distance = "bray"),file="Betadisp/Adonis.txt")
+## Adonis and Anosim
+  capture.output(adonis2(formula = dtx~dt$Zone+dt$Fraction+dt$Cycle+dt$Date,distance = "bray"),file="Betadisp/Adonis.txt")
+  capture.output(anosim(dtx, dt$Zone, distance = "bray", permutations = 9999),file="Betadisp/anosim_Zone.txt")
+  capture.output(anosim(dtx, dt$Fraction, distance = "bray", permutations = 9999),file="Betadisp/anosim_Fraction.txt")
+  capture.output(anosim(dtx, dt$Date, distance = "bray", permutations = 9999),file="Betadisp/anosim_Periods.txt")
+  capture.output(anosim(dtx, dt$Cycle, distance = "bray", permutations = 9999),file="Betadisp/anosim_Cycle.txt")
+  
 ## Betadisper
-  dist <- vegdist(dt, method ="bray")
-  mod <- betadisper(dist,samples_df$Zone)
-  anova(mod)
-  TukeyHSD(mod)
-  svglite("Betadisp/PCoA2.svg", width = 5.00, height = 5.00)
-  plot(mod)
+  dist <- vegdist(dtx, method ="bray")
+  # Zone
+  mod_Zone <- betadisper(dist,dt$Zone)
+  anova(mod_Zone)
+  TukeyHSD(mod_Zone)
+  svglite("Betadisp/PCoA_Zone.svg", width = 5.00, height = 5.00)
+  plot(mod_Zone)
+  dev.off()
+  # Cycle
+  mod_Cycle <- betadisper(dist,dt$Cycle)
+  anova(mod_Cycle)
+  TukeyHSD(mod_Cycle)
+  svglite("Betadisp/PCoA_Cycle.svg", width = 5.00, height = 5.00)
+  plot(mod_Cycle)
+  dev.off()
+  # Fraction
+  mod_Fraction <- betadisper(dist,dt$Fraction)
+  anova(mod_Fraction)
+  TukeyHSD(mod_Fraction)
+  svglite("Betadisp/PCoA_Fraction.svg", width = 5.00, height = 5.00)
+  plot(mod_Fraction)
+  dev.off()
+  # Period
+  mod_Periods <- betadisper(dist,dt$Date)
+  anova(mod_Periods)
+  TukeyHSD(mod_Periods)
+  svglite("Betadisp/PCoA_Periods.svg", width = 5.00, height = 5.00)
+  plot(mod_Periods)
   dev.off()
 #
 # AFC Taxonomy ------------------------------------------------------------
