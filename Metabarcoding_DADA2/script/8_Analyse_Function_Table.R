@@ -18,7 +18,7 @@
 #
 # Input argument if using Rstudio
   if (inputmode == TRUE) {
-  input <- "Trait-table.tsv"
+  input <- "Trait_Table_Final.tsv"
   output <- "V4-unified-correct-paired-out-compo"
   region <- "V4"
   }
@@ -169,6 +169,34 @@
                     plot.background = element_rect(fill = "white", colour = "#252525", linetype = 0)))
     ret
   } 
+  theme_unique_art <- function (base_size = 12, base_family = "") {
+    ret <- (theme_minimal(base_size = base_size, base_family = base_family) +
+              theme(text = element_text(colour = "black"),
+                    title = element_text(color = "black", face = "bold", vjust = 0.5, hjust = 0.5),
+                    axis.ticks = element_blank(),
+                    line = element_line(color = "black"),
+                    rect = element_rect(fill = "white", color = "black"),
+                    axis.title = element_text(color = "black", face = "bold"),
+                    #axis.text.y = element_blank(),
+                    #axis.text.x = element_blank(),
+                    #axis.line = element_line(color = "#969696", linetype = 1),
+                    legend.background = element_blank(),
+                    legend.key = element_rect(fill = NA, color = NA, linetype = 0),
+                    legend.text = element_text(size = 8),
+                    legend.title = element_text(size = 12, face="bold"),
+                    panel.background = element_rect_round(radius = unit(0.5, "cm"),fill = "white", color = NULL,size = 1),
+                    #legend.position = "none",
+                    #strip.background = element_rect(fill=NA,colour=NA,size=NA,linetype = NULL),
+                    strip.text = element_text(size = 12,color="black",face="bold",vjust=.5,hjust=.5),
+                    #panel.background = element_rect(fill = "white", color = NULL),
+                    panel.border = element_blank(),
+                    panel.grid = element_line(color = "#252525"),
+                    panel.grid.major = element_line(color = "grey86"),
+                    panel.grid.minor = element_line(color = "grey86"),
+                    plot.background = element_rect(fill = "white", colour = "white", linetype = 0)))
+    ret
+  }
+  
 #
 # Set directory, create file result -----------------------------------------------------------
   if (inputmode == TRUE) {
@@ -188,6 +216,8 @@
   system("mkdir Functional-Analyse/Tree_Function")
   system("mkdir Functional-Analyse/Composition_Function")
   system("mkdir Functional-Analyse/Table")
+  system("mkdir Functional-Analyse/Tree2_Function")
+
 #
 # Input ASV Table ---------------------------------------------------------
   tableVinput <- read.csv(file = paste("../../../rawdata",input,sep = "/"), sep = "\t")
@@ -336,8 +366,8 @@
     dev.off()
 #
 # Kmean Cluster ----------------------------------------------
-    set.seed(1) # 123
-    spe.KM.cascade_bis <- cascadeKM(coord %>% select(Dim.1,Dim.2), inf.gr=3, sup.gr=15, iter=1000, criterion="ssi")
+    set.seed(123) # 123
+    spe.KM.cascade_bis <- cascadeKM(coord %>% select(Dim.1,Dim.2), inf.gr=3, sup.gr=12, iter=1000, criterion="ssi")
     KM.cascade.data <- spe.KM.cascade_bis
     svglite(paste0("Functional-Analyse/Group_FUNCTION/","Kmeans-ssi",".svg"),width = 10.00,height = 6.00)
     plot(KM.cascade.data, sortg=TRUE)
@@ -348,22 +378,23 @@
     data_Group_seq <- merge(x = data_Group %>% select(all_of(nbofGroupi)), y = data_seq_trait, by = 'row.names')
     # exchange the name of the groups to get the same annotation as before ()
     data_Group_seq$nbGroup <- 0
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 1] <- 4
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 2] <- 8
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 3] <- 6
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 4] <- 9
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 5] <- 1
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 6] <- 7
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 7] <- 3
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 8] <- 2
-    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 9] <- 5
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 1] <- 9
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 2] <- 5
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 3] <- 1
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 4] <- 8
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 5] <- 3
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 6] <- 6
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 7] <- 7
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 8] <- 4
+    data_Group_seq[,"nbGroup"][data_Group_seq[,"9 groups"] == 9] <- 2
+    ###
     Ngrp <- as.numeric(length(unique(data_Group[,nbofGroupi])))
 #
   # Plot Kmean-ssi PCoA --------------------------------------------------------------------
     data <- data_Group_seq
     for (i in row.names(data)) {data[i,"nbGroup"] <- paste("Group",data[i,"nbGroup"])}
     #colnames(data)<-c("Row.names","nbGroup","Dim.1","Dim.2","Dim.3","Dim.4","Dim.5","Dim.6","Dim.7","Size.min","Size.max","Cover","Shape","Spicule","Symmetry","Polarity","Colony","Motility","Plast.origin","Ingestion.mode","Symbiontic","Resting.stage","Suspected.trophism")
-    data$nbGroup <- as.character(data$nbGroup)
+    #data$nbGroup <- as.character(data$nbGroup)
     a <- ggplot(data, aes(y = `Dim.2`, x = `Dim.1`, color = nbGroup)) + geom_point(size = 2) +
       geom_hline(yintercept=0, linetype=2, color = "black", size=0.2) +
       geom_vline(xintercept=0, linetype=2, color = "black", size=0.2) +
@@ -480,15 +511,15 @@
     #
 # Code-Table_Last.Group ---------------------------------------------------
     ## Code Table
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 1"]<-"Group 1 : SAP"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 2"]<-"Group 2 & 5 : HET"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 3"]<-"Group 3 & 4 : PARA"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 4"]<-"Group 3 & 4 : PARA"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 5"]<-"Group 2 & 5 : HET"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 6"]<-"Group 6 : MIXO"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 7"]<-"Group 7 : FLAT"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 8"]<-"Group 8 : HCOV and SWAT"
-    data[,"nbGroup"][data[,"nbGroup"]=="Group 9"]<-"Group 9 : END"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 1"]<-"SAP"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 2"]<-"HET"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 3"]<-"PARA"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 4"]<-"PARA"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 5"]<-"HET"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 6"]<-"MIXO"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 7"]<-"FLAT"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 8"]<-"HCOV and SWAT"
+    data[,"nbGroup"][data[,"nbGroup"]=="Group 9"]<-"END"
     ## Write table
     write.table(data,"Functional-Analyse/Group_FUNCTION/data_Last.Group.csv",row.names = FALSE,sep=";")
     #
@@ -503,7 +534,7 @@
     infdataini$Rep <- rep("_1", each = nrow(infdataini))
     infdataini$Variable <- paste(infdataini$Condition,infdataini$Rep, sep = "")
     infdataini <- infdataini %>% select(-"Rep",-"Condition")
-    infdataini <- separate(infdataini, Variable, c("Condition","Date","Replicat"), sep = "_")
+    infdataini <- separate(infdataini, Variable, c("Condition","Period","Replicat"), sep = "_")
     for (i in row.names(infdataini)) { 
       if (infdataini[i,"Replicat"] == "01") infdataini[i,"Replicat"] <- "1"
       if (infdataini[i,"Replicat"] == "02") infdataini[i,"Replicat"] <- "2"
@@ -522,12 +553,12 @@
     infdataini <- separate(infdataini, Condition, c("empty","ADN","Cycle","Zone","Fraction"),sep = "")
     infdataini <- infdataini %>% select(-"empty")
     infdataini<-as.data.frame(infdataini)
-    col <- c("Amplicon","Technologie","Region","ADN","Cycle","Zone","Fraction","Date","Replicat")
+    col <- c("Amplicon","Technologie","Region","ADN","Cycle","Zone","Fraction","Period","Replicat")
     samples_df <- infdataini[,all_of(col)]
     samples_df$Condition <- paste(samples_df$ADN,samples_df$Cycle,samples_df$Zone,samples_df$Fraction, sep = "")
     for (i in row.names(samples_df)) {
-      if (samples_df[i,"Cycle"] == "J") { samples_df[i,"Cycle"] <- "Jour"}
-      if (samples_df[i,"Cycle"] == "N") { samples_df[i,"Cycle"] <- "Nuit"}
+      if (samples_df[i,"Cycle"] == "J") { samples_df[i,"Cycle"] <- "Day"}
+      if (samples_df[i,"Cycle"] == "N") { samples_df[i,"Cycle"] <- "Night"}
       if (samples_df[i,"Zone"] == "O") { samples_df[i,"Zone"] <- "Mixolimnion"}
       if (samples_df[i,"Zone"] == "A") { samples_df[i,"Zone"] <- "Monimolimnion"}
       if (samples_df[i,"Fraction"] == "G") { samples_df[i,"Fraction"] <- "Large"}
@@ -539,10 +570,10 @@
 # Create dataframe Condition --------------------------------------------
   # Create sort Condition pattern -------------------------------------------
     ## Cycle
-    CycleJour <- samples_df %>% filter(Cycle == "Jour") %>% filter(Replicat == 1)
-    CycleJour <- CycleJour$Amplicon
-    CycleNuit <- samples_df %>% filter(Cycle == "Nuit") %>% filter(Replicat == 1)
-    CycleNuit <- CycleNuit$Amplicon
+    CycleDay <- samples_df %>% filter(Cycle == "Day") %>% filter(Replicat == 1)
+    CycleDay <- CycleDay$Amplicon
+    CycleNight <- samples_df %>% filter(Cycle == "Night") %>% filter(Replicat == 1)
+    CycleNight <- CycleNight$Amplicon
     ## Zone
     ZoneMixolimnion <- samples_df %>% filter(`Zone` == "Mixolimnion") %>% filter(Replicat == 1)
     ZoneMixolimnion <- ZoneMixolimnion$Amplicon
@@ -553,28 +584,28 @@
     FractionSmall <- FractionSmall$Amplicon
     FractionLarge <- samples_df %>% filter(`Fraction` == "Large") %>% filter(Replicat == 1)
     FractionLarge <- FractionLarge$Amplicon
-    ## Date
-    Date04 <- samples_df %>% filter(Date == "04") %>% filter(Replicat == 1)
-    Date04 <- Date04$Amplicon
-    Date06 <- samples_df %>% filter(Date == "06") %>% filter(Replicat == 1)
-    Date06 <- Date06$Amplicon
-    Date09 <- samples_df %>% filter(Date == "09") %>% filter(Replicat == 1)
-    Date09 <- Date09$Amplicon
-    Date11 <- samples_df %>% filter(Date == "11") %>% filter(Replicat == 1)
-    Date11 <- Date11$Amplicon
+    ## Period
+    Period04 <- samples_df %>% filter(Period == "04") %>% filter(Replicat == 1)
+    Period04 <- Period04$Amplicon
+    Period06 <- samples_df %>% filter(Period == "06") %>% filter(Replicat == 1)
+    Period06 <- Period06$Amplicon
+    Period09 <- samples_df %>% filter(Period == "09") %>% filter(Replicat == 1)
+    Period09 <- Period09$Amplicon
+    Period11 <- samples_df %>% filter(Period == "11") %>% filter(Replicat == 1)
+    Period11 <- Period11$Amplicon
     #
     # Sequence ----------------------------------------------------------------
     ## Cycle
-    ### Jour
-    Jour_seq <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(CycleJour))))
-    colnames(Jour_seq) <- "TotalJour"
-    Jour_seq$ASV_Id <- row.names(Jour_seq)
-    ### Nuit
-    Nuit_seq <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(CycleNuit))))
-    colnames(Nuit_seq) <- "TotalNuit"
-    Nuit_seq$ASV_Id <- row.names(Nuit_seq)
+    ### Day
+    Day_seq <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(CycleDay))))
+    colnames(Day_seq) <- "TotalDay"
+    Day_seq$ASV_Id <- row.names(Day_seq)
+    ### Night
+    Night_seq <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(CycleNight))))
+    colnames(Night_seq) <- "TotalNight"
+    Night_seq$ASV_Id <- row.names(Night_seq)
     ### Merge
-    Cycle_seq <- merge(x = Jour_seq,y = Nuit_seq, by = "ASV_Id")
+    Cycle_seq <- merge(x = Day_seq,y = Night_seq, by = "ASV_Id")
     ## Zone
     ### Mixolimnion
     Mixolimnion_seq <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(ZoneMixolimnion))))
@@ -597,51 +628,51 @@
     Large_seq$ASV_Id <- row.names(Large_seq)
     ### Merge
     Fraction_seq <- merge(x = Small_seq,y = Large_seq, by = "ASV_Id")
-    ## Date
+    ## Period
     ### 04
-    `04_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date04))))
+    `04_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period04))))
     colnames(`04_seq`) <- "Total04"
     `04_seq`$ASV_Id <- row.names(`04_seq`)
     ### 06
-    `06_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date06))))
+    `06_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period06))))
     colnames(`06_seq`) <- "Total06"
     `06_seq`$ASV_Id <- row.names(`06_seq`)
     ### 09
-    `09_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date09))))
+    `09_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period09))))
     colnames(`09_seq`) <- "Total09"
     `09_seq`$ASV_Id <- row.names(`09_seq`)
     ### 11
-    `11_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date11))))
+    `11_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period11))))
     colnames(`11_seq`) <- "Total11"
     `11_seq`$ASV_Id <- row.names(`11_seq`)
     ### Merge
-    Date_seq <- merge(x = `04_seq`,y = `06_seq`, by = "ASV_Id")
-    Date_seq <- merge(x = Date_seq,y = `09_seq`, by = "ASV_Id")
-    Date_seq <- merge(x = Date_seq,y = `11_seq`, by = "ASV_Id")
+    Period_seq <- merge(x = `04_seq`,y = `06_seq`, by = "ASV_Id")
+    Period_seq <- merge(x = Period_seq,y = `09_seq`, by = "ASV_Id")
+    Period_seq <- merge(x = Period_seq,y = `11_seq`, by = "ASV_Id")
     # ASV ----------------------------------------------------------------
     ## Cycle
-    ### Jour
-    Jour_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(CycleJour))))
-    colnames(Jour_asv) <- "TotalJour"
-    for (i in row.names(Jour_asv)) {if (Jour_asv[i,"TotalJour"] > 0) {Jour_asv[i,"TotalJour"] <- 1}}
-    Jour_asv$ASV_Id <- row.names(Jour_asv)
-    ### Nuit
-    Nuit_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(CycleNuit))))
-    colnames(Nuit_asv) <- "TotalNuit"
-    for (i in row.names(Nuit_asv)) {if (Nuit_asv[i,"TotalNuit"] > 0) {Nuit_asv[i,"TotalNuit"] <- 1}}
-    Nuit_asv$ASV_Id <- row.names(Nuit_asv)
+    ### Day
+    Day_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(CycleDay))))
+    colnames(Day_asv) <- "TotalDay"
+    Day_asv[,"TotalDay"][Day_asv[,"TotalDay"] > 0] <- 1
+    Day_asv$ASV_Id <- row.names(Day_asv)
+    ### Night
+    Night_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(CycleNight))))
+    colnames(Night_asv) <- "TotalNight"
+    Night_asv[,"TotalNight"][Night_asv[,"TotalNight"] > 0] <- 1
+    Night_asv$ASV_Id <- row.names(Night_asv)
     ### Merge
-    Cycle_asv <- merge(x = Jour_asv,y = Nuit_asv, by = "ASV_Id")
+    Cycle_asv <- merge(x = Day_asv,y = Night_asv, by = "ASV_Id")
     ## Zone
     ### Mixolimnion
     Mixolimnion_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(ZoneMixolimnion))))
     colnames(Mixolimnion_asv) <- "TotalMixolimnion"
-    for (i in row.names(Mixolimnion_asv)) {if (Mixolimnion_asv[i,"TotalMixolimnion"] > 0) {Mixolimnion_asv[i,"TotalMixolimnion"] <- 1}}
+    Mixolimnion_asv[,"TotalMixolimnion"][Mixolimnion_asv[,"TotalMixolimnion"] > 0] <- 1
     Mixolimnion_asv$ASV_Id <- row.names(Mixolimnion_asv)
     ### Monimolimnion
     Monimolimnion_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(ZoneMonimolimnion))))
     colnames(Monimolimnion_asv) <- "TotalMonimolimnion"
-    for (i in row.names(Monimolimnion_asv)) {if (Monimolimnion_asv[i,"TotalMonimolimnion"] > 0) {Monimolimnion_asv[i,"TotalMonimolimnion"] <- 1}}
+    Monimolimnion_asv[,"TotalMonimolimnion"][Monimolimnion_asv[,"TotalMonimolimnion"] > 0] <- 1
     Monimolimnion_asv$ASV_Id <- row.names(Monimolimnion_asv)
     ### Merge
     Zone_asv <- merge(x = Mixolimnion_asv,y = Monimolimnion_asv, by = "ASV_Id")
@@ -649,102 +680,102 @@
     ### Small
     Small_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(FractionSmall))))
     colnames(Small_asv) <- "TotalSmall"
-    for (i in row.names(Small_asv)) {if (Small_asv[i,"TotalSmall"] > 0) {Small_asv[i,"TotalSmall"] <- 1}}
+    Small_asv[,"TotalSmall"][Small_asv[,"TotalSmall"] > 0] <- 1
     Small_asv$ASV_Id <- row.names(Small_asv)
     ### Large
     Large_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(FractionLarge))))
     colnames(Large_asv) <- "TotalLarge"
-    for (i in row.names(Large_asv)) {if (Large_asv[i,"TotalLarge"] > 0) {Large_asv[i,"TotalLarge"] <- 1}}
+    Large_asv[,"TotalLarge"][Large_asv[,"TotalLarge"] > 0] <- 1
     Large_asv$ASV_Id <- row.names(Large_asv)
     ### Merge
     Fraction_asv <- merge(x = Small_asv,y = Large_asv, by = "ASV_Id")
-    ## Date
+    ## Period
     ### 04
-    `04_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date04))))
+    `04_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period04))))
     colnames(`04_asv`) <- "Total04"
-    for (i in row.names(`04_asv`)) {if (`04_asv`[i,"Total04"] > 0) {`04_asv`[i,"Total04"] <- 1}}
+    `04_asv`[,"Total04"][`04_asv`[,"Total04"] > 0] <- 1
     `04_asv`$ASV_Id <- row.names(`04_asv`)
     ### 06
-    `06_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date06))))
+    `06_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period06))))
     colnames(`06_asv`) <- "Total06"
-    for (i in row.names(`06_asv`)) {if (`06_asv`[i,"Total06"] > 0) {`06_asv`[i,"Total06"] <- 1}}
+    `06_asv`[,"Total06"][`06_asv`[,"Total06"] > 0] <- 1
     `06_asv`$ASV_Id <- row.names(`06_asv`)
     ### 09
-    `09_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date09))))
+    `09_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period09))))
     colnames(`09_asv`) <- "Total09"
-    for (i in row.names(`09_asv`)) {if (`09_asv`[i,"Total09"] > 0) {`09_asv`[i,"Total09"] <- 1}}
+    `09_asv`[,"Total09"][`09_asv`[,"Total09"] > 0] <- 1
     `09_asv`$ASV_Id <- row.names(`09_asv`)
     ### 11
-    `11_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date11))))
+    `11_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period11))))
     colnames(`11_asv`) <- "Total11"
-    for (i in row.names(`11_asv`)) {if (`11_asv`[i,"Total11"] > 0) {`11_asv`[i,"Total11"] <- 1}}
+    `11_asv`[,"Total11"][`11_asv`[,"Total11"] > 0] <- 1
     `11_asv`$ASV_Id <- row.names(`11_asv`)
     ### Merge
-    Date_asv <- merge(x = `04_asv`,y = `06_asv`, by = "ASV_Id")
-    Date_asv <- merge(x = Date_asv,y = `09_asv`, by = "ASV_Id")
-    Date_asv <- merge(x = Date_asv,y = `11_asv`, by = "ASV_Id")
+    Period_asv <- merge(x = `04_asv`,y = `06_asv`, by = "ASV_Id")
+    Period_asv <- merge(x = Period_asv,y = `09_asv`, by = "ASV_Id")
+    Period_asv <- merge(x = Period_asv,y = `11_asv`, by = "ASV_Id")
     #
 # AFC Plot BASE ----------------------------------------------------------------
   # Sequence ----------------------------------------------------------------
     dt <- as.data.frame(seq_mat_rare)
     dt <- dt %>% select(-"Taxonomy")
     ## CA
-    res.ca <- CA(dt, graph = FALSE,ncp = 2 )
+    res.ca <- CA(dt, graph = FALSE,ncp = 2)
     fviz_ca_row(res.ca, repel = FALSE, label = "none")
     p <- get_ca_row(res.ca)
     coord <- p$coord
     coord <- as.data.frame(coord)
     coord$ASV_Id <- row.names(coord)
-    ## Cycle
+    ### Cycle
     data_seq <- merge(x = coord, y = Cycle_seq, by = "ASV_Id")
-    ### 100% - 0%
-    data_seq$Jour <- 0
-    data_seq$Nuit <- 0
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalJour"] != 0) { data_seq[i,"Jour"] <- 1}}
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalNuit"] != 0) { data_seq[i,"Nuit"] <- 2}}
+    #### 100% - 0%
+    data_seq$Day <- 0
+    data_seq$Night <- 0
+    data_seq[,"Day"][data_seq[,"TotalDay"] != 0] <-1
+    data_seq[,"Night"][data_seq[,"TotalNight"] != 0] <-2
     data_seq$Cycle <- 0
-    for (i in rownames(data_seq)) { data_seq[i,"Cycle"] <- data_seq[i,"Jour"] + data_seq[i,"Nuit"] 
-    if ( data_seq[i,"Cycle"] == 1) { data_seq[i,"Cycle"] <- "Jour"}
-    if ( data_seq[i,"Cycle"] == 2) { data_seq[i,"Cycle"] <- "Nuit"}
-    if ( data_seq[i,"Cycle"] == 3) { data_seq[i,"Cycle"] <- "Communs"}}
-    ### 90% - 10%
-    data_seq$Cycle90 <- "Communs"
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalJour"] > data_seq[i,"TotalNuit"]) { data_seq[i,"Cycle90"] <- "Jour"}}
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalNuit"] > data_seq[i,"TotalJour"]) { data_seq[i,"Cycle90"] <- "Nuit"}}
-    ## Zone
+    data_seq[,"Cycle"] <- data_seq[,"Day"] + data_seq[,"Night"]
+    data_seq[,"Cycle"][data_seq[,"Cycle"] == 1] <- "Day"
+    data_seq[,"Cycle"][data_seq[,"Cycle"] == 2] <- "Night"
+    data_seq[,"Cycle"][data_seq[,"Cycle"] == 3] <- "Shared"
+    #### 90% - 10%
+    data_seq$Cycle90 <- "Shared"
+    data_seq[,"Cycle90"][0.1*data_seq[,"TotalDay"] > data_seq[,"TotalNight"]] <- "Day"
+    data_seq[,"Cycle90"][0.1*data_seq[,"TotalNight"] > data_seq[,"TotalDay"]] <- "Night"
+    ### Zone
     data_seq <- merge(x = data_seq, y = Zone_seq, by = "ASV_Id")
-    ### 100% - 0%
+    #### 100% - 0%
     data_seq$Mixolimnion <- 0
     data_seq$Monimolimnion <- 0
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalMixolimnion"] != 0) { data_seq[i,"Mixolimnion"] <- 1}}
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalMonimolimnion"] != 0) { data_seq[i,"Monimolimnion"] <- 2}}
+    data_seq[,"Mixolimnion"][data_seq[,"TotalMixolimnion"] != 0] <-1
+    data_seq[,"Monimolimnion"][data_seq[,"TotalMonimolimnion"] != 0] <-2
     data_seq$Zone <- 0
-    for (i in rownames(data_seq)) { data_seq[i,"Zone"] <- data_seq[i,"Mixolimnion"] + data_seq[i,"Monimolimnion"] 
-    if ( data_seq[i,"Zone"] == 1) { data_seq[i,"Zone"] <- "Mixolimnion"}
-    if ( data_seq[i,"Zone"] == 2) { data_seq[i,"Zone"] <- "Monimolimnion"}
-    if ( data_seq[i,"Zone"] == 3) { data_seq[i,"Zone"] <- "Communs"}}
-    ### 90% - 10%
-    data_seq$Zone90 <- "Communs"
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalMixolimnion"] > data_seq[i,"TotalMonimolimnion"]) { data_seq[i,"Zone90"] <- "Mixolimnion"}}
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalMonimolimnion"] > data_seq[i,"TotalMixolimnion"]) { data_seq[i,"Zone90"] <- "Monimolimnion"}}  
-    ## Fraction
+    data_seq[,"Zone"] <- data_seq[,"Mixolimnion"] + data_seq[,"Monimolimnion"]
+    data_seq[,"Zone"][data_seq[,"Zone"] == 1] <- "Mixolimnion"
+    data_seq[,"Zone"][data_seq[,"Zone"] == 2] <- "Monimolimnion"
+    data_seq[,"Zone"][data_seq[,"Zone"] == 3] <- "Shared"
+    #### 90% - 10%
+    data_seq$Zone90 <- "Shared"
+    data_seq[,"Zone90"][0.1*data_seq[,"TotalMixolimnion"] > data_seq[,"TotalMonimolimnion"]] <- "Mixolimnion"
+    data_seq[,"Zone90"][0.1*data_seq[,"TotalMonimolimnion"] > data_seq[,"TotalMixolimnion"]] <- "Monimolimnion"
+    ### Fraction
     data_seq <- merge(x = data_seq, y = Fraction_seq, by = "ASV_Id")
-    ### 100% - 0%
+    #### 100% - 0%
     data_seq$Small <- 0
     data_seq$Large <- 0
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalSmall"] != 0) { data_seq[i,"Small"] <- 1}}
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalLarge"] != 0) { data_seq[i,"Large"] <- 2}}
+    data_seq[,"Small"][data_seq[,"TotalSmall"] != 0] <-1
+    data_seq[,"Large"][data_seq[,"TotalLarge"] != 0] <-2
     data_seq$Fraction <- 0
-    for (i in rownames(data_seq)) { data_seq[i,"Fraction"] <- data_seq[i,"Small"] + data_seq[i,"Large"] 
-    if ( data_seq[i,"Fraction"] == 1) { data_seq[i,"Fraction"] <- "Small"}
-    if ( data_seq[i,"Fraction"] == 2) { data_seq[i,"Fraction"] <- "Large"}
-    if ( data_seq[i,"Fraction"] == 3) { data_seq[i,"Fraction"] <- "Communs"}}
-    ### 90% - 10%
-    data_seq$Fraction90 <- "Communs"
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalSmall"] > data_seq[i,"TotalLarge"]) { data_seq[i,"Fraction90"] <- "Small"}}
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalLarge"] > data_seq[i,"TotalSmall"]) { data_seq[i,"Fraction90"] <- "Large"}}  
-    ## Date
-    data_seq <- merge(x = data_seq, y = Date_seq, by = "ASV_Id")
+    data_seq[,"Fraction"] <- data_seq[,"Small"] + data_seq[,"Large"]
+    data_seq[,"Fraction"][data_seq[,"Fraction"] == 1] <- "Small"
+    data_seq[,"Fraction"][data_seq[,"Fraction"] == 2] <- "Large"
+    data_seq[,"Fraction"][data_seq[,"Fraction"] == 3] <- "Shared"
+    #### 90% - 10%
+    data_seq$Fraction90 <- "Shared"
+    data_seq[,"Fraction90"][0.1*data_seq[,"TotalSmall"] > data_seq[,"TotalLarge"]] <- "Small"
+    data_seq[,"Fraction90"][0.1*data_seq[,"TotalLarge"] > data_seq[,"TotalSmall"]] <- "Large"
+    ### Period
+    data_seq <- merge(x = data_seq, y = Period_seq, by = "ASV_Id")
     data_seq04 <- data_seq %>% filter(Total04 != 0) %>% select(-Total06,-Total09,-Total11)
     data_seq06 <- data_seq %>% filter(Total06 != 0) %>% select(-Total04,-Total09,-Total11)
     data_seq09 <- data_seq %>% filter(Total09 != 0) %>% select(-Total04,-Total06,-Total11)
@@ -765,41 +796,41 @@
     coord <- p$coord
     coord <- as.data.frame(coord)
     coord$ASV_Id <- row.names(coord)
-    ## Cycle
+    ### Cycle
     data_asv <- merge(x = coord, y = Cycle_asv, by = "ASV_Id")
-    data_asv$Jour <- 0
-    data_asv$Nuit <- 0
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalJour"] != 0) { data_asv[i,"Jour"] <- 1}}
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalNuit"] != 0) { data_asv[i,"Nuit"] <- 2}}
+    data_asv$Day <- 0
+    data_asv$Night <- 0
+    data_asv[,"Day"][data_asv[,"TotalDay"] != 0] <- 1
+    data_asv[,"Night"][data_asv[,"TotalNight"] != 0] <- 2
     data_asv$Cycle <- 0
-    for (i in rownames(data_asv)) { data_asv[i,"Cycle"] <- data_asv[i,"Jour"] + data_asv[i,"Nuit"] 
-    if ( data_asv[i,"Cycle"] == 1) { data_asv[i,"Cycle"] <- "Jour"}
-    if ( data_asv[i,"Cycle"] == 2) { data_asv[i,"Cycle"] <- "Nuit"}
-    if ( data_asv[i,"Cycle"] == 3) { data_asv[i,"Cycle"] <- "Communs"}}
-    ## Zone
+    data_asv[,"Cycle"] <- data_asv[,"Day"] + data_asv[,"Night"]
+    data_asv[,"Cycle"][data_asv[,"Cycle"] == 1] <- "Day"
+    data_asv[,"Cycle"][data_asv[,"Cycle"] == 2] <- "Night"
+    data_asv[,"Cycle"][data_asv[,"Cycle"] == 3] <- "Shared"
+    ### Zone
     data_asv <- merge(x = data_asv, y = Zone_asv, by = "ASV_Id")
     data_asv$Mixolimnion <- 0
     data_asv$Monimolimnion <- 0
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalMixolimnion"] != 0) { data_asv[i,"Mixolimnion"] <- 1}}
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalMonimolimnion"] != 0) { data_asv[i,"Monimolimnion"] <- 2}}
+    data_asv[,"Mixolimnion"][data_asv[,"TotalMixolimnion"] != 0] <- 1
+    data_asv[,"Monimolimnion"][data_asv[,"TotalMonimolimnion"] != 0] <- 2
     data_asv$Zone <- 0
-    for (i in rownames(data_asv)) { data_asv[i,"Zone"] <- data_asv[i,"Mixolimnion"] + data_asv[i,"Monimolimnion"] 
-    if ( data_asv[i,"Zone"] == 1) { data_asv[i,"Zone"] <- "Mixolimnion"}
-    if ( data_asv[i,"Zone"] == 2) { data_asv[i,"Zone"] <- "Monimolimnion"}
-    if ( data_asv[i,"Zone"] == 3) { data_asv[i,"Zone"] <- "Communs"}}
-    ## Fraction
+    data_asv[,"Zone"] <- data_asv[,"Mixolimnion"] + data_asv[,"Monimolimnion"]
+    data_asv[,"Zone"][data_asv[,"Zone"] == 1] <- "Mixolimnion"
+    data_asv[,"Zone"][data_asv[,"Zone"] == 2] <- "Monimolimnion"
+    data_asv[,"Zone"][data_asv[,"Zone"] == 3] <- "Shared"
+    ### Fraction
     data_asv <- merge(x = data_asv, y = Fraction_asv, by = "ASV_Id")
     data_asv$Small <- 0
     data_asv$Large <- 0
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalSmall"] != 0) { data_asv[i,"Small"] <- 1}}
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalLarge"] != 0) { data_asv[i,"Large"] <- 2}}
+    data_asv[,"Small"][data_asv[,"TotalSmall"] != 0] <- 1
+    data_asv[,"Large"][data_asv[,"TotalLarge"] != 0] <- 2
     data_asv$Fraction <- 0
-    for (i in rownames(data_asv)) { data_asv[i,"Fraction"] <- data_asv[i,"Small"] + data_asv[i,"Large"] 
-    if ( data_asv[i,"Fraction"] == 1) { data_asv[i,"Fraction"] <- "Small"}
-    if ( data_asv[i,"Fraction"] == 2) { data_asv[i,"Fraction"] <- "Large"}
-    if ( data_asv[i,"Fraction"] == 3) { data_asv[i,"Fraction"] <- "Communs"}}
-    ## Date
-    data_asv <- merge(x = data_asv, y = Date_asv, by = "ASV_Id")
+    data_asv[,"Fraction"] <- data_asv[,"Small"] + data_asv[,"Large"]
+    data_asv[,"Fraction"][data_asv[,"Fraction"] == 1] <- "Small"
+    data_asv[,"Fraction"][data_asv[,"Fraction"] == 2] <- "Large"
+    data_asv[,"Fraction"][data_asv[,"Fraction"] == 3] <- "Shared"
+    ### Period
+    data_asv <- merge(x = data_asv, y = Period_asv, by = "ASV_Id")
     data_asv04 <- data_asv %>% filter(Total04 != 0) %>% select(-Total06,-Total09,-Total11)
     data_asv06 <- data_asv %>% filter(Total06 != 0) %>% select(-Total04,-Total09,-Total11)
     data_asv09 <- data_asv %>% filter(Total09 != 0) %>% select(-Total04,-Total06,-Total11)
@@ -867,8 +898,154 @@
     data_asv_tax[,"nbGroup"][is.na(data_asv_tax[,"nbGroup"])==TRUE]<-"Unassigned"
     data_asv_tax$RangInterest <- data_asv_tax$nbGroup
     write.table(data_asv_tax, file = "Functional-Analyse/Table/ASV(asv)-Table-GrpFunct.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+# Color for Tax ------------------------------------------------------------
+    color_tax <- data_seq_tax %>% dplyr::select(Supergroup,Division) %>% distinct(Supergroup,Division)
+    color_tax[,"palet"] <- ""
+    color_tax[,"Label"] <- color_tax[,"Division"]
+    for (i in row.names(color_tax)){
+      if (color_tax[i,"Label"] == "Not Affiliated" && color_tax[i,"Supergroup"]!="Not Affiliated") { color_tax[i,"Label"] <- paste("Unaffiliated",color_tax[i,"Supergroup"])}
+      if (grepl(x = color_tax[i,"Division"], pattern = "_X") == TRUE) { color_tax[i,"Label"] <- paste("Unaffiliated",color_tax[i,"Supergroup"])}
+      
+    }
+    color_tax
+    color_tax <- color_tax %>% arrange(Supergroup,Label)
+    
+    for (i in 1:length(unique(color_tax$Supergroup))) {
+      B_courant <- unique(color_tax$Supergroup)[i]
+      B_countLabel <- nrow(unique(color_tax %>% filter(Supergroup == B_courant) %>% dplyr::select('Label')))
+      #palet_liste <- c("red_material","pink_material","purple_material","deep_purple_material","indigo_material","blue_material","light_blue_material","cyan_material","teal_material","green_material","light_green_material","lime_material","yellow_material","amber_material","orange_material","deep_orange_material","brown_material","grey_material","blue_grey_material")
+      palet_liste <- c("red_material","deep_purple_material","blue_material","light_blue_material","light_green_material","yellow_material","orange_material","grey_material","pink_material","cyan_material","green_material","lime_material","indigo_material","purple_material","amber_material","blue_grey_material")
+      palet_name <- paste0("ggsci::",palet_liste[i])
+      print(palet_name)
+      palet_courante <- c(paletteer_d(palet_name,direction = -1,n=10),"#fae6eb")[seq(1,floor(B_countLabel+(B_countLabel/2))+2,2)]
+      print(B_courant)
+      print(B_countLabel)
+      print(palet_courante)
+      for (j in 1:B_countLabel) {
+        Label_courant <- unique(color_tax %>% filter(Supergroup==B_courant) %>% dplyr::select(Label))[[1]][j]
+        print(Label_courant)
+        color_tax[,"palet"][color_tax[,"Label"]==Label_courant] <- palet_courante[j]
+      }
+    }
+    color_tax <- color_tax %>% arrange(Supergroup,Label)
+    color_tax_table <- color_tax %>% dplyr::select(palet,Label) %>% distinct()
+    color_tax_table_order <- color_tax_table$Label
+    #
+    paletspe <- rep(c("#e53a35","#f44336","#ef5350","#e57373","#ef9a9a","#ffcdd2",
+                      "#7b1fa2","#8e24aa","#9c27b0",
+                      "#303f9f",
+                      "#0288d1","#049be5",
+                      #"#01796b",
+                      #"#689f38","#7cb342","#8bc34a",
+                      "#689f38","#7cb342",
+                      "#fbc02c","#fdd835","#ffeb3a","#ffee58","#fff176",
+                      "#f57c00",
+                      "#616161","#757575","#9e9e9e","#bdbdbd",
+                      "#1876d2",
+                      #"#455b64","#546e7a","#607d8b","#78909c","#90a4ae"),
+                      #"#2e897b","#349688","#3ba69a","#4db6ac","#80cbc4"),
+                      "#3897a7","#41acc1","#4cc6da","#80deea","#b2ebf2"),
+                    #"#c2195a","#d2195c","#d4195d","#e61f61","#ea4079"),
+                    4)
+# Zone X Periods ----------------------------------------------------------
+    for (type in c("Sequence","ASV")) {
+      if (type == "ASV") { input_data_table <- asv_mat_rare }
+      if (type == "Sequence") { input_data_table <- seq_mat_rare }
+      for (zonexs in c("Mixolimnion","Monimolimnion")) {
+        for (periodxs in c("04","06","09","11")) {
+          tableI <- paste(zonexs,periodxs,sep="X")
+          assign(tableI,samples_df %>% filter(Zone == zonexs) %>% filter(Period == periodxs) %>% filter(Replicat == 1))
+          assign(tableI,get(tableI)$Amplicon)
+          assign(paste(tableI,"seq",sep="_"),as.data.frame(rowSums(input_data_table %>% select(all_of(get(tableI))))))
+          tableIt <- get(paste(tableI,"seq",sep="_"))
+          colnames(tableIt) <- paste(zonexs,periodxs,sep="X")
+          tableIt$ASV_Id <- row.names(tableIt)
+          assign(paste(tableI,"seq",sep="_"),tableIt)
+        }
+      }
+      ## Merging
+      ZoneX04 <- merge(x = MixolimnionX04_seq,y = MonimolimnionX04_seq, by = "ASV_Id")
+      ZoneX06 <- merge(x = MixolimnionX06_seq,y = MonimolimnionX06_seq, by = "ASV_Id")
+      ZoneX09 <- merge(x = MixolimnionX09_seq,y = MonimolimnionX09_seq, by = "ASV_Id")
+      ZoneX11 <- merge(x = MixolimnionX11_seq,y = MonimolimnionX11_seq, by = "ASV_Id")
+      ZoneXi <- merge(x = ZoneX04,y = ZoneX06, by = "ASV_Id")
+      ZoneXj <- merge(x = ZoneXi,y = ZoneX09, by = "ASV_Id")
+      ZoneXPeriods <- merge(x = ZoneXj,y = ZoneX11, by = "ASV_Id")
+      if (type == "ASV") { ZoneXPeriods[,2:9][ZoneXPeriods[,2:9]>1]<-1}
+      ZoneXPeriods_tax <- merge(data_seq_tax %>% select(ASV_Id,RangInterest,Supergroup,Division), ZoneXPeriods, by = "ASV_Id")
+      ZoneXPeriods_tax <- ZoneXPeriods_tax %>% select(-ASV_Id)
+      for (i in rownames(ZoneXPeriods_tax)) { if (ZoneXPeriods_tax[i,"Division"]=="Not Affiliated" && ZoneXPeriods_tax[i,"Supergroup"]!="Not Affiliated") { ZoneXPeriods_tax[i,"Division"] <- paste("Unaffiliated",ZoneXPeriods_tax[i,"Supergroup"],sep=" ")}
+        if (ZoneXPeriods_tax[i,"Division"]=="Alveolata_X" ) { ZoneXPeriods_tax[i,"Division"] <- paste("Unaffiliated",ZoneXPeriods_tax[i,"Supergroup"],sep=" ")}}
+      ZoneXPeriods_tax <- ZoneXPeriods_tax %>% group_by(RangInterest,Supergroup,Division) %>% summarise_all(sum)
+
+      ZoneXPeriods_tax_melt <-melt(ZoneXPeriods_tax,id.vars = c("RangInterest","Supergroup","Division"))
+      ZoneXPeriods_tax_melt <- ZoneXPeriods_tax_melt %>% filter(!RangInterest %in% c("Lichen","Other multicellular Fungi", "Embryophyceae","Unaffiliated","Metazoa"))
+      ZoneXPeriods_tax_melt <- separate(ZoneXPeriods_tax_melt,"variable",c("Zone","Periods"),sep="X")
+      for (i in row.names(ZoneXPeriods_tax_melt)) {
+        Periodsx <- ZoneXPeriods_tax_melt[i,"Periods"]
+        Zonex <- ZoneXPeriods_tax_melt[i,"Zone"]
+        RangInterestx <- ZoneXPeriods_tax_melt[i,"RangInterest"]
+        Supergroupx <- ZoneXPeriods_tax_melt[i,"Supergroup"]
+        Divisionx <- ZoneXPeriods_tax_melt[i,"Division"]
+        ZoneXPeriods_tax_melt[i,"Sum"] <- sum(ZoneXPeriods_tax_melt %>% filter(Periods == Periodsx) %>% filter(Zone == Zonex) %>% filter(RangInterest == RangInterestx) %>% dplyr::select(value))/nrow(ZoneXPeriods_tax_melt %>% filter(Periods == Periodsx) %>% filter(Zone == Zonex) %>% filter(RangInterest == RangInterestx))
+        ZoneXPeriods_tax_melt[i,"Relative"] <- ZoneXPeriods_tax_melt[i,"value"] *100 / sum(ZoneXPeriods_tax_melt %>% filter(Periods == Periodsx) %>% filter(Zone == Zonex) %>% dplyr::select(value))
+        ZoneXPeriods_tax_melt[i,"Proportion"] <- ZoneXPeriods_tax_melt[i,"value"]*100/ZoneXPeriods_tax_melt[i,"Sum"]}
+      ZoneXPeriods_tax_melt <- merge(ZoneXPeriods_tax_melt,color_tax %>% select(Label,palet), by.x = "Division", by.y = "Label")
+      ZoneXPeriods_tax_melt <- ZoneXPeriods_tax_melt %>% arrange(Supergroup, Division, RangInterest)
+      assign(paste("ZoneXPeriods_tax_melt",type,sep = "_"),ZoneXPeriods_tax_melt)
+    }
+    color_tax_table_order <- unique(ZoneXPeriods_tax_melt_Sequence$Division)
+    color_palet_table_order <- unique(ZoneXPeriods_tax_melt_Sequence$palet)
+    
+    ### Sequence   
+    y <- ZoneXPeriods_tax_melt_Sequence %>% group_by(palet, Division, Supergroup, RangInterest, Zone, Periods) %>% summarise_all(sum)
+    y$mixte <- paste(y$RangInterest,y$Division, sep=" X ")
+    x <- ZoneXPeriods_tax_melt_Sequence %>% select(-Division, -Supergroup, -palet) %>% group_by(RangInterest, Zone, Periods) %>% summarise_all(sum)
+    svglite("Functional-Analyse/Hist_Function/ZoneXPeriods-Sequence-Fun-area.svg",width = 11.00,height = 9.00)
+    Fun_seq_PeriodsXZone_fig <- ggplot(Rowv = NA, col = colMain, scale = "column") + 
+      geom_area(data = y, mapping = aes(y= Relative, x = Periods, fill = factor(Division, level = color_tax_table_order), group = mixte),stat="identity",alpha=0.95, color = NA) +
+      geom_area(data = x, mapping = aes(y= Relative, x = Periods, color = RangInterest, group = RangInterest),stat="identity", color = "black", fill = NA, size = 1) + 
+      geom_text(data = x %>% arrange(desc(RangInterest)), mapping = aes(y= Relative, x = Periods, label = ifelse(Periods=="06", RangInterest,"")), 
+                size = 4, position = position_stack(vjust = 0.5),
+                fontface = "bold") +
+      facet_grid(.~Zone,scales="free") + 
+      theme_unique_art() +
+      scale_fill_manual(values = rep(color_palet_table_order,8), na.value = NA) +
+      labs(x="Periods",y="Sequence %",fill="Division") + 
+      guides(fill=guide_legend(ncol=1))
+    print(Fun_seq_PeriodsXZone_fig)
+    dev.off()
+    ### ASVs
+    y <- ZoneXPeriods_tax_melt_ASV %>% group_by(palet, Division, Supergroup, RangInterest, Zone, Periods) %>% summarise_all(sum)
+    y$mixte <- paste(y$RangInterest,y$Division, sep=" X ")
+    x <- ZoneXPeriods_tax_melt_ASV %>% select(-Division, -Supergroup, -palet) %>% group_by(RangInterest, Zone, Periods) %>% summarise_all(sum)
+    svglite("Functional-Analyse/Hist_Function/ZoneXPeriods-ASVs-Fun-area.svg",width = 11.00,height = 9.00)
+    Fun_asv_PeriodsXZone_fig <- ggplot(Rowv = NA, col = colMain, scale = "column") + 
+      geom_area(data = y, mapping = aes(y= Relative, x = Periods, fill = factor(Division, level = color_tax_table_order), group = mixte),stat="identity",alpha=0.95, color = NA) +
+      geom_area(data = x, mapping = aes(y= Relative, x = Periods, color = RangInterest, group = RangInterest),stat="identity", color = "black", fill = NA, size = 1) + 
+      geom_text(data = x %>% arrange(desc(RangInterest)), mapping = aes(y= Relative, x = Periods, label = ifelse(Periods=="06", RangInterest,"")), 
+                size = 4, position = position_stack(vjust = 0.5),
+                fontface = "bold") +
+      facet_grid(.~Zone,scales="free") + 
+      theme_unique_art() +
+      scale_fill_manual(values = rep(color_palet_table_order,8), na.value = NA) +
+      labs(x="Periods",y="ASVs %",fill="Division") + 
+      guides(fill=guide_legend(ncol=1))
+    print(Fun_asv_PeriodsXZone_fig)
+    dev.off()
+    ## Coplot
+    legend <- get_legend(Fun_asv_PeriodsXZone_fig)
+    Fun_asv_PeriodsXZone_fig <- Fun_asv_PeriodsXZone_fig + theme(legend.position = "none", axis.text.x = element_blank(),axis.title.x = element_blank()) + scale_x_discrete(position="top")
+    Fun_seq_PeriodsXZone_fig <- Fun_seq_PeriodsXZone_fig + theme(legend.position = "none",strip.text = element_blank())
+
+    svglite("Functional-Analyse/Hist_Function/ZoneXPeriods-Full.svg",width = 12.00,height = 12.00)
+    ZoneXPeriods_Full_fig <- plot_grid(Fun_asv_PeriodsXZone_fig,NA,NA,NA,NA,legend,Fun_seq_PeriodsXZone_fig, NA,NA, ncol = 3, nrow = 3, rel_widths = c(4,1,1),rel_heights = c(2,0,2))
+    print(ZoneXPeriods_Full_fig)
+    dev.off()
+#
 # HIST  --------------------------------------------------------------------
     palette <- c("#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#FF7F0ECC","#925E9FCC","#D43F3ACC","#9632B8CC","#46B8DACC","#5CB85CCC","#EFC008CC")
+  
   # Table_Hist ---------------------------------------------------------------------
     ## Cycle, Zone et Fraction
     for (vt in c("ASV","Sequence")) {
@@ -879,7 +1056,7 @@
       for (type in c("Total","Only")) {
         for (cdt in c("Cycle","Zone","Fraction")) {
           for (ctg in unique(input_data_table[,cdt])) {
-            if (ctg != "Communs") {
+            if (ctg != "Shared") {
               if (type == "Total") {
                 interest_data<-paste("Total",ctg,vt,sep="_")
                 interest<-paste0("Total",ctg)
@@ -919,7 +1096,7 @@
               assign(interest_data,tablecourant)
             }
           }
-          sel<-unique(input_data_table[,cdt]) ; sel<-sel[!sel %in% "Communs"]
+          sel<-unique(input_data_table[,cdt]) ; sel<-sel[!sel %in% "Shared"]
           type_bind_data<-paste(type,cdt,vt,sep="_")
           type_bind_data1<-paste(type,sel[1],vt,sep="_")
           type_bind_data2<-paste(type,sel[2],vt,sep="_")
@@ -929,10 +1106,10 @@
           }
         }
       }
-      ## Date
-      for (date in c("04","06","09","11")) {
-        interest_data<-paste("Total",date,vt,sep="_")
-        interest<-paste0("Total",date)
+      ## Period
+      for (Period in c("04","06","09","11")) {
+        interest_data<-paste("Total",Period,vt,sep="_")
+        interest<-paste0("Total",Period)
         tablecourant <- input_data_table %>% select(ASV_Id,all_of(interest),RangInterest)
         row.names(tablecourant)<-tablecourant$ASV_Id ; tablecourant <- tablecourant %>% select(-ASV_Id)
         tablecourant <- tablecourant %>% group_by(RangInterest) %>% summarise_all(sum)
@@ -946,7 +1123,7 @@
           if (tablecourant[i,"label"] == "0%") { tablecourant[i,"label"] <- NA}
           if (is.na(tablecourant[i,"label"]) == FALSE) { tablecourant[i,"label"] <- paste(tablecourant[i,"RangInterest"]," : ",tablecourant[i,"label"], sep = "")}
         }
-        tablecourant[,"Date"] <- date
+        tablecourant[,"Period"] <- Period
         colnames(tablecourant)[2]<-"value"
         tablecourant$Sum <- 0
         tablecourant$Count <- 0
@@ -955,7 +1132,7 @@
         assign(interest_data,tablecourant)
       }
       sel<-c("04","06","09","11")
-      type_bind_data<-paste("Total","Date",vt,sep="_")
+      type_bind_data<-paste("Total","Period",vt,sep="_")
       type_bind_data1<-paste("Total",sel[1],vt,sep="_")
       type_bind_data2<-paste("Total",sel[2],vt,sep="_")
       type_bind_data3<-paste("Total",sel[3],vt,sep="_")
@@ -969,7 +1146,7 @@
     input_data_table=data_seq_tax
     for (cdt in c("Cycle90","Zone90","Fraction90")){
       for (ctg in unique(input_data_table[,cdt])) {
-        if (ctg != "Communs") {
+        if (ctg != "Shared") {
           interest_data<-paste("Only",ctg,"Sequence90",sep="_")
           interest<-paste0("Total",ctg)
           tablecourant <- input_data_table %>% filter(get(cdt) == ctg) %>% select(ASV_Id,all_of(interest),RangInterest)
@@ -993,7 +1170,7 @@
           tablecourant$Sum <- sum(tablecourant$Count)}
         assign(interest_data,tablecourant)
       }
-      sel<-unique(input_data_table[,cdt]) ; sel<-sel[!sel %in% "Communs"]
+      sel<-unique(input_data_table[,cdt]) ; sel<-sel[!sel %in% "Shared"]
       type_bind_data<-paste("Only",cdt,"Sequence90",sep="_")
       type_bind_data1<-paste("Only",sel[1],"Sequence90",sep="_")
       type_bind_data2<-paste("Only",sel[2],"Sequence90",sep="_")
@@ -1014,13 +1191,13 @@
     Total_Fraction_ASV_fig <- ggplot(Total_Fraction_ASV, mapping = aes(y= value, x = Fraction, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_paletteer_d("ggthemes::manyeys")+ 
       geom_label(aes(y = 106,label = paste(Sum," ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + labs(x="Fractions",y="ASVs (%)") + theme(legend.position = "none")
     print(Total_Fraction_ASV_fig) 
-    ## Date
-    Total_Date_ASV_fig <- ggplot(Total_Date_ASV, mapping = aes(y= value, x = Date, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_paletteer_d("ggthemes::manyeys")+ 
-      geom_label(aes(y = 106,label = paste(Sum," ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + labs(x="Dates",y="ASVs (%)")
-    print(Total_Date_ASV_fig) 
+    ## Period
+    Total_Period_ASV_fig <- ggplot(Total_Period_ASV, mapping = aes(y= value, x = Period, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_paletteer_d("ggthemes::manyeys")+ 
+      geom_label(aes(y = 106,label = paste(Sum," ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + labs(x="Periods",y="ASVs (%)")
+    print(Total_Period_ASV_fig) 
     ## Coplote
     svglite("Functional-Analyse/Hist_Function/ASV-Total.svg",width = 12.00,height = 6.00)
-    Total_ASV_fig <- plot_grid(Total_Cycle_ASV_fig,Total_Zone_ASV_fig,Total_Fraction_ASV_fig,Total_Date_ASV_fig, ncol = 4, nrow = 1, rel_widths = c(3,3,3,6),rel_heights = c(3))
+    Total_ASV_fig <- plot_grid(Total_Cycle_ASV_fig,Total_Zone_ASV_fig,Total_Fraction_ASV_fig,Total_Period_ASV_fig, ncol = 4, nrow = 1, rel_widths = c(3,3,3,6),rel_heights = c(3))
     print(Total_ASV_fig)
     dev.off()
     #
@@ -1059,14 +1236,14 @@
       scale_fill_paletteer_d("ggthemes::manyeys") + geom_label(aes(y = 108,label = paste(Sum,"sequences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
       labs(x="Fractions",y="Sequences (%)") + theme(legend.position = "none")
     print(Total_Fraction_Sequence_fig)
-    ## Date
-    Total_Date_Sequence_fig <- ggplot(Total_Date_Sequence, mapping = aes(y= value, x = Date, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+    ## Period
+    Total_Period_Sequence_fig <- ggplot(Total_Period_Sequence, mapping = aes(y= value, x = Period, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
       scale_fill_paletteer_d("ggthemes::manyeys") + geom_label(aes(y = 108,label = paste(Sum,"sequences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") +
-      labs(x="Dates",y="Sequences (%)")
-    print(Total_Date_Sequence_fig)
+      labs(x="Periods",y="Sequences (%)")
+    print(Total_Period_Sequence_fig)
     ## Coplote
     svglite("Functional-Analyse/Hist_Function/Sequence-Total.svg",width = 12.00,height = 6.00)
-    Total_Sequence_fig <- plot_grid(Total_Cycle_Sequence_fig,Total_Zone_Sequence_fig,Total_Fraction_Sequence_fig,Total_Date_Sequence_fig, ncol = 4, nrow = 1, rel_widths = c(3,3,3,6),rel_heights = c(3))
+    Total_Sequence_fig <- plot_grid(Total_Cycle_Sequence_fig,Total_Zone_Sequence_fig,Total_Fraction_Sequence_fig,Total_Period_Sequence_fig, ncol = 4, nrow = 1, rel_widths = c(3,3,3,6),rel_heights = c(3))
     print(Total_Sequence_fig)
     dev.off()
     #
@@ -1186,9 +1363,13 @@
     }
     #
 # Polar ------------------------------------------------------
+    #palet_tree_grp_x <- c("#ad0635FF","#d84040FF","#4080c0FF","#60d0a0FF","#70a830FF","#98d048FF","#d7c11cFF","#b4d2d2")
+    palet_tree_grp_x <- c("#ad0635FF","#70a830FF","#98d048FF","#d84040FF","#60d0a0FF","#4080c0FF","#d7c11cFF","#b4d2d2")
+    
   # Sequence ----------------------------------------------------------------
     ## Total column
     Polar_seq <- data_seq_tax
+    Polar_seq <- Polar_seq %>% filter(nbGroup %in% c("Unassigned",unique(data$nbGroup)))
     Polar_seq$TotalAnnee <- 0
     for (i in rownames(Polar_seq)) { Polar_seq[i,"TotalAnnee"] <- Polar_seq[i,"Total04"] + Polar_seq[i,"Total06"] + Polar_seq[i,"Total09"] + Polar_seq[i,"Total11"]}
     Polar_seq <- Polar_seq %>% select(TotalAnnee,RangInterest)
@@ -1213,7 +1394,7 @@
       xlim(1,2.5) +
       theme_unique_darkbis() + 
       #facet_wrap( ~ variable , nrow = 4) +
-      labs(y = "Sequences",x="") + scale_fill_manual(values=palet_tree_grp) #scale_fill_paletteer_d("ggthemes::manyeys")
+      labs(y = "Sequences",x="") + scale_fill_manual(values=palet_tree_grp_x) #scale_fill_paletteer_d("ggthemes::manyeys")
     print(axim)
     dev.off()
     ## table
@@ -1245,12 +1426,12 @@
       if (k==1) {Polar_seq_GRP<-Polar_seq}
       if (k>1) {Polar_seq_GRP <- rbind(Polar_seq_GRP,Polar_seq)}
     }
-    paletxi <- c("#c04848CC","#f27435CC","#707470CC","#948c75CC","#424254CC","#e04644CC","#706acfCC","#6a4a3cCC","#2a044aCC","#e84a5fCC","#f02475CC","#e8bf56CC","#1b676bCC","#3b2d38CC","#cc2a41CC","#f02475CC","#cfbe27CC","#b8af03CC","#d27f48CC","#2cb0e0CC","#3fb8afCC","#3B3B3B99","#519548CC","#c2d1fcCC","#555152CC","#8fbe00CC","#64908aCC","#0e2430CC","#bcbdacCC")
+    paletxi <- rev(c("#c04848CC","#f27435CC","#707470CC","#948c75CC","#424254CC","#e04644CC","#706acfCC","#6a4a3cCC","#2a044aCC","#e84a5fCC","#f02475CC","#e8bf56CC","#1b676bCC","#3b2d38CC","#cc2a41CC","#f02475CC","#cfbe27CC","#b8af03CC","#d27f48CC","#2cb0e0CC","#3fb8afCC","#3B3B3B99","#519548CC","#c2d1fcCC","#555152CC","#8fbe00CC","#64908aCC","#0e2430CC","#bcbdacCC"))
     ## Figure
     svglite("Functional-Analyse/Composition_Function/Polar-Total-seq-grp.svg",width = 10,height = 10)
     ax <- ggplot(Polar_seq_GRP, mapping = aes(y= Total, x = 2, fill = Division), Rowv = NA, col = colMain, scale = "column") +
       geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
-      geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.6,nudge_y = 0.5,max.overlaps = 20) +
+      geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5,nudge_y = 0.5,max.overlaps = 20) +
       scale_y_continuous(limits=c(0,sum(Polar_seq_GRP %>% select(Total)+0.01)/length(unique(data$nbGroup))))+
       xlim(1,2.5) +
       theme_unique_darkbis() + 
@@ -1268,6 +1449,7 @@
   # ASV ----------------------------------------------------------------
     ## Total column
     Polar_asv <- data_asv_tax
+    Polar_asv <- Polar_asv %>% filter(nbGroup %in% c("Unassigned",unique(data$nbGroup)))
     Polar_asv$TotalAnnee <- 0
     for (i in rownames(Polar_asv)) { if (Polar_asv[i,"Total04"] + Polar_asv[i,"Total06"] + Polar_asv[i,"Total09"] + Polar_asv[i,"Total11"] > 0) {Polar_asv[i,"TotalAnnee"] <- 1}}
     Polar_asv <- Polar_asv %>% select(TotalAnnee,RangInterest)
@@ -1292,7 +1474,7 @@
       xlim(1,2.5) +
       theme_unique_darkbis() + 
       #facet_wrap( ~ variable , nrow = 4) +
-      labs(y = "ASVs",x="") + scale_fill_manual(values=palet_tree_grp) #scale_fill_paletteer_d("ggthemes::manyeys")
+      labs(y = "ASVs",x="") + scale_fill_manual(values=palet_tree_grp_x) #scale_fill_paletteer_d("ggthemes::manyeys")
     print(bxim)
     dev.off()
     ## Table
@@ -1328,7 +1510,7 @@
     svglite("Functional-Analyse/Composition_Function/Polar-Total-asv-grp.svg",width = 10,height = 10)
     bx <- ggplot(Polar_asv_GRP, mapping = aes(y= Total, x = 2, fill = Division), Rowv = NA, col = colMain, scale = "column") +
       geom_bar(stat="identity", color = "white", width = 1) + coord_polar("y") + 
-      geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.6,nudge_y = 0.5) +
+      geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5,nudge_y = 0.5,max.overlaps = 20) +
       scale_y_continuous(limits=c(0,sum(Polar_asv_GRP %>% select(Total)+0.01)/length(unique(data$nbGroup))))+
       xlim(1,2.5) +
       theme_unique_darkbis() + 
@@ -1355,7 +1537,7 @@
     data_asv_tax_Small <- data_asv_tax %>% filter(Small==1)
     data_asv_tax_Large <- data_asv_tax %>% filter(Large==2)
     #
-    palet_tree_grp <- c("#ad0635FF","#d84040FF","#4080c0FF","#60d0a0FF","#70a830FF","#98d048FF","#d7c11cFF","#b4d2d2")
+    palet_tree_grp <- c("#ad0635FF","#70a830FF","#98d048FF","#d84040FF","#60d0a0FF","#4080c0FF","#d7c11cFF","#b4d2d2")
     
   # Hist -------------------------------------------------------------------
     for (type in c("ASV","Sequence")) {
@@ -1477,7 +1659,7 @@
       geom_treemap_text(fontface = "bold", colour = "black", place = "centre",grow = FALSE,size=12,min.size=4)+
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","ZoneXFractionXGenus"),"Sequence","Tree.svg",sep="_"),width = 14.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","ZoneXFractionXGenus"),"Sequence","Tree.svg",sep="_"),width = 14.00,height = 8.00)
     print(t)
     dev.off()
     write.table(Group_FraXZo_seq_tax_melt, file = "Functional-Analyse/Table/ZoneXFractionXGenus_Sequence_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1494,7 +1676,7 @@
       geom_treemap_text(fontface = "bold", colour = "black", place = "centre",grow = FALSE,size=12,min.size=4)+
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","ZoneXFractionXGenus"),"SEQ","Tree_POSTER.svg",sep="_"),width = 14.00,height = 6.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","ZoneXFractionXGenus"),"SEQ","Tree_POSTER.svg",sep="_"),width = 14.00,height = 6.00)
     print(t)
     dev.off()
     #
@@ -1529,7 +1711,7 @@
       geom_treemap_text(fontface = "bold", colour = "black", place = "centre",grow = FALSE,size=12,min.size=4)+
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","ZoneXFractionXGenus"),"ASV","Tree.svg",sep="_"),width = 14.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","ZoneXFractionXGenus"),"ASV","Tree.svg",sep="_"),width = 14.00,height = 8.00)
     print(t)
     dev.off()
     write.table(Group_FraXZo_asv_tax_melt, file = "Functional-Analyse/Table/ZoneXFractionXGenus_ASV_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1547,7 +1729,7 @@
       geom_treemap_text(fontface = "bold", colour = "black", place = "centre",grow = FALSE,size=12,min.size=4)+
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","ZoneXFractionXGenus"),"ASV","Tree_POSTER.svg",sep="_"),width = 14.00,height = 6.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","ZoneXFractionXGenus"),"ASV","Tree_POSTER.svg",sep="_"),width = 14.00,height = 6.00)
     print(t)
     dev.off()
 # Periods Tree_4 ----------------------------------------------------------
@@ -1583,7 +1765,7 @@
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none") +
       labs(title="Sequences abundance")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","PeriodsXGenus"),"Sequence","Tree.svg",sep="_"),width = 14.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","PeriodsXGenus"),"Sequence","Tree.svg",sep="_"),width = 14.00,height = 8.00)
     print(t)
     dev.off()
     write.table(Group_Periods_seq_tax_melt, file = "Functional-Analyse/Table/PeriodsXGenus_Sequence_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1616,12 +1798,12 @@
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none") +
       labs(title="ASVs richness")
     v<-plot_grid(u,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","PeriodsXGenus"),"ASV","Tree.svg",sep="_"),width = 14.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","PeriodsXGenus"),"ASV","Tree.svg",sep="_"),width = 14.00,height = 8.00)
     print(v)
     dev.off()
     write.table(Group_Periods_asv_tax_melt, file = "Functional-Analyse/Table/PeriodsXGenus_ASV_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     # Coplot
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","PeriodsXGenus"),"All","Tree.svg",sep="_"),width = 10.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","PeriodsXGenus"),"All","Tree.svg",sep="_"),width = 10.00,height = 8.00)
     plot_grid(s + 
                 theme(strip.text = element_blank(), plot.title = element_text(color = "black", face = "bold", hjust = 0.5,size = 18)),
               NULL,u +
@@ -1658,7 +1840,7 @@
       geom_treemap_text(fontface = "bold", colour = "black", place = "centre",grow = FALSE,size=12,min.size=4)+
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","ZoneXFractionXLast"),"Sequence","Tree.svg",sep="_"),width = 18.00,height = 10.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","ZoneXFractionXLast"),"Sequence","Tree.svg",sep="_"),width = 18.00,height = 10.00)
     print(t)
     dev.off()
     write.table(Group_FraXZo_seq_tax_melt, file = "Functional-Analyse/Table/ZoneXFractionXLast_Sequence_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1690,7 +1872,7 @@
       geom_treemap_text(fontface = "bold", colour = "black", place = "centre",grow = FALSE,size=12,min.size=4)+
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","ZoneXFractionXLast"),"ASV","Tree.svg",sep="_"),width = 18.00,height = 10.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","ZoneXFractionXLast"),"ASV","Tree.svg",sep="_"),width = 18.00,height = 10.00)
     print(t)
     dev.off()
     write.table(Group_FraXZo_asv_tax_melt, file = "Functional-Analyse/Table/ZoneXFractionXLast_ASV_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1722,7 +1904,7 @@
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none") +
       labs(title="Sequences abundance")
     t<-plot_grid(s,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","PeriodsXLast"),"Sequence","Tree.svg",sep="_"),width = 14.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","PeriodsXLast"),"Sequence","Tree.svg",sep="_"),width = 14.00,height = 8.00)
     print(t)
     dev.off()
     write.table(Group_Periods_seq_tax_melt, file = "Functional-Analyse/Table/PeriodsXLast_Sequence_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1753,12 +1935,12 @@
       theme_unique_darktris() + theme(panel.border = element_rect(fill=NA,size=2),legend.position="none") +
       labs(title="ASVs richness")
     v<-plot_grid(u,legendXi, ncol = 1, nrow = 2, rel_heights = c(5,1))
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","PeriodsXLast"),"ASV","Tree.svg",sep="_"),width = 14.00,height = 8.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","PeriodsXLast"),"ASV","Tree.svg",sep="_"),width = 14.00,height = 8.00)
     print(v)
     dev.off()
     write.table(Group_Periods_asv_tax_melt, file = "Functional-Analyse/Table/PeriodsXLast_ASV_apgroup_Tree.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     # Coplot
-    svglite(paste(paste0("Functional-Analyse/Tree_Function/","PeriodsXLast"),"All","Tree.svg",sep="_"),width = 18.00,height = 10.00)
+    svglite(paste(paste0("Functional-Analyse/Tree2_Function/","PeriodsXLast"),"All","Tree.svg",sep="_"),width = 18.00,height = 10.00)
     plot_grid(s + 
                 theme(strip.text = element_blank(), plot.title = element_text(color = "black", face = "bold", hjust = 0.5,size = 18)),
               NULL,u +
@@ -1771,16 +1953,16 @@
 # Table ASVs majoritaires -------------------------------------------------
   # Table ONLY---------------------------------------------------------------------
     # Cycle-100 -------------------------------------------------------------------
-    ## Jour
-    onlyJourTable <- data_seq_tax %>% filter(Cycle == "Jour") %>% select(ASV_Id,TotalJour,RangInterest,Cycle)
-    onlyJourTable <- onlyJourTable %>% filter(TotalJour > 0.001*sum(onlyJourTable$TotalJour))
-    colnames(onlyJourTable)[2]  <- "value"
-    ## Nuit
-    onlyNuitTable <- data_seq_tax %>% filter(Cycle == "Nuit") %>% select(ASV_Id,TotalNuit,RangInterest,Cycle)
-    onlyNuitTable <- onlyNuitTable %>% filter(TotalNuit > 0.001*sum(onlyNuitTable$TotalNuit))
-    colnames(onlyNuitTable)[2]  <- "value"
+    ## Day
+    onlyDayTable <- data_seq_tax %>% filter(Cycle == "Day") %>% select(ASV_Id,TotalDay,RangInterest,Cycle)
+    onlyDayTable <- onlyDayTable %>% filter(TotalDay > 0.001*sum(onlyDayTable$TotalDay))
+    colnames(onlyDayTable)[2]  <- "value"
+    ## Night
+    onlyNightTable <- data_seq_tax %>% filter(Cycle == "Night") %>% select(ASV_Id,TotalNight,RangInterest,Cycle)
+    onlyNightTable <- onlyNightTable %>% filter(TotalNight > 0.001*sum(onlyNightTable$TotalNight))
+    colnames(onlyNightTable)[2]  <- "value"
     ## Bind
-    onlyCycleTable <- rbind(onlyJourTable,onlyNuitTable)
+    onlyCycleTable <- rbind(onlyDayTable,onlyNightTable)
     onlyCycleTable <- merge(onlyCycleTable,profile_tax_table %>% select(-Last), by = "ASV_Id")
     ## Table
     write.table(onlyCycleTable, file = "Functional-Analyse/Table/Only_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1822,16 +2004,16 @@
     write.table(Only_Fraction_Sequence, file = "Functional-Analyse/Table/Only_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     #
     # Cycle-90 -------------------------------------------------------------------
-    ## Jour
-    onlyJourTable90 <- data_seq_tax %>% filter(Cycle90 == "Jour") %>% select(ASV_Id,TotalJour,RangInterest,Cycle90)
-    onlyJourTable90 <- onlyJourTable90 %>% filter(TotalJour > 0.001*sum(onlyJourTable90$TotalJour))
-    colnames(onlyJourTable90)[2]  <- "value"
-    ## Nuit
-    onlyNuitTable90 <- data_seq_tax %>% filter(Cycle90 == "Nuit") %>% select(ASV_Id,TotalNuit,RangInterest,Cycle90)
-    onlyNuitTable90 <- onlyNuitTable90 %>% filter(TotalNuit > 0.001*sum(onlyNuitTable90$TotalNuit))
-    colnames(onlyNuitTable90)[2]  <- "value"
+    ## Day
+    onlyDayTable90 <- data_seq_tax %>% filter(Cycle90 == "Day") %>% select(ASV_Id,TotalDay,RangInterest,Cycle90)
+    onlyDayTable90 <- onlyDayTable90 %>% filter(TotalDay > 0.001*sum(onlyDayTable90$TotalDay))
+    colnames(onlyDayTable90)[2]  <- "value"
+    ## Night
+    onlyNightTable90 <- data_seq_tax %>% filter(Cycle90 == "Night") %>% select(ASV_Id,TotalNight,RangInterest,Cycle90)
+    onlyNightTable90 <- onlyNightTable90 %>% filter(TotalNight > 0.001*sum(onlyNightTable90$TotalNight))
+    colnames(onlyNightTable90)[2]  <- "value"
     ## Bind
-    onlyCycleTable90 <- rbind(onlyJourTable90,onlyNuitTable90)
+    onlyCycleTable90 <- rbind(onlyDayTable90,onlyNightTable90)
     onlyCycleTable90 <- merge(onlyCycleTable90,profile_tax_table %>% select(-Last), by = "ASV_Id")
     ## Table
     write.table(onlyCycleTable90, file = "Functional-Analyse/Table/Only_Cycles90.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1871,18 +2053,18 @@
     #
   # Table Total---------------------------------------------------------------------
     # Cycle Total -------------------------------------------------------------------
-    ## Jour
-    totalJourTable <- data_seq_tax %>% select(ASV_Id,TotalJour,RangInterest,Cycle)
-    totalJourTable$Cycle <- "Jour"
-    totalJourTable <- totalJourTable %>% filter(TotalJour > 0.05*sum(totalJourTable$TotalJour))
-    colnames(totalJourTable)[2]  <- "value"
-    ## Nuit
-    totalNuitTable <- data_seq_tax %>% select(ASV_Id,TotalNuit,RangInterest,Cycle)
-    totalNuitTable$Cycle <- "Nuit"
-    totalNuitTable <- totalNuitTable %>% filter(TotalNuit > 0.05*sum(totalNuitTable$TotalNuit))
-    colnames(totalNuitTable)[2]  <- "value"
+    ## Day
+    totalDayTable <- data_seq_tax %>% select(ASV_Id,TotalDay,RangInterest,Cycle)
+    totalDayTable$Cycle <- "Day"
+    totalDayTable <- totalDayTable %>% filter(TotalDay > 0.05*sum(totalDayTable$TotalDay))
+    colnames(totalDayTable)[2]  <- "value"
+    ## Night
+    totalNightTable <- data_seq_tax %>% select(ASV_Id,TotalNight,RangInterest,Cycle)
+    totalNightTable$Cycle <- "Night"
+    totalNightTable <- totalNightTable %>% filter(TotalNight > 0.05*sum(totalNightTable$TotalNight))
+    colnames(totalNightTable)[2]  <- "value"
     ## Bind
-    totalCycleTable <- rbind(totalJourTable,totalNuitTable)
+    totalCycleTable <- rbind(totalDayTable,totalNightTable)
     totalCycleTable <- merge(totalCycleTable,profile_tax_table %>% select(-Last), by = "ASV_Id")
     ## Table
     write.table(totalCycleTable, file = "Functional-Analyse/Table/Total_Cycles.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -1927,31 +2109,31 @@
     write.table(Total_Fraction_ASV, file = "Functional-Analyse/Table/Total_Fraction_ASV.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     write.table(Total_Fraction_Sequence, file = "Functional-Analyse/Table/Total_Fraction_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     #
-    # Date Total -------------------------------------------------------------------
+    # Period Total -------------------------------------------------------------------
     total04Table <- data_seq_tax %>% select(ASV_Id,Total04,RangInterest)
-    total04Table$Dates <- rep(04,each = nrow(total04Table))
+    total04Table$Periods <- rep(04,each = nrow(total04Table))
     total04Table <- total04Table %>% filter(Total04 > 0.05*sum(total04Table$Total04))
     colnames(total04Table)[2]  <- "value"
     ##
     total06Table <- data_seq_tax %>% select(ASV_Id,Total06,RangInterest)
-    total06Table$Dates <- rep(06,each = nrow(total06Table))
+    total06Table$Periods <- rep(06,each = nrow(total06Table))
     total06Table <- total06Table %>% filter(Total06 > 0.05*sum(total06Table$Total06))
     colnames(total06Table)[2]  <- "value"
     ##
     total09Table <- data_seq_tax %>% select(ASV_Id,Total09,RangInterest)
-    total09Table$Dates <- rep(09,each = nrow(total09Table))
+    total09Table$Periods <- rep(09,each = nrow(total09Table))
     total09Table <- total09Table %>% filter(Total09 > 0.05*sum(total09Table$Total09))
     colnames(total09Table)[2]  <- "value"
     ##
     total11Table <- data_seq_tax %>% select(ASV_Id,Total11,RangInterest)
-    total11Table$Dates <- rep(11,each = nrow(total11Table))
+    total11Table$Periods <- rep(11,each = nrow(total11Table))
     total11Table <- total11Table %>% filter(Total11 > 0.05*sum(total11Table$Total11))
     colnames(total11Table)[2]  <- "value"
     ##
-    totalDateTable <- rbind(total04Table,total06Table,total09Table,total11Table)
-    totalDateTable <- merge(totalDateTable,profile_tax_table %>% select(-Last), by = "ASV_Id")
+    totalPeriodTable <- rbind(total04Table,total06Table,total09Table,total11Table)
+    totalPeriodTable <- merge(totalPeriodTable,profile_tax_table %>% select(-Last), by = "ASV_Id")
     ##
-    write.table(totalDateTable, file = "Functional-Analyse/Table/Total_Dates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-    write.table(Total_Date_ASV, file = "Functional-Analyse/Table/Total_Dates_ASV.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-    write.table(Total_Date_Sequence, file = "Functional-Analyse/Table/Total_Dates_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(totalPeriodTable, file = "Functional-Analyse/Table/Total_Periods.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(Total_Period_ASV, file = "Functional-Analyse/Table/Total_Periods_ASV.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(Total_Period_Sequence, file = "Functional-Analyse/Table/Total_Periods_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     #

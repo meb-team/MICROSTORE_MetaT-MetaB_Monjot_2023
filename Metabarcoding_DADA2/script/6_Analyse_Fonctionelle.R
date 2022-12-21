@@ -19,7 +19,7 @@ set.seed(1)
 #
 # Input argument if using Rstudio
   if (inputmode == TRUE) {
-    result <- "V4-unified-correct-paired-out"
+    result <- "V4-unified-correct-paired-out-compo"
   }
 #
   args = commandArgs(trailingOnly=TRUE)

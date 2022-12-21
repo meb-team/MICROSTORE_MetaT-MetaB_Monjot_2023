@@ -50,7 +50,7 @@ if ( inputmode == FALSE ) {
 }
 #
 # Import package and palette -----------------------------------------------------------
-pkg <- c("readxl","dplyr","tidyr","svglite","stringr","dada2","ShortRead","Biostrings")
+pkg <- c("dplyr","tidyr","svglite","stringr","dada2","ShortRead","Biostrings")
 lapply(pkg, require, character.only = TRUE)
 
 # Set directory, create file result and download dataBase -----------------------------------------------------------

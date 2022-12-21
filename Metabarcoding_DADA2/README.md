@@ -183,7 +183,7 @@ Run Functionnal analysis script:
     * argument 2: name of the taxonomic analysis results directory
     * argument 3: Region (V4 or V9)
 
-For example: `bash R_6_Functional_analysis.sh Trait-table.tsv V4-unified-correct-paired-out-compo V4`
+For example: `bash R_6_Functional_analysis.sh Trait_Table_Final.tsv V4-unified-correct-paired-out-compo V4`
 
 ### 4. Implementation of metatranscriptomic data
 

@@ -37,7 +37,7 @@ set.seed(1)
   }
 #
 # Import package and palette -----------------------------------------------------------
-  pkg <- c("ggplot2", "readxl","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram","stringr","paletteer","elementalist","gtools","vegan")
+  pkg <- c("ggplot2","dplyr","tidyr","cowplot","FactoMineR","factoextra","reshape2","varhandle","ggrepel","ggpubr","ggsci","scales","hrbrthemes","GUniFrac","svglite","treemap", "VennDiagram","stringr","paletteer","elementalist","gtools","vegan","ape")
   lapply(pkg, require, character.only = TRUE)
   palette <- c("#AD002ACC","#EEA236CC","#00468BCC","#0099B4CC","#D62768CC","#ADB6B6CC","#42B540CC","#357EBDCC","#1B1919CC","#ED0000CC","#FF7F0ECC","#925E9FCC","#D43F3ACC","#9632B8CC","#46B8DACC","#5CB85CCC","#EFC008CC")
   palet_monimixo <- paletteer_d("ggthemes::Nuriel_Stone",n=2,direction=-1)
@@ -206,7 +206,7 @@ set.seed(1)
   infdataini$Rep <- rep("_1", each = nrow(infdataini))
   infdataini$Variable <- paste(infdataini$Condition,infdataini$Rep, sep = "")
   infdataini <- infdataini %>% select(-"Rep",-"Condition")
-  infdataini <- separate(infdataini, Variable, c("Condition","Date","Replicat"), sep = "_")
+  infdataini <- separate(infdataini, Variable, c("Condition","Period","Replicat"), sep = "_")
   for (i in row.names(infdataini)) { 
     if (infdataini[i,"Replicat"] == "01") infdataini[i,"Replicat"] <- "1"
     if (infdataini[i,"Replicat"] == "02") infdataini[i,"Replicat"] <- "2"
@@ -223,7 +223,7 @@ set.seed(1)
   infdataini <- separate(infdataini, Condition, c("empty","ADN","Cycle","Zone","Fraction"),sep = "")
   infdataini <- infdataini %>% select(-"empty")
   infdataini<-as.data.frame(infdataini)
-  col <- c("Amplicon","Technologie","Region","ADN","Cycle","Zone","Fraction","Date","Replicat")
+  col <- c("Amplicon","Technologie","Region","ADN","Cycle","Zone","Fraction","Period","Replicat")
   samples_df <- infdataini[,col]
   samples_df$Condition <- paste(samples_df$ADN,samples_df$Cycle,samples_df$Zone,samples_df$Fraction, sep = "")
   for (i in row.names(samples_df)) {
@@ -232,7 +232,9 @@ set.seed(1)
   if (samples_df[i,"Zone"] == "O") { samples_df[i,"Zone"] <- "Mixolimnion"}
   if (samples_df[i,"Zone"] == "A") { samples_df[i,"Zone"] <- "Monimolimnion"}
   if (samples_df[i,"Fraction"] == "G") { samples_df[i,"Fraction"] <- "Large"}
-  if (samples_df[i,"Fraction"] == "P") { samples_df[i,"Fraction"] <- "Small"}}
+  if (samples_df[i,"Fraction"] == "P") { samples_df[i,"Fraction"] <- "Small"}
+  }
+#
 # Select V4 or V9 ---------------------------------------------------------
   samples_df<-filter(samples_df, Region == region)
   write.table(samples_df, file = "ASV-Table/metadata.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
@@ -242,7 +244,7 @@ set.seed(1)
   ## Prepare asv_mat
     amplicon <- c(grep(pattern = "OSTA", colnames(tableVinput), value = TRUE))
     seq_mat <- tableVinput %>% select(all_of(amplicon))
-    seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,all_of(amplicon)], as.numeric)
+    seq_mat[,all_of(amplicon)] <- lapply(seq_mat[,amplicon], as.numeric)
     seq_mat$ASV_Id <- row.names(seq_mat)
   ## Remove amplicon with 0 seq
     amplicon <- grep(pattern = "OSTA", colnames(seq_mat), value = TRUE)
@@ -250,12 +252,12 @@ set.seed(1)
     seq_mat <- seq_mat %>% filter(SUM != 0)
     seq_mat <- seq_mat %>% select(-"SUM")
   ## Prepare correspondance table
-    tblc <- samples_df %>% select("Amplicon", "Date", "Replicat", "Condition")
-    tblc$Condition_Date <- paste(tblc$Condition,tblc$Date, sep = "_")
-    tblc <- tblc %>% select(-"Date",-"Condition")
+    tblc <- samples_df %>% select("Amplicon", "Period", "Replicat", "Condition")
+    tblc$Condition_Period <- paste(tblc$Condition,tblc$Period, sep = "_")
+    tblc <- tblc %>% select(-"Period",-"Condition")
     tblc1 <- tblc %>% filter(tblc$Replicat == 1)
     tblc2 <- tblc %>% filter(tblc$Replicat == 2)
-    tblcx <- merge(x = tblc1,y = tblc2, by = "Condition_Date", all = TRUE)
+    tblcx <- merge(x = tblc1,y = tblc2, by = "Condition_Period", all = TRUE)
     Amplicon_without_duplicat <- c(tblcx[,"Amplicon.x"][which(is.na(tblcx[,"Amplicon.y"]) == TRUE)])
     for (i in row.names(tblcx)) { if (is.na(tblcx[i,"Amplicon.y"]) == TRUE) { tblcx[i,"Amplicon.y"] <- tblcx[i,"Amplicon.x"]}}
     for (i in row.names(tblcx)) { if (is.na(tblcx[i,"Replicat.y"]) == TRUE) { tblcx[i,"Replicat.y"] <- tblcx[i,"Replicat.x"]}}
@@ -286,6 +288,14 @@ set.seed(1)
     asv_mat_rare <- seq_mat_rare
     amplicon <- c(grep(pattern = "OSTA", colnames(asv_mat_rare), value = TRUE))
     asv_mat_rare[,all_of(amplicon)][asv_mat_rare[,all_of(amplicon)] != 0] <- 1
+  ## Rarefaction
+    a <- asv_mat_rare %>% select(-ASV_Id)
+    b <- seq_mat_rare %>% select(-ASV_Id)
+    a_dist <- vegdist(t(a), method="bray", diag = TRUE)
+    b_dist <- vegdist(t(b), method="bray", diag = TRUE)
+    capture.output(mantel(a_dist, b_dist, method="spearman", permutations=9999, strata = NULL,
+           na.rm = FALSE, parallel = 10),file="Betadisp/Mantel_ASV_vs_SEQ.txt")
+    
 #
 # Stat Rarefy -------------------------------------------------------------
 ## Sequence
@@ -340,7 +350,7 @@ set.seed(1)
   ## Pooling stat Fig
     statRarefy <- statRarefy[!(row.names(statRarefy) %in% "Total"), ]
     statRarefy[,"Fusion"] <- "Yes"
-    statRarefy[Amplicon_without_duplicat,"Fusion"] <- "No"
+    statRarefy[all_of(Amplicon_without_duplicat),"Fusion"] <- "No"
     statRarefy$Echantillon <- rownames(statRarefy)
     my_comp <- list(c("Yes","No"))
   ### Plot: ASV après Rarefy
@@ -472,15 +482,15 @@ set.seed(1)
   FractionSmall <- FractionSmall$Amplicon
   FractionLarge <- samples_df %>% filter(`Fraction` == "Large") %>% filter(Replicat == 1)
   FractionLarge <- FractionLarge$Amplicon
-## Date
-  Date04 <- samples_df %>% filter(Date == "04") %>% filter(Replicat == 1)
-  Date04 <- Date04$Amplicon
-  Date06 <- samples_df %>% filter(Date == "06") %>% filter(Replicat == 1)
-  Date06 <- Date06$Amplicon
-  Date09 <- samples_df %>% filter(Date == "09") %>% filter(Replicat == 1)
-  Date09 <- Date09$Amplicon
-  Date11 <- samples_df %>% filter(Date == "11") %>% filter(Replicat == 1)
-  Date11 <- Date11$Amplicon
+## Period
+  Period04 <- samples_df %>% filter(Period == "04") %>% filter(Replicat == 1)
+  Period04 <- Period04$Amplicon
+  Period06 <- samples_df %>% filter(Period == "06") %>% filter(Replicat == 1)
+  Period06 <- Period06$Amplicon
+  Period09 <- samples_df %>% filter(Period == "09") %>% filter(Replicat == 1)
+  Period09 <- Period09$Amplicon
+  Period11 <- samples_df %>% filter(Period == "11") %>% filter(Replicat == 1)
+  Period11 <- Period11$Amplicon
 #
   # ASV disparity and conditions --------------------------------------------
   ## FractionXZone
@@ -548,39 +558,39 @@ set.seed(1)
     Large_seq$ASV_Id <- row.names(Large_seq)
   ### Merge
     Fraction_seq <- merge(x = Small_seq,y = Large_seq, by = "ASV_Id")
-  ## Date
+  ## Period
   ### 04
-    `04_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date04))))
+    `04_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period04))))
     colnames(`04_seq`) <- "Total04"
     `04_seq`$ASV_Id <- row.names(`04_seq`)
   ### 06
-    `06_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date06))))
+    `06_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period06))))
     colnames(`06_seq`) <- "Total06"
     `06_seq`$ASV_Id <- row.names(`06_seq`)
   ### 09
-    `09_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date09))))
+    `09_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period09))))
     colnames(`09_seq`) <- "Total09"
     `09_seq`$ASV_Id <- row.names(`09_seq`)
   ### 11
-    `11_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Date11))))
+    `11_seq` <- as.data.frame(rowSums(seq_mat_rare %>% select(all_of(Period11))))
     colnames(`11_seq`) <- "Total11"
     `11_seq`$ASV_Id <- row.names(`11_seq`)
   ### Merge
-    Date_seq <- merge(x = `04_seq`,y = `06_seq`, by = "ASV_Id")
-    Date_seq <- merge(x = Date_seq,y = `09_seq`, by = "ASV_Id")
-    Date_seq <- merge(x = Date_seq,y = `11_seq`, by = "ASV_Id")
+    Period_seq <- merge(x = `04_seq`,y = `06_seq`, by = "ASV_Id")
+    Period_seq <- merge(x = Period_seq,y = `09_seq`, by = "ASV_Id")
+    Period_seq <- merge(x = Period_seq,y = `11_seq`, by = "ASV_Id")
 #
   # ASV ----------------------------------------------------------------
   ## Cycle
   ### Day
     Day_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(CycleDay))))
     colnames(Day_asv) <- "TotalDay"
-    for (i in row.names(Day_asv)) {if (Day_asv[i,"TotalDay"] > 0) {Day_asv[i,"TotalDay"] <- 1}}
+    Day_asv[,"TotalDay"][Day_asv[,"TotalDay"] > 0] <- 1
     Day_asv$ASV_Id <- row.names(Day_asv)
   ### Night
     Night_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(CycleNight))))
     colnames(Night_asv) <- "TotalNight"
-    for (i in row.names(Night_asv)) {if (Night_asv[i,"TotalNight"] > 0) {Night_asv[i,"TotalNight"] <- 1}}
+    Night_asv[,"TotalNight"][Night_asv[,"TotalNight"] > 0] <- 1
     Night_asv$ASV_Id <- row.names(Night_asv)
   ### Merge
     Cycle_asv <- merge(x = Day_asv,y = Night_asv, by = "ASV_Id")
@@ -588,12 +598,12 @@ set.seed(1)
   ### Mixolimnion
     Mixolimnion_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(ZoneMixolimnion))))
     colnames(Mixolimnion_asv) <- "TotalMixolimnion"
-    for (i in row.names(Mixolimnion_asv)) {if (Mixolimnion_asv[i,"TotalMixolimnion"] > 0) {Mixolimnion_asv[i,"TotalMixolimnion"] <- 1}}
+    Mixolimnion_asv[,"TotalMixolimnion"][Mixolimnion_asv[,"TotalMixolimnion"] > 0] <- 1
     Mixolimnion_asv$ASV_Id <- row.names(Mixolimnion_asv)
   ### Monimolimnion
     Monimolimnion_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(ZoneMonimolimnion))))
     colnames(Monimolimnion_asv) <- "TotalMonimolimnion"
-    for (i in row.names(Monimolimnion_asv)) {if (Monimolimnion_asv[i,"TotalMonimolimnion"] > 0) {Monimolimnion_asv[i,"TotalMonimolimnion"] <- 1}}
+    Monimolimnion_asv[,"TotalMonimolimnion"][Monimolimnion_asv[,"TotalMonimolimnion"] > 0] <- 1
     Monimolimnion_asv$ASV_Id <- row.names(Monimolimnion_asv)
   ### Merge
     Zone_asv <- merge(x = Mixolimnion_asv,y = Monimolimnion_asv, by = "ASV_Id")
@@ -601,40 +611,40 @@ set.seed(1)
   ### Small
     Small_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(FractionSmall))))
     colnames(Small_asv) <- "TotalSmall"
-    for (i in row.names(Small_asv)) {if (Small_asv[i,"TotalSmall"] > 0) {Small_asv[i,"TotalSmall"] <- 1}}
+    Small_asv[,"TotalSmall"][Small_asv[,"TotalSmall"] > 0] <- 1
     Small_asv$ASV_Id <- row.names(Small_asv)
   ### Large
     Large_asv <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(FractionLarge))))
     colnames(Large_asv) <- "TotalLarge"
-    for (i in row.names(Large_asv)) {if (Large_asv[i,"TotalLarge"] > 0) {Large_asv[i,"TotalLarge"] <- 1}}
+    Large_asv[,"TotalLarge"][Large_asv[,"TotalLarge"] > 0] <- 1
     Large_asv$ASV_Id <- row.names(Large_asv)
   ### Merge
     Fraction_asv <- merge(x = Small_asv,y = Large_asv, by = "ASV_Id")
-  ## Date
+  ## Period
   ### 04
-    `04_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date04))))
+    `04_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period04))))
     colnames(`04_asv`) <- "Total04"
-    for (i in row.names(`04_asv`)) {if (`04_asv`[i,"Total04"] > 0) {`04_asv`[i,"Total04"] <- 1}}
+    `04_asv`[,"Total04"][`04_asv`[,"Total04"] > 0] <- 1
     `04_asv`$ASV_Id <- row.names(`04_asv`)
   ### 06
-    `06_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date06))))
+    `06_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period06))))
     colnames(`06_asv`) <- "Total06"
-    for (i in row.names(`06_asv`)) {if (`06_asv`[i,"Total06"] > 0) {`06_asv`[i,"Total06"] <- 1}}
+    `06_asv`[,"Total06"][`06_asv`[,"Total06"] > 0] <- 1
     `06_asv`$ASV_Id <- row.names(`06_asv`)
   ### 09
-    `09_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date09))))
+    `09_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period09))))
     colnames(`09_asv`) <- "Total09"
-    for (i in row.names(`09_asv`)) {if (`09_asv`[i,"Total09"] > 0) {`09_asv`[i,"Total09"] <- 1}}
+    `09_asv`[,"Total09"][`09_asv`[,"Total09"] > 0] <- 1
     `09_asv`$ASV_Id <- row.names(`09_asv`)
   ### 11
-    `11_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Date11))))
+    `11_asv` <- as.data.frame(rowSums(asv_mat_rare %>% select(all_of(Period11))))
     colnames(`11_asv`) <- "Total11"
-    for (i in row.names(`11_asv`)) {if (`11_asv`[i,"Total11"] > 0) {`11_asv`[i,"Total11"] <- 1}}
+    `11_asv`[,"Total11"][`11_asv`[,"Total11"] > 0] <- 1
     `11_asv`$ASV_Id <- row.names(`11_asv`)
   ### Merge
-    Date_asv <- merge(x = `04_asv`,y = `06_asv`, by = "ASV_Id")
-    Date_asv <- merge(x = Date_asv,y = `09_asv`, by = "ASV_Id")
-    Date_asv <- merge(x = Date_asv,y = `11_asv`, by = "ASV_Id")
+    Period_asv <- merge(x = `04_asv`,y = `06_asv`, by = "ASV_Id")
+    Period_asv <- merge(x = Period_asv,y = `09_asv`, by = "ASV_Id")
+    Period_asv <- merge(x = Period_asv,y = `11_asv`, by = "ASV_Id")
 #
 # AFC Plot BASE ----------------------------------------------------------------
   # Séquence ----------------------------------------------------------------
@@ -652,51 +662,51 @@ set.seed(1)
   #### 100% - 0%
     data_seq$Day <- 0
     data_seq$Night <- 0
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalDay"] != 0) { data_seq[i,"Day"] <- 1}}
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalNight"] != 0) { data_seq[i,"Night"] <- 2}}
+    data_seq[,"Day"][data_seq[,"TotalDay"] != 0] <-1
+    data_seq[,"Night"][data_seq[,"TotalNight"] != 0] <-2
     data_seq$Cycle <- 0
-    for (i in rownames(data_seq)) { data_seq[i,"Cycle"] <- data_seq[i,"Day"] + data_seq[i,"Night"] 
-    if ( data_seq[i,"Cycle"] == 1) { data_seq[i,"Cycle"] <- "Day"}
-    if ( data_seq[i,"Cycle"] == 2) { data_seq[i,"Cycle"] <- "Night"}
-    if ( data_seq[i,"Cycle"] == 3) { data_seq[i,"Cycle"] <- "Shared"}}
+    data_seq[,"Cycle"] <- data_seq[,"Day"] + data_seq[,"Night"]
+    data_seq[,"Cycle"][data_seq[,"Cycle"] == 1] <- "Day"
+    data_seq[,"Cycle"][data_seq[,"Cycle"] == 2] <- "Night"
+    data_seq[,"Cycle"][data_seq[,"Cycle"] == 3] <- "Shared"
   #### 90% - 10%
     data_seq$Cycle90 <- "Shared"
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalDay"] > data_seq[i,"TotalNight"]) { data_seq[i,"Cycle90"] <- "Day"}}
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalNight"] > data_seq[i,"TotalDay"]) { data_seq[i,"Cycle90"] <- "Night"}}
+    data_seq[,"Cycle90"][0.1*data_seq[,"TotalDay"] > data_seq[,"TotalNight"]] <- "Day"
+    data_seq[,"Cycle90"][0.1*data_seq[,"TotalNight"] > data_seq[,"TotalDay"]] <- "Night"
   ### Zone
     data_seq <- merge(x = data_seq, y = Zone_seq, by = "ASV_Id")
   #### 100% - 0%
     data_seq$Mixolimnion <- 0
     data_seq$Monimolimnion <- 0
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalMixolimnion"] != 0) { data_seq[i,"Mixolimnion"] <- 1}}
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalMonimolimnion"] != 0) { data_seq[i,"Monimolimnion"] <- 2}}
+    data_seq[,"Mixolimnion"][data_seq[,"TotalMixolimnion"] != 0] <-1
+    data_seq[,"Monimolimnion"][data_seq[,"TotalMonimolimnion"] != 0] <-2
     data_seq$Zone <- 0
-    for (i in rownames(data_seq)) { data_seq[i,"Zone"] <- data_seq[i,"Mixolimnion"] + data_seq[i,"Monimolimnion"] 
-    if ( data_seq[i,"Zone"] == 1) { data_seq[i,"Zone"] <- "Mixolimnion"}
-    if ( data_seq[i,"Zone"] == 2) { data_seq[i,"Zone"] <- "Monimolimnion"}
-    if ( data_seq[i,"Zone"] == 3) { data_seq[i,"Zone"] <- "Shared"}}
+    data_seq[,"Zone"] <- data_seq[,"Mixolimnion"] + data_seq[,"Monimolimnion"]
+    data_seq[,"Zone"][data_seq[,"Zone"] == 1] <- "Mixolimnion"
+    data_seq[,"Zone"][data_seq[,"Zone"] == 2] <- "Monimolimnion"
+    data_seq[,"Zone"][data_seq[,"Zone"] == 3] <- "Shared"
   #### 90% - 10%
     data_seq$Zone90 <- "Shared"
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalMixolimnion"] > data_seq[i,"TotalMonimolimnion"]) { data_seq[i,"Zone90"] <- "Mixolimnion"}}
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalMonimolimnion"] > data_seq[i,"TotalMixolimnion"]) { data_seq[i,"Zone90"] <- "Monimolimnion"}}  
-  ### Fraction
+    data_seq[,"Zone90"][0.1*data_seq[,"TotalMixolimnion"] > data_seq[,"TotalMonimolimnion"]] <- "Mixolimnion"
+    data_seq[,"Zone90"][0.1*data_seq[,"TotalMonimolimnion"] > data_seq[,"TotalMixolimnion"]] <- "Monimolimnion"
+### Fraction
     data_seq <- merge(x = data_seq, y = Fraction_seq, by = "ASV_Id")
-  #### 100% - 0%
+    #### 100% - 0%
     data_seq$Small <- 0
     data_seq$Large <- 0
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalSmall"] != 0) { data_seq[i,"Small"] <- 1}}
-    for (i in rownames(data_seq)) { if ( data_seq[i,"TotalLarge"] != 0) { data_seq[i,"Large"] <- 2}}
+    data_seq[,"Small"][data_seq[,"TotalSmall"] != 0] <-1
+    data_seq[,"Large"][data_seq[,"TotalLarge"] != 0] <-2
     data_seq$Fraction <- 0
-    for (i in rownames(data_seq)) { data_seq[i,"Fraction"] <- data_seq[i,"Small"] + data_seq[i,"Large"] 
-    if ( data_seq[i,"Fraction"] == 1) { data_seq[i,"Fraction"] <- "Small"}
-    if ( data_seq[i,"Fraction"] == 2) { data_seq[i,"Fraction"] <- "Large"}
-    if ( data_seq[i,"Fraction"] == 3) { data_seq[i,"Fraction"] <- "Shared"}}
-  #### 90% - 10%
+    data_seq[,"Fraction"] <- data_seq[,"Small"] + data_seq[,"Large"]
+    data_seq[,"Fraction"][data_seq[,"Fraction"] == 1] <- "Small"
+    data_seq[,"Fraction"][data_seq[,"Fraction"] == 2] <- "Large"
+    data_seq[,"Fraction"][data_seq[,"Fraction"] == 3] <- "Shared"
+    #### 90% - 10%
     data_seq$Fraction90 <- "Shared"
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalSmall"] > data_seq[i,"TotalLarge"]) { data_seq[i,"Fraction90"] <- "Small"}}
-    for (i in rownames(data_seq)) { if ( 0.1*data_seq[i,"TotalLarge"] > data_seq[i,"TotalSmall"]) { data_seq[i,"Fraction90"] <- "Large"}}  
-  ### Date
-    data_seq <- merge(x = data_seq, y = Date_seq, by = "ASV_Id")
+    data_seq[,"Fraction90"][0.1*data_seq[,"TotalSmall"] > data_seq[,"TotalLarge"]] <- "Small"
+    data_seq[,"Fraction90"][0.1*data_seq[,"TotalLarge"] > data_seq[,"TotalSmall"]] <- "Large"
+  ### Period
+    data_seq <- merge(x = data_seq, y = Period_seq, by = "ASV_Id")
     data_seq04 <- data_seq %>% filter(Total04 != 0) %>% select(-Total06,-Total09,-Total11)
     data_seq06 <- data_seq %>% filter(Total06 != 0) %>% select(-Total04,-Total09,-Total11)
     data_seq09 <- data_seq %>% filter(Total09 != 0) %>% select(-Total04,-Total06,-Total11)
@@ -721,37 +731,37 @@ set.seed(1)
     data_asv <- merge(x = coord, y = Cycle_asv, by = "ASV_Id")
     data_asv$Day <- 0
     data_asv$Night <- 0
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalDay"] != 0) { data_asv[i,"Day"] <- 1}}
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalNight"] != 0) { data_asv[i,"Night"] <- 2}}
+    data_asv[,"Day"][data_asv[,"TotalDay"] != 0] <- 1
+    data_asv[,"Night"][data_asv[,"TotalNight"] != 0] <- 2
     data_asv$Cycle <- 0
-    for (i in rownames(data_asv)) { data_asv[i,"Cycle"] <- data_asv[i,"Day"] + data_asv[i,"Night"] 
-    if ( data_asv[i,"Cycle"] == 1) { data_asv[i,"Cycle"] <- "Day"}
-    if ( data_asv[i,"Cycle"] == 2) { data_asv[i,"Cycle"] <- "Night"}
-    if ( data_asv[i,"Cycle"] == 3) { data_asv[i,"Cycle"] <- "Shared"}}
+    data_asv[,"Cycle"] <- data_asv[,"Day"] + data_asv[,"Night"]
+    data_asv[,"Cycle"][data_asv[,"Cycle"] == 1] <- "Day"
+    data_asv[,"Cycle"][data_asv[,"Cycle"] == 2] <- "Night"
+    data_asv[,"Cycle"][data_asv[,"Cycle"] == 3] <- "Shared"
   ### Zone
     data_asv <- merge(x = data_asv, y = Zone_asv, by = "ASV_Id")
     data_asv$Mixolimnion <- 0
     data_asv$Monimolimnion <- 0
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalMixolimnion"] != 0) { data_asv[i,"Mixolimnion"] <- 1}}
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalMonimolimnion"] != 0) { data_asv[i,"Monimolimnion"] <- 2}}
+    data_asv[,"Mixolimnion"][data_asv[,"TotalMixolimnion"] != 0] <- 1
+    data_asv[,"Monimolimnion"][data_asv[,"TotalMonimolimnion"] != 0] <- 2
     data_asv$Zone <- 0
-    for (i in rownames(data_asv)) { data_asv[i,"Zone"] <- data_asv[i,"Mixolimnion"] + data_asv[i,"Monimolimnion"] 
-    if ( data_asv[i,"Zone"] == 1) { data_asv[i,"Zone"] <- "Mixolimnion"}
-    if ( data_asv[i,"Zone"] == 2) { data_asv[i,"Zone"] <- "Monimolimnion"}
-    if ( data_asv[i,"Zone"] == 3) { data_asv[i,"Zone"] <- "Shared"}}
+    data_asv[,"Zone"] <- data_asv[,"Mixolimnion"] + data_asv[,"Monimolimnion"]
+    data_asv[,"Zone"][data_asv[,"Zone"] == 1] <- "Mixolimnion"
+    data_asv[,"Zone"][data_asv[,"Zone"] == 2] <- "Monimolimnion"
+    data_asv[,"Zone"][data_asv[,"Zone"] == 3] <- "Shared"
   ### Fraction
     data_asv <- merge(x = data_asv, y = Fraction_asv, by = "ASV_Id")
     data_asv$Small <- 0
     data_asv$Large <- 0
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalSmall"] != 0) { data_asv[i,"Small"] <- 1}}
-    for (i in rownames(data_asv)) { if ( data_asv[i,"TotalLarge"] != 0) { data_asv[i,"Large"] <- 2}}
+    data_asv[,"Small"][data_asv[,"TotalSmall"] != 0] <- 1
+    data_asv[,"Large"][data_asv[,"TotalLarge"] != 0] <- 2
     data_asv$Fraction <- 0
-    for (i in rownames(data_asv)) { data_asv[i,"Fraction"] <- data_asv[i,"Small"] + data_asv[i,"Large"] 
-    if ( data_asv[i,"Fraction"] == 1) { data_asv[i,"Fraction"] <- "Small"}
-    if ( data_asv[i,"Fraction"] == 2) { data_asv[i,"Fraction"] <- "Large"}
-    if ( data_asv[i,"Fraction"] == 3) { data_asv[i,"Fraction"] <- "Shared"}}
-  ### Date
-    data_asv <- merge(x = data_asv, y = Date_asv, by = "ASV_Id")
+    data_asv[,"Fraction"] <- data_asv[,"Small"] + data_asv[,"Large"]
+    data_asv[,"Fraction"][data_asv[,"Fraction"] == 1] <- "Small"
+    data_asv[,"Fraction"][data_asv[,"Fraction"] == 2] <- "Large"
+    data_asv[,"Fraction"][data_asv[,"Fraction"] == 3] <- "Shared"
+  ### Period
+    data_asv <- merge(x = data_asv, y = Period_asv, by = "ASV_Id")
     data_asv04 <- data_asv %>% filter(Total04 != 0) %>% select(-Total06,-Total09,-Total11)
     data_asv06 <- data_asv %>% filter(Total06 != 0) %>% select(-Total04,-Total09,-Total11)
     data_asv09 <- data_asv %>% filter(Total09 != 0) %>% select(-Total04,-Total06,-Total11)
@@ -763,11 +773,14 @@ set.seed(1)
     Dim2asv <- paste("Dim 2 [",round(Xasv %>% filter(dim == 2) %>% select(eig),1),"%]", sep = "")
 #
 # Beta diversity script ---------------------------------------------------
+  # Séquence ----------------------------------------------------------------
   dt <- as.data.frame(seq_mat_rare)
   dt <- t(dt %>% select(-"Taxonomy"))
-  dt <- merge(dt, samples_df %>% select(Amplicon, Cycle, Date, Fraction, Zone), by.x = "row.names", by.y = "Amplicon")
-  dtx <- dt %>% select(-Cycle,-Date, -Fraction, -Zone, -Row.names)
-  NMDS_tab=metaMDS(dtx,distance = "bray")
+  dt <- merge(dt, samples_df %>% select(Amplicon, Cycle, Period, Fraction, Zone), by.x = "row.names", by.y = "Amplicon")
+  row.names(dt) <- dt$Row.names
+  dtx <- dt %>% select(-Cycle,-Period, -Fraction, -Zone, -Row.names)
+  dist <- vegdist(dtx, method ="bray")
+  NMDS_tab=metaMDS(dist, parralel = 10)
 ## Plot
   Condition <-dt$Zone
   plot(NMDS_tab)
@@ -775,53 +788,150 @@ set.seed(1)
   orditorp(NMDS_tab,display="sites")
 ## ggplot
   scores(NMDS_tab,display="sites") %>%
-    cbind(dt %>% select(Row.names, Cycle, Date, Fraction, Zone)) %>%
+    cbind(dt %>% select(Row.names, Cycle, Period, Fraction, Zone)) %>%
     cbind(statRarefy) %>%
     ggplot(aes(x = NMDS1, y = NMDS2)) +
     geom_point(aes(size = `apRarefy-ASV`, color = Zone)) +
-    facet_grid(~Fraction) +
+    #facet_grid(~Fraction) +
     stat_ellipse(geom = "polygon", aes(group = Zone, color = Zone), alpha = 0.1, level = 0.95) +
     annotate("text", x = min(scores(NMDS_tab,display="sites")), y = max(scores(NMDS_tab,display="sites"))+1.2, label = paste0("stress: ", format(NMDS_tab$stress, digits = 4)), hjust = 0) +
-    theme_bw() + scale_color_jco() # + geom_text(aes(label = Amplicon))
-  ggsave("Betadisp/NMDS.svg", device = "svg", width = 5, height = 5)
-## Adonis and Anosim
-  capture.output(adonis2(formula = dtx~dt$Zone+dt$Fraction+dt$Cycle+dt$Date,distance = "bray"),file="Betadisp/Adonis.txt")
-  capture.output(anosim(dtx, dt$Zone, distance = "bray", permutations = 9999),file="Betadisp/anosim_Zone.txt")
-  capture.output(anosim(dtx, dt$Fraction, distance = "bray", permutations = 9999),file="Betadisp/anosim_Fraction.txt")
-  capture.output(anosim(dtx, dt$Date, distance = "bray", permutations = 9999),file="Betadisp/anosim_Periods.txt")
-  capture.output(anosim(dtx, dt$Cycle, distance = "bray", permutations = 9999),file="Betadisp/anosim_Cycle.txt")
-  
+    annotate("text", x = min(scores(NMDS_tab,display="sites")), y = max(scores(NMDS_tab,display="sites"))+1.2, label = paste0("stress: ", format(NMDS_tab$stress, digits = 4)), hjust = 0) +
+    theme_bw() + scale_color_jco()  + geom_text(aes(label = Echantillon))
+  ggsave("Betadisp/NMDS_Zone_seq.svg", device = "svg", width = 5, height = 5)
+## Adonis
+  capture.output(adonis2(formula = dist~dt$Zone+dt$Fraction+dt$Cycle+dt$Period,parralel = 10),file="Betadisp/Adonis_seq.txt")
+## ANOSIM
+  #
+  Zone_anosim <- anosim(dist, dt$Zone, permutations = 9999, parallel = 10)
+  capture.output(Zone_anosim,file="Betadisp/anosim_Zone_seq.txt")
+  #
+  Fraction_anosim <- anosim(dist, dt$Fraction, permutations = 9999, parallel = 10)
+  capture.output(Fraction_anosim,file="Betadisp/anosim_Fraction_seq.txt")
+  #
+  Periods_anosim <- anosim(dist, dt$Period, permutations = 9999, parallel = 10)
+  capture.output(Periods_anosim,file="Betadisp/anosim_Periods_seq.txt")
+  #
+  Cycle_anosim <- anosim(dist, dt$Cycle, permutations = 9999, parallel = 10)
+  capture.output(Cycle_anosim,file="Betadisp/anosim_Cycle_seq.txt")
+#
 ## Betadisper
-  dist <- vegdist(dtx, method ="bray")
-  # Zone
-  mod_Zone <- betadisper(dist,dt$Zone)
-  anova(mod_Zone)
-  TukeyHSD(mod_Zone)
-  svglite("Betadisp/PCoA_Zone.svg", width = 5.00, height = 5.00)
-  plot(mod_Zone)
-  dev.off()
-  # Cycle
-  mod_Cycle <- betadisper(dist,dt$Cycle)
-  anova(mod_Cycle)
-  TukeyHSD(mod_Cycle)
-  svglite("Betadisp/PCoA_Cycle.svg", width = 5.00, height = 5.00)
-  plot(mod_Cycle)
-  dev.off()
-  # Fraction
-  mod_Fraction <- betadisper(dist,dt$Fraction)
-  anova(mod_Fraction)
-  TukeyHSD(mod_Fraction)
-  svglite("Betadisp/PCoA_Fraction.svg", width = 5.00, height = 5.00)
-  plot(mod_Fraction)
+  # Betadisper
+  mod <- betadisper(dist,dt$Zone)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Zone_seq.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Zone",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
   dev.off()
   # Period
-  mod_Periods <- betadisper(dist,dt$Date)
-  anova(mod_Periods)
-  TukeyHSD(mod_Periods)
-  svglite("Betadisp/PCoA_Periods.svg", width = 5.00, height = 5.00)
-  plot(mod_Periods)
+  mod <- betadisper(dist,dt$Period)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Periods_seq.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Periods",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
+  dev.off()
+  # Fraction
+  mod <- betadisper(dist,dt$Fraction)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Fraction_seq.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Fraction",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
+  dev.off()
+  # Cycle
+  mod <- betadisper(dist,dt$Cycle)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Cycle_seq.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Cycle",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
   dev.off()
 #
+  # ASV ----------------------------------------------------------------
+  dt <- as.data.frame(asv_mat_rare)
+  dt <- t(dt %>% select(-"Taxonomy"))
+  dt <- merge(dt, samples_df %>% select(Amplicon, Cycle, Period, Fraction, Zone), by.x = "row.names", by.y = "Amplicon")
+  row.names(dt) <- dt$Row.names
+  dtx <- dt %>% select(-Cycle,-Period, -Fraction, -Zone, -Row.names)
+  dist <- vegdist(dtx, method ="bray")
+  NMDS_tab=metaMDS(dist, parralel = 10)
+  ## Plot
+  Condition <-dt$Zone
+  plot(NMDS_tab)
+  ordiellipse(NMDS_tab,groups = Condition,label = T)
+  orditorp(NMDS_tab,display="sites")
+  ## ggplot
+  scores(NMDS_tab,display="sites") %>%
+    cbind(dt %>% select(Row.names, Cycle, Period, Fraction, Zone)) %>%
+    cbind(statRarefy) %>%
+    ggplot(aes(x = NMDS1, y = NMDS2)) +
+    geom_point(aes(size = `apRarefy-ASV`, color = Zone)) +
+    #facet_grid(~Fraction) +
+    stat_ellipse(geom = "polygon", aes(group = Zone, color = Zone), alpha = 0.1, level = 0.95) +
+    annotate("text", x = min(scores(NMDS_tab,display="sites")), y = max(scores(NMDS_tab,display="sites"))+1.2, label = paste0("stress: ", format(NMDS_tab$stress, digits = 4)), hjust = 0) +
+    annotate("text", x = min(scores(NMDS_tab,display="sites")), y = max(scores(NMDS_tab,display="sites"))+1.2, label = paste0("stress: ", format(NMDS_tab$stress, digits = 4)), hjust = 0) +
+    theme_bw() + scale_color_jco()  + geom_text(aes(label = Echantillon))
+  ggsave("Betadisp/NMDS_Zone_asv.svg", device = "svg", width = 5, height = 5)
+  ## Adonis
+  capture.output(adonis2(formula = dist~dt$Zone+dt$Fraction+dt$Cycle+dt$Period,parralel = 10),file="Betadisp/Adonis_asv.txt")
+  ## ANOSIM
+  #
+  Zone_anosim_asv <- anosim(dist, dt$Zone, permutations = 9999, parallel = 10)
+  capture.output(Zone_anosim_asv,file="Betadisp/anosim_Zone_asv.txt")
+  #
+  Fraction_anosim_asv <- anosim(dist, dt$Fraction, permutations = 9999, parallel = 10)
+  capture.output(Fraction_anosim_asv,file="Betadisp/anosim_Fraction_asv.txt")
+  #
+  Periods_anosim_asv <- anosim(dist, dt$Period, permutations = 9999, parallel = 10)
+  capture.output(Periods_anosim_asv,file="Betadisp/anosim_Periods_asv.txt")
+  #
+  Cycle_anosim_asv <- anosim(dist, dt$Cycle, permutations = 9999, parallel = 10)
+  capture.output(Cycle_anosim_asv,file="Betadisp/anosim_Cycle_asv.txt")
+  #
+  ## Betadisper
+  # Betadisper
+  mod <- betadisper(dist,dt$Zone)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Zone_asv.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Zone",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
+  dev.off()
+  # Period
+  mod <- betadisper(dist,dt$Period)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Periods_asv.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Periods",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
+  dev.off()
+  # Fraction
+  mod <- betadisper(dist,dt$Fraction)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Fraction_asv.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Fraction",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
+  dev.off()
+  # Cycle
+  mod <- betadisper(dist,dt$Cycle)
+  labs <- paste("Dimension", 1:4, "(", 
+                round(100*mod$eig / sum(mod$eig), 2), "%)")
+  svglite("Betadisp/PCoA_Cycle_asv.svg", width = 5.00, height = 5.00)
+  plot(mod, cex=1, pch=15:17, cex.lab=1.25,
+       xlab=labs[1], ylab=labs[2], main = "Cycle",
+       hull=TRUE, ellipse=FALSE, conf=0.95, lwd=2)
+  dev.off()
+  #
+  
 # AFC Taxonomy ------------------------------------------------------------
   # Séquence ----------------------------------------------------------------
     data_seq_tax <- data_seq
@@ -908,7 +1018,7 @@ set.seed(1)
                 legend.text = element_text(size=10)) +
           scale_alpha_manual(values = c(0.1,0.1,0.1,0.1,0)) +
           scale_color_manual(values = c("#F8766D","#80B69B","#7F76A7","#00A5FF","lightgrey")) +
-          labs(x=Dim1seq,y=Dim2seq,color = "Date", alpha = "Date", linetype = "Date")
+          labs(x=Dim1seq,y=Dim2seq,color = "Period", alpha = "Period", linetype = "Period")
         print(multiZone100)
         ggsave("Betadisp/Period100.svg", device = "svg", width = 5, height = 5)
 #
@@ -995,7 +1105,7 @@ set.seed(1)
                 legend.text = element_text(size=10)) +
           scale_alpha_manual(values = c(0.1,0.1,0.1,0.1,0)) +
           scale_color_manual(values = c("#F8766D","#80B69B","#7F76A7","#00A5FF","lightgrey")) +
-          labs(x=Dim1seq,y=Dim2seq,color = "Date", alpha = "Date", linetype = "Date")
+          labs(x=Dim1seq,y=Dim2seq,color = "Period", alpha = "Period", linetype = "Period")
         print(multiZone90)
         ggsave("Betadisp/Period90.svg", device = "svg", width = 5, height = 5)
 #
@@ -1033,7 +1143,9 @@ set.seed(1)
                 legend.background = element_rect(fill = "white", color = "black")) +
           xlim(-3.3,3.2) +
           scale_color_manual(values = c("#ad494aFF","#7375b5FF","lightgrey")) +
-          labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles")
+          labs(x=Dim1seq,y=Dim2seq,color = "Cycles", alpha = "Cycles", linetype = "Cycles") +
+          annotate(geom="text", x=-3.3, y=2.7, col="black", fontface = "bold", size =3.5, hjust = 0,
+                   label=paste("ANOSIM test: ",round(Cycle_anosim$statistic,4),"\np-value: ",round(Cycle_anosim$signif,4)))
         print(aCycle90)
       ## Fraction
         cFraction90 <- myplots90_All_2018[[3]] +
@@ -1041,7 +1153,9 @@ set.seed(1)
           theme(legend.position = c(0.87, 0.2),
                 legend.background = element_rect(fill = "white", color = "black")) +
           scale_color_manual(values = c("#ad494aFF","#7375b5FF","lightgrey")) +
-          labs(x=Dim1seq,y=Dim2seq,color = "Fractions", alpha = "Fractions", linetype = "Fractions")
+          labs(x=Dim1seq,y=Dim2seq,color = "Fractions", alpha = "Fractions", linetype = "Fractions") +
+          annotate(geom="text", x=-3.3, y=2.7, col="black", fontface = "bold", size =3.5, hjust = 0,
+                   label=paste("ANOSIM test: ",round(Fraction_anosim$statistic,4),"\np-value: ",round(Fraction_anosim$signif,4)))
         print(cFraction90)
       ## Zone
         bZone90 <- myplots90_All_2018[[1]] +
@@ -1050,19 +1164,24 @@ set.seed(1)
                 legend.background = element_rect(fill = "white", color = "black")) +
           ylim(3.1,-3.1) +
           scale_color_manual(values = c("#ad494aFF","#7375b5FF","lightgrey")) +
-          labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones")
+          labs(x=Dim1seq,y=Dim2seq,color = "Zones", alpha = "Zones", linetype = "Zones") +
+          annotate(geom="text", x=-3.3, y=2.7, col="black", fontface = "bold", size =3.5, hjust = 0,
+                   label=paste("ANOSIM test: ",round(Zone_anosim$statistic,4),"\np-value: ",round(Zone_anosim$signif,4)))
         print(bZone90)
       ## Periods
-        multiZone90 <- multiZone90 +
+        multiZone90x <- multiZone90 +
           theme(legend.position = c(0.87, 0.27),
                 legend.background = element_rect(fill = "white", color = "black")) +
           xlim(-3.3,3.2) +
           ylim(3.1,-3.1) +
           scale_color_manual(values = c("#7375b5FF","#8ca252FF","#f6ae34FF","#ad494aFF","lightgrey")) +
-          labs(x=Dim1seq,y=Dim2seq,color = "Periods", alpha = "Periods", linetype = "Periods")
-      ## Coplot
+          labs(x=Dim1seq,y=Dim2seq,color = "Periods", alpha = "Periods", linetype = "Periods") +
+          annotate(geom="text", x=-3.3, y=2.7, col="black", fontface = "bold", size =3.5, hjust = 0,
+                   label=paste("ANOSIM test: ",round(Periods_anosim$statistic,4),"\np-value: ",round(Periods_anosim$signif,4)))
+        print(multiZone90x)
+        ## Coplot
         svglite("AFC-Distribution/AFC-Sequence-90-article.svg",width = 14.00,height = 8.00)
-        All_plot90 <- plot_grid( bZone90,cFraction90,multiZone90,aCycle90, ncol = 2, nrow = 2, rel_widths = c(4,4), rel_heights = c(3),labels=c("A","B","C","D"),align="v")
+        All_plot90 <- plot_grid( bZone90,cFraction90,multiZone90x,aCycle90, ncol = 2, nrow = 2, rel_widths = c(4,4), rel_heights = c(3),labels=c("A","B","C","D"),align="v")
         print(All_plot90)
         dev.off()
 #
@@ -1148,7 +1267,7 @@ set.seed(1)
               legend.text = element_text(size=10)) +
         scale_alpha_manual(values = c(0.1,0.1,0.1,0.1,0)) +
         scale_color_manual(values = c("#F8766D","#80B69B","#7F76A7","#00A5FF","lightgrey")) +
-        labs(x=Dim1asv,y=Dim2asv,color = "Date", alpha = "Date", linetype = "Date")
+        labs(x=Dim1asv,y=Dim2asv,color = "Period", alpha = "Period", linetype = "Period")
       print(multiZoneasv)
       ggsave("Betadisp/PeriodASV.svg", device = "svg", width = 5, height = 5)
 
@@ -1271,8 +1390,8 @@ set.seed(1)
                            cat.fontface = "bold",
                            cat.col = c("#440154ff", '#21908dff'))
   ggsave(FractionVenn, file="Venn/Fraction.svg", device = "svg", width = 3, height = 3)
-## Date
-  DateVenn <- venn.diagram(x = list(data_asv_tax %>% filter(Total04 == 1) %>% select(ASV_Id) %>% unlist(), data_asv_tax %>% filter(Total06 == 1) %>% select(ASV_Id) %>% unlist(),data_asv_tax %>% filter(Total09 == 1) %>% select(ASV_Id) %>% unlist(),data_asv_tax %>% filter(Total11 == 1) %>% select(ASV_Id) %>% unlist()),
+## Period
+  PeriodVenn <- venn.diagram(x = list(data_asv_tax %>% filter(Total04 == 1) %>% select(ASV_Id) %>% unlist(), data_asv_tax %>% filter(Total06 == 1) %>% select(ASV_Id) %>% unlist(),data_asv_tax %>% filter(Total09 == 1) %>% select(ASV_Id) %>% unlist(),data_asv_tax %>% filter(Total11 == 1) %>% select(ASV_Id) %>% unlist()),
                                category.names = c("Avril","Juin","Septembre","Novembre"),
                                filename = NULL,
                                compression = "lzw",
@@ -1290,9 +1409,44 @@ set.seed(1)
                                cat.fontfamily = "sans",
                                cat.fontface = "bold",
                                cat.col = c("#440154ff", "#638fb4ff", "#0062b4ff",'#21908dff'))
-  ggsave(DateVenn, file="Venn/Date.svg", device = "svg", width = 3, height = 3)
+  ggsave(PeriodVenn, file="Venn/Period.svg", device = "svg", width = 3, height = 3)
 #
 # HIST  --------------------------------------------------------------------
+  # Color for Tax ------------------------------------------------------------
+  color_tax <- data_seq_tax %>% dplyr::select(Supergroup,Division) %>% distinct(Supergroup,Division)
+  color_tax[,"palet"] <- ""
+  color_tax[,"Label"] <- color_tax[,"Division"]
+  for (i in row.names(color_tax)){
+    if (color_tax[i,"Label"] == "Not Affiliated" && color_tax[i,"Supergroup"]!="Not Affiliated") { color_tax[i,"Label"] <- paste("Unaffiliated",color_tax[i,"Supergroup"])}
+    if (grepl(x = color_tax[i,"Division"], pattern = "_X") == TRUE) { color_tax[i,"Label"] <- paste("Unaffiliated",color_tax[i,"Supergroup"])}
+  }
+  color_tax
+  color_tax <- color_tax %>% arrange(Supergroup,Label)
+  
+  for (i in 1:length(unique(color_tax$Supergroup))) {
+    B_courant <- unique(color_tax$Supergroup)[i]
+    B_countLabel <- nrow(unique(color_tax %>% filter(Supergroup == B_courant) %>% dplyr::select('Label')))
+    #palet_liste <- c("red_material","pink_material","purple_material","deep_purple_material","indigo_material","blue_material","light_blue_material","cyan_material","teal_material","green_material","light_green_material","lime_material","yellow_material","amber_material","orange_material","deep_orange_material","brown_material","grey_material","blue_grey_material")
+    palet_liste <- c("red_material","deep_purple_material","blue_material","light_blue_material","light_green_material","yellow_material","orange_material","grey_material","pink_material","cyan_material","green_material","lime_material","indigo_material","purple_material","amber_material","blue_grey_material")
+    palet_name <- paste0("ggsci::",palet_liste[i])
+    print(palet_name)
+    palet_courante <- c(paletteer_d(palet_name,direction = -1,n=10),"#fae6eb")[seq(1,floor(B_countLabel+(B_countLabel/2))+2,2)]
+    print(B_courant)
+    print(B_countLabel)
+    print(palet_courante)
+    for (j in 1:B_countLabel) {
+      Label_courant <- unique(color_tax %>% filter(Supergroup==B_courant) %>% dplyr::select(Label))[[1]][j]
+      print(Label_courant)
+      color_tax[,"palet"][color_tax[,"Label"]==Label_courant] <- palet_courante[j]
+    }
+  }
+  color_tax <- color_tax %>% arrange(Supergroup,Label)
+  color_tax_table <- color_tax %>% dplyr::select(palet,Label) %>% distinct()
+  color_tax_table_order <- color_tax_table$Label
+  paletspe <- color_tax_table$palet
+  
+  
+#
   # Zone X Periods ----------------------------------------------------------
     for (type in c("Sequence","ASV")) {
       if (type == "ASV") { input_data_table <- asv_mat_rare }
@@ -1300,7 +1454,7 @@ set.seed(1)
       for (zonexs in c("Mixolimnion","Monimolimnion")) {
         for (periodxs in c("04","06","09","11")) {
           tableI <- paste(zonexs,periodxs,sep="X")
-          assign(tableI,samples_df %>% filter(Zone == zonexs) %>% filter(Date == periodxs) %>% filter(Replicat == 1))
+          assign(tableI,samples_df %>% filter(Zone == zonexs) %>% filter(Period == periodxs) %>% filter(Replicat == 1))
           assign(tableI,get(tableI)$Amplicon)
           assign(paste(tableI,"seq",sep="_"),as.data.frame(rowSums(input_data_table %>% select(all_of(get(tableI))))))
           tableIt <- get(paste(tableI,"seq",sep="_"))
@@ -1519,7 +1673,7 @@ set.seed(1)
       cy <- cy + labs(x="Fractions",y="ASVs (%)") + theme(legend.position = "none")
       print(cy)
 #
-    # Date -------------------------------------------------------------------
+    # Period -------------------------------------------------------------------
     ## Avril
       total04ASV <- data_asv_tax %>% select(ASV_Id,Total04,RangInterest)
       row.names(total04ASV)<-total04ASV$ASV_Id ; total04ASV <- total04ASV %>% select(-ASV_Id)
@@ -1533,7 +1687,7 @@ set.seed(1)
         if (total04ASV[i,"label"] == "0%") { total04ASV[i,"label"] <- NA}}
       for (i in rownames(total04ASV)) {
         if (is.na(total04ASV[i,"label"]) == FALSE) { total04ASV[i,"label"] <- paste(total04ASV[i,"RangInterest"]," : ",total04ASV[i,"label"], sep = "")}}
-      total04ASV$Date<- rep("04", each = nrow(total04ASV))
+      total04ASV$Period<- rep("04", each = nrow(total04ASV))
     ## Juin
       total06ASV <- data_asv_tax %>% select(ASV_Id,Total06,RangInterest)
       row.names(total06ASV)<-total06ASV$ASV_Id ; total06ASV <- total06ASV %>% select(-ASV_Id)
@@ -1547,7 +1701,7 @@ set.seed(1)
         if (total06ASV[i,"label"] == "0%") { total06ASV[i,"label"] <- NA}}
       for (i in rownames(total06ASV)) {
         if (is.na(total06ASV[i,"label"]) == FALSE) { total06ASV[i,"label"] <- paste(total06ASV[i,"RangInterest"]," : ",total06ASV[i,"label"], sep = "")}}
-      total06ASV$Date<- rep("06", each = nrow(total06ASV))
+      total06ASV$Period<- rep("06", each = nrow(total06ASV))
     ## Septembre
       total09ASV <- data_asv_tax %>% select(ASV_Id,Total09,RangInterest)
       row.names(total09ASV)<-total09ASV$ASV_Id ; total09ASV <- total09ASV %>% select(-ASV_Id)
@@ -1561,7 +1715,7 @@ set.seed(1)
         if (total09ASV[i,"label"] == "0%") { total09ASV[i,"label"] <- NA}}
       for (i in rownames(total09ASV)) {
         if (is.na(total09ASV[i,"label"]) == FALSE) { total09ASV[i,"label"] <- paste(total09ASV[i,"RangInterest"]," : ",total09ASV[i,"label"], sep = "")}}
-      total09ASV$Date<- rep("09", each = nrow(total09ASV))
+      total09ASV$Period<- rep("09", each = nrow(total09ASV))
     ## Octobre
       total11ASV <- data_asv_tax %>% select(ASV_Id,Total11,RangInterest)
       row.names(total11ASV)<-total11ASV$ASV_Id ; total11ASV <- total11ASV %>% select(-ASV_Id)
@@ -1575,8 +1729,8 @@ set.seed(1)
         if (total11ASV[i,"label"] == "0%") { total11ASV[i,"label"] <- NA}}
       for (i in rownames(total11ASV)) {
         if (is.na(total11ASV[i,"label"]) == FALSE) { total11ASV[i,"label"] <- paste(total11ASV[i,"RangInterest"]," : ",total11ASV[i,"label"], sep = "")}}
-      total11ASV$Date<- rep("11", each = nrow(total11ASV))
-    ## Date
+      total11ASV$Period<- rep("11", each = nrow(total11ASV))
+    ## Period
       colnames(total04ASV)[2]  <- "value"
       total04ASV$Sum <- rep(0, each = nrow(total04ASV))
       total04ASV$Count <- rep(0, each = nrow(total04ASV))
@@ -1597,11 +1751,11 @@ set.seed(1)
       total11ASV$Count <- rep(0, each = nrow(total11ASV))
       for (i in total11ASV$RangInterest) { total11ASV$Count[which(total11ASV$RangInterest == i)] <- sum(data_asv_tax  %>% filter(RangInterest == i) %>% select(Total11))}
       total11ASV$Sum <- sum(total11ASV$Count)
-      totalDateASV <- rbind(total04ASV,total06ASV,total09ASV,total11ASV)
+      totalPeriodASV <- rbind(total04ASV,total06ASV,total09ASV,total11ASV)
     ## Plot
-      dy <- ggplot(totalDateASV, mapping = aes(y= value, x = Date, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
+      dy <- ggplot(totalPeriodASV, mapping = aes(y= value, x = Period, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") + scale_fill_manual(values = palette)+ 
         geom_label(aes(y = 106,label = paste(Sum," ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
-      dy <- dy + theme(legend.position = "none") + labs(x="Dates",y="ASVs (%)")
+      dy <- dy + theme(legend.position = "none") + labs(x="Periods",y="ASVs (%)")
       print(dy)
 #
     # Coplot -------------------------------------------------------------------
@@ -1907,7 +2061,7 @@ set.seed(1)
       ky <- ky + labs(x="Fractions",y="Sequences (%)") + theme(legend.position = "none")
       print(ky)
 #
-    # Date -------------------------------------------------------------------
+    # Period -------------------------------------------------------------------
     ## Avril
       total04Sequence <- data_seq_tax %>% select(ASV_Id,Total04,RangInterest)
       row.names(total04Sequence)<-total04Sequence$ASV_Id ; total04Sequence <- total04Sequence %>% select(-ASV_Id)
@@ -1921,7 +2075,7 @@ set.seed(1)
         if (total04Sequence[i,"label"] == "0%") { total04Sequence[i,"label"] <- NA}}
       for (i in rownames(total04Sequence)) {
         if (is.na(total04Sequence[i,"label"]) == FALSE) { total04Sequence[i,"label"] <- paste(total04Sequence[i,"RangInterest"]," : ",total04Sequence[i,"label"], sep = "")}}
-      total04Sequence$Date<- rep("04", each = nrow(total04Sequence))
+      total04Sequence$Period<- rep("04", each = nrow(total04Sequence))
     ## Juin
       total06Sequence <- data_seq_tax %>% select(ASV_Id,Total06,RangInterest)
       row.names(total06Sequence)<-total06Sequence$ASV_Id ; total06Sequence <- total06Sequence %>% select(-ASV_Id)
@@ -1935,7 +2089,7 @@ set.seed(1)
         if (total06Sequence[i,"label"] == "0%") { total06Sequence[i,"label"] <- NA}}
       for (i in rownames(total06Sequence)) {
         if (is.na(total06Sequence[i,"label"]) == FALSE) { total06Sequence[i,"label"] <- paste(total06Sequence[i,"RangInterest"]," : ",total06Sequence[i,"label"], sep = "")}}
-      total06Sequence$Date<- rep("06", each = nrow(total06Sequence))
+      total06Sequence$Period<- rep("06", each = nrow(total06Sequence))
     ## Septembre
       total09Sequence <- data_seq_tax %>% select(ASV_Id,Total09,RangInterest)
       row.names(total09Sequence)<-total09Sequence$ASV_Id ; total09Sequence <- total09Sequence %>% select(-ASV_Id)
@@ -1949,7 +2103,7 @@ set.seed(1)
         if (total09Sequence[i,"label"] == "0%") { total09Sequence[i,"label"] <- NA}}
       for (i in rownames(total09Sequence)) {
         if (is.na(total09Sequence[i,"label"]) == FALSE) { total09Sequence[i,"label"] <- paste(total09Sequence[i,"RangInterest"]," : ",total09Sequence[i,"label"], sep = "")}}
-      total09Sequence$Date<- rep("09", each = nrow(total09Sequence))
+      total09Sequence$Period<- rep("09", each = nrow(total09Sequence))
     ## Octobre
       total11Sequence <- data_seq_tax %>% select(ASV_Id,Total11,RangInterest)
       row.names(total11Sequence)<-total11Sequence$ASV_Id ; total11Sequence <- total11Sequence %>% select(-ASV_Id)
@@ -1963,8 +2117,8 @@ set.seed(1)
         if (total11Sequence[i,"label"] == "0%") { total11Sequence[i,"label"] <- NA}}
       for (i in rownames(total11Sequence)) {
         if (is.na(total11Sequence[i,"label"]) == FALSE) { total11Sequence[i,"label"] <- paste(total11Sequence[i,"RangInterest"]," : ",total11Sequence[i,"label"], sep = "")}}
-      total11Sequence$Date<- rep("11", each = nrow(total11Sequence))
-    ## Dates
+      total11Sequence$Period<- rep("11", each = nrow(total11Sequence))
+    ## Periods
       colnames(total04Sequence)[2]  <- "value"
       total04Sequence$Sum <- rep(0, each = nrow(total04Sequence))
       total04Sequence$Count <- rep(0, each = nrow(total04Sequence))
@@ -1985,13 +2139,13 @@ set.seed(1)
       total11Sequence$Count <- rep(0, each = nrow(total11Sequence))
       for (i in total11Sequence$RangInterest) { total11Sequence$Count[which(total11Sequence$RangInterest == i)] <- sum(data_seq_tax  %>% filter(RangInterest == i) %>% select(Total11))}
       total11Sequence$Sum <- sum(total11Sequence$Count)
-      totalDateSequence <- rbind(total04Sequence,total06Sequence,total09Sequence,total11Sequence)
-      totalDateSequence$percent <- paste("(",round(totalDateSequence$Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))/4),1)," %)",sep ="")
+      totalPeriodSequence <- rbind(total04Sequence,total06Sequence,total09Sequence,total11Sequence)
+      totalPeriodSequence$percent <- paste("(",round(totalPeriodSequence$Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))/4),1)," %)",sep ="")
     ## Plot
-      ly <- ggplot(totalDateSequence, mapping = aes(y= value, x = Date, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
+      ly <- ggplot(totalPeriodSequence, mapping = aes(y= value, x = Period, fill = RangInterest, group = RangInterest), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity") +
         scale_fill_manual(values = palette) + 
         geom_label(aes(y = 108,label = paste(Sum,"séquences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
-      ly <- ly + labs(x="Dates",y="Sequences (%)") + theme(legend.position = "none")
+      ly <- ly + labs(x="Periods",y="Sequences (%)") + theme(legend.position = "none")
       print(ly)
 #
     # Coplot -------------------------------------------------------------------
@@ -2394,7 +2548,7 @@ set.seed(1)
         geom_text(aes(label = label ,y = 0,vjust = ifelse(value >= 0, 0.5, 0.5), hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
         #geom_label(aes(label = round(Abundance),y = 0, vjust = ifelse(value >= 0, 0.5, 0.5),hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
         labs(x="",y="Sequences abundance log-ratio",fill="Zones") +
-        theme(axis.text.y = element_blank()) + theme_unique_art() + scale_fill_manual(values=balance_palet) + guides(alpha = FALSE)
+        theme(axis.text.y = element_blank()) + theme_unique_art() + scale_fill_manual(values=balance_palet) + guides(alpha = "none")
       print(balxi)
       dev.off()
     ## Coplot
@@ -2428,7 +2582,7 @@ set.seed(1)
         geom_text(aes(label = label ,y = 0,vjust = ifelse(value >= 0, 0.5, 0.5), hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
         #geom_label(aes(label = round(Abundance),y = 0, vjust = ifelse(value >= 0, 0.5, 0.5),hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
         labs(x="",y="ASVs log-ratio",fill="Zones") +
-        theme(axis.text.y = element_blank()) + theme_unique_art() + scale_fill_manual(values=balance_palet) + guides(alpha = FALSE)
+        theme(axis.text.y = element_blank()) + theme_unique_art() + scale_fill_manual(values=balance_palet) + guides(alpha = "none")
       print(balxj)
       dev.off()
     ## Coplot
@@ -2461,7 +2615,7 @@ set.seed(1)
       if (Polar_seq[i,"label"] == "0%") { Polar_seq[i,"label"] <- NA}}
     for (i in rownames(Polar_seq)) {
       if (is.na(Polar_seq[i,"label"]) == FALSE) { Polar_seq[i,"label"] <- paste(Polar_seq[i,"RangInterest"]," : ",Polar_seq[i,"label"], sep = "")}}
-    Polar_seq$color <- rev(c("#c62728cc","#6b1b9acc","#273493cc","#0277bdcc","#558b30cc","#f9a825cc","#ef6c00cc","#252525cc","#1565c0cc","#206064cc"))
+    Polar_seq$color <- rev(c("#c62728cc","#6b1b9acc","#273493cc","#0277bdcc","#558b30cc","#f9a825cc","#ef6c00cc","#25252590","#880e4fcc","#206064cc"))
   ### Figure
     svglite("Composition/Polar-Total-Supergroup-seq.svg",width = 4.50,height = 4.50)
     ax <- ggplot(Polar_seq, mapping = aes(y= Total, x = 2, fill = RangInterest), Rowv = NA, col = colMain, scale = "column") +
@@ -2477,49 +2631,53 @@ set.seed(1)
     write.table(Polar_seq,file="Composition/Table-Total-Supergroup-seq.csv",quote = F,row.names = F,sep="\t")
   ## Division
   ### Total column
-    Polar_seq <- data_seq_tax
-    Polar_seq$TotalAnnée <- 0
-    for (i in rownames(Polar_seq)) { Polar_seq[i,"TotalAnnée"] <- Polar_seq[i,"Total04"] + Polar_seq[i,"Total06"] + Polar_seq[i,"Total09"] + Polar_seq[i,"Total11"]}
-    Polar_seq <- Polar_seq %>% select(TotalAnnée,RangInterest,Division)
+    Polar_seq_div <- data_seq_tax
+    Polar_seq_div$TotalAnnée <- 0
+    for (i in rownames(Polar_seq_div)) { Polar_seq_div[i,"TotalAnnée"] <- Polar_seq_div[i,"Total04"] + Polar_seq_div[i,"Total06"] + Polar_seq_div[i,"Total09"] + Polar_seq_div[i,"Total11"]}
+    Polar_seq_div <- Polar_seq_div %>% select(TotalAnnée,RangInterest,Division)
   ### Total Figure
-    Polar_seq <- Polar_seq %>% group_by(RangInterest,Division) %>% summarise_all(sum)
-    for (i in rownames(Polar_seq)) { if (Polar_seq[i,"Division"]=="Not Affiliated" && Polar_seq[i,"RangInterest"]!="Not Affiliated" ) { Polar_seq[i,"Division"] <- paste("Unaffiliated",Polar_seq[i,"RangInterest"],sep=" ")}}
-    for (i in rownames(Polar_seq)) { if (length(grep("_X",Polar_seq[i,"Division"]))>0) { Polar_seq[i,"Division"] <- paste("Unaffiliated",Polar_seq[i,"RangInterest"],sep=" ")}}
-    Polar_seq <- Polar_seq %>% group_by(RangInterest,Division) %>% summarise_all(sum)
-    Polar_seq <- as.data.frame(Polar_seq) %>% select(-RangInterest)
-    for (i in rownames(Polar_seq)) { Polar_seq[i,"Total"] <- (Polar_seq[i,"TotalAnnée"] * 100) / sum(Polar_seq$TotalAnnée)}
+    Polar_seq_div <- Polar_seq_div %>% group_by(RangInterest,Division) %>% summarise_all(sum)
+    for (i in rownames(Polar_seq_div)) { if (Polar_seq_div[i,"Division"]=="Not Affiliated" && Polar_seq_div[i,"RangInterest"]!="Not Affiliated" ) { Polar_seq_div[i,"Division"] <- paste("Unaffiliated",Polar_seq_div[i,"RangInterest"],sep=" ")}}
+    for (i in rownames(Polar_seq_div)) { if (length(grep("_X",Polar_seq_div[i,"Division"]))>0) { Polar_seq_div[i,"Division"] <- paste("Unaffiliated",Polar_seq_div[i,"RangInterest"],sep=" ")}}
+    Polar_seq_div <- Polar_seq_div %>% group_by(RangInterest,Division) %>% summarise_all(sum)
+    Polar_seq_div <- as.data.frame(Polar_seq_div) %>% select(-RangInterest)
+    for (i in rownames(Polar_seq_div)) { Polar_seq_div[i,"Total"] <- (Polar_seq_div[i,"TotalAnnée"] * 100) / sum(Polar_seq_div$TotalAnnée)}
   ### Label
-    Polar_seq <- Polar_seq %>%
+    Polar_seq_div <- Polar_seq_div %>%
       arrange(-row_number()) %>%
       mutate(lab.ypos = cumsum(Total) - 0.5*Total)
-    Polar_seq$label <- paste(round(Polar_seq$Total,1), "%", sep = "")
-    for (i in rownames(Polar_seq)) {
-      if (Polar_seq[i,"label"] == "0%") { Polar_seq[i,"label"] <- NA}}
-    for (i in rownames(Polar_seq)) {
-      if (is.na(Polar_seq[i,"label"]) == FALSE) { Polar_seq[i,"label"] <- paste(Polar_seq[i,"Division"]," : ",Polar_seq[i,"label"], sep = "")}}
-    Polar_seq$color <- rev(c("#e53a35","#f44336","#ef5350","#e57373","#ef9a9a",
-                             "#7b1fa2","#8e24aa",
-                             "#303f9f",
-                             "#0288d1","#049be5","#64b5f6",
-                             "#2e7d32","#689f38","#7cb342",
-                             "#fbc02c","#fdd835","#ffeb3a","#ffee58","#fff176",
-                             "#f57c00",
-                             "#616161","#757575","#9e9e9e","#bdbdbd","#e0e0e0",
-                             "#1876d2",
-                             "#3897a7","#41acc1","#4cc6da","#80deea","#b2ebf2"))
+    Polar_seq_div$label <- paste(round(Polar_seq_div$Total,1), "%", sep = "")
+    for (i in rownames(Polar_seq_div)) {
+      if (Polar_seq_div[i,"label"] == "0%") { Polar_seq_div[i,"label"] <- NA}}
+    for (i in rownames(Polar_seq_div)) {
+      if (is.na(Polar_seq_div[i,"label"]) == FALSE) { Polar_seq_div[i,"label"] <- paste(Polar_seq_div[i,"Division"]," : ",Polar_seq_div[i,"label"], sep = "")}}
+    Polar_seq_div$color <- rev(paletspe)
     ### Figure
       svglite("Composition/Polar-Total-Division-seq.svg",width = 5.50,height = 5.50)
-      ax <- ggplot(Polar_seq, mapping = aes(y= Total, x = 2, fill = factor(Division,level=Polar_seq$Division)), Rowv = NA, col = colMain, scale = "column") +
-        geom_bar(stat="identity", color = "white", width = 1,fill=Polar_seq$color) + coord_polar("y") + 
-        geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5,fill=Polar_seq$color) +
-        scale_y_continuous(limits=c(0,sum(Polar_seq %>% select(Total)))) +
+      axd <- ggplot(Polar_seq_div, mapping = aes(y= Total, x = 2, fill = factor(Division,level=Polar_seq_div$Division)), Rowv = NA, col = colMain, scale = "column") +
+        geom_bar(stat="identity", color = "white", width = 1,fill=Polar_seq_div$color) + coord_polar("y") + 
+        geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5,fill=Polar_seq_div$color) +
+        scale_y_continuous(limits=c(0,sum(Polar_seq_div %>% select(Total)))) +
         xlim(0.5,2.5) +
         theme_unique_darkbis() + 
         #facet_wrap( ~ variable , nrow = 4) +
         labs(y = "Séquences",x="") #+ scale_fill_paletteer_d("ggsci::default_igv")
-      print(ax)
+      print(axd)
       dev.off()
-      write.table(Polar_seq,file="Composition/Table-Total-Division-seq.csv",quote = F,row.names = F,sep="\t")
+      write.table(Polar_seq_div,file="Composition/Table-Total-Division-seq.csv",quote = F,row.names = F,sep="\t")
+#
+  #Try test
+      axCop <- ggplot(Rowv = NA, col = colMain, scale = "column") +
+        geom_bar(data = Polar_seq,  mapping = aes(y= Total, x = 2, fill = RangInterest), stat="identity", color = "white", width = 1,fill=Polar_seq$color) + 
+        #xlim(1,3) +
+        theme_unique_darkbis() +
+        labs(y = "Sequences",x="") +
+        geom_bar(data = Polar_seq_div, mapping = aes(y= Total, x = 3, fill = factor(Division,level=Polar_seq_div$Division)), stat="identity", color = "white", width = 1,fill=Polar_seq_div$color) + coord_polar("y") + 
+        #geom_label_repel(data = Polar_seq_div, aes(x=3,y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_y = 0.5,fill=Polar_seq_div$color) +
+        geom_text_repel(data = Polar_seq_div, aes(x=3,y = lab.ypos,label = label),fontface= "bold",color = "black",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.8, force_pull = 0) +
+        scale_y_continuous(limits=c(0,sum(Polar_seq_div %>% select(Total)))) +
+        xlim(1,3.8)
+        print(axCop)
 #
   # ASV ----------------------------------------------------------------
   ## Supergroup
@@ -2540,7 +2698,7 @@ set.seed(1)
       if (Polar_asv[i,"label"] == "0%") { Polar_asv[i,"label"] <- NA}}
     for (i in rownames(Polar_asv)) {
       if (is.na(Polar_asv[i,"label"]) == FALSE) { Polar_asv[i,"label"] <- paste(Polar_asv[i,"RangInterest"]," : ",Polar_asv[i,"label"], sep = "")}}
-    Polar_asv$color <- rev(c("#c62728cc","#6b1b9acc","#273493cc","#0277bdcc","#558b30cc","#f9a825cc","#ef6c00cc","#252525cc","#1565c0cc","#206064cc"))
+    Polar_asv$color <- rev(c("#c62728cc","#6b1b9acc","#273493cc","#0277bdcc","#558b30cc","#f9a825cc","#ef6c00cc","#25252590","#880e4fcc","#206064cc"))
   ### Figure
     svglite("Composition/Polar-Total-Supergroup-asv.svg",width = 4.50,height = 4.50)
     bx <- ggplot(Polar_asv, mapping = aes(y= Total, x = 2, fill = RangInterest), Rowv = NA, col = colMain, scale = "column") +
@@ -2556,39 +2714,30 @@ set.seed(1)
     write.table(Polar_asv,file="Composition/Table-Total-Supergroup-asv.csv",quote = F,row.names = F,sep="\t")
   ## Division
   ### Total column
-    Polar_asv <- data_asv_tax
-    Polar_asv$TotalAnnée <- 0
-    for (i in rownames(Polar_asv)) { if (Polar_asv[i,"Total04"] + Polar_asv[i,"Total06"] + Polar_asv[i,"Total09"] + Polar_asv[i,"Total11"] > 0) {Polar_asv[i,"TotalAnnée"] <- 1}}
-    Polar_asv <- Polar_asv %>% select(TotalAnnée,RangInterest,Division)
+    Polar_asv_div <- data_asv_tax
+    Polar_asv_div$TotalAnnée <- 0
+    for (i in rownames(Polar_asv_div)) { if (Polar_asv_div[i,"Total04"] + Polar_asv_div[i,"Total06"] + Polar_asv_div[i,"Total09"] + Polar_asv_div[i,"Total11"] > 0) {Polar_asv_div[i,"TotalAnnée"] <- 1}}
+    Polar_asv_div <- Polar_asv_div %>% select(TotalAnnée,RangInterest,Division)
   ### Total Figure
-    Polar_asv <- Polar_asv %>% group_by(RangInterest,Division) %>% summarise_all(sum)
-    for (i in rownames(Polar_asv)) { if (Polar_asv[i,"Division"]=="Not Affiliated" && Polar_asv[i,"RangInterest"]!="Not Affiliated") { Polar_asv[i,"Division"] <- paste("Unaffiliated",Polar_asv[i,"RangInterest"],sep=" ")}}
-    for (i in rownames(Polar_asv)) { if (length(grep("_X",Polar_asv[i,"Division"]))>0) { Polar_asv[i,"Division"] <- paste("Unaffiliated",Polar_asv[i,"RangInterest"],sep=" ")}}
-    Polar_asv <- Polar_asv %>% group_by(RangInterest,Division) %>% summarise_all(sum)
-    Polar_asv <- as.data.frame(Polar_asv) %>% select(-RangInterest)
-    for (i in rownames(Polar_asv)) { Polar_asv[i,"Total"] <- (Polar_asv[i,"TotalAnnée"] * 100) / sum(Polar_asv$TotalAnnée)}
+    Polar_asv_div <- Polar_asv_div %>% group_by(RangInterest,Division) %>% summarise_all(sum)
+    for (i in rownames(Polar_asv_div)) { if (Polar_asv_div[i,"Division"]=="Not Affiliated" && Polar_asv_div[i,"RangInterest"]!="Not Affiliated") { Polar_asv_div[i,"Division"] <- paste("Unaffiliated",Polar_asv_div[i,"RangInterest"],sep=" ")}}
+    for (i in rownames(Polar_asv_div)) { if (length(grep("_X",Polar_asv_div[i,"Division"]))>0) { Polar_asv_div[i,"Division"] <- paste("Unaffiliated",Polar_asv_div[i,"RangInterest"],sep=" ")}}
+    Polar_asv_div <- Polar_asv_div %>% group_by(RangInterest,Division) %>% summarise_all(sum)
+    Polar_asv_div <- as.data.frame(Polar_asv_div) %>% select(-RangInterest)
+    for (i in rownames(Polar_asv_div)) { Polar_asv_div[i,"Total"] <- (Polar_asv_div[i,"TotalAnnée"] * 100) / sum(Polar_asv_div$TotalAnnée)}
   ### Label
-    Polar_asv <- Polar_asv %>%
+    Polar_asv_div <- Polar_asv_div %>%
       arrange(-row_number()) %>%
       mutate(lab.ypos = cumsum(Total) - 0.5*Total)
-    Polar_asv$label <- paste(round(Polar_asv$Total,1), "%", sep = "")
-    for (i in rownames(Polar_asv)) {
-      if (Polar_asv[i,"label"] == "0%") { Polar_asv[i,"label"] <- NA}}
-    for (i in rownames(Polar_asv)) {
-      if (is.na(Polar_asv[i,"label"]) == FALSE) { Polar_asv[i,"label"] <- paste(Polar_asv[i,"Division"]," : ",Polar_asv[i,"label"], sep = "")}}
-    Polar_asv$color <- rev(c("#e53a35","#f44336","#ef5350","#e57373","#ef9a9a",
-                             "#7b1fa2","#8e24aa",
-                             "#303f9f",
-                             "#0288d1","#049be5","#64b5f6",
-                             "#2e7d32","#689f38","#7cb342",
-                             "#fbc02c","#fdd835","#ffeb3a","#ffee58","#fff176",
-                             "#f57c00",
-                             "#616161","#757575","#9e9e9e","#bdbdbd","#e0e0e0",
-                             "#1876d2",
-                             "#3897a7","#41acc1","#4cc6da","#80deea","#b2ebf2"))
+    Polar_asv_div$label <- paste(round(Polar_asv_div$Total,1), "%", sep = "")
+    for (i in rownames(Polar_asv_div)) {
+      if (Polar_asv_div[i,"label"] == "0%") { Polar_asv_div[i,"label"] <- NA}}
+    for (i in rownames(Polar_asv_div)) {
+      if (is.na(Polar_asv_div[i,"label"]) == FALSE) { Polar_asv_div[i,"label"] <- paste(Polar_asv_div[i,"Division"]," : ",Polar_asv_div[i,"label"], sep = "")}}
+    Polar_asv_div$color <- rev(paletspe)
   ### Figure
     svglite("Composition/Polar-Total-Division-asv.svg",width = 5.50,height = 5.50)
-    bx <- ggplot(Polar_asv, mapping = aes(y= Total, x = 2, fill = factor(Division,level=Polar_asv$Division)), Rowv = NA, col = colMain, scale = "column") +
+    bxd <- ggplot(Polar_asv, mapping = aes(y= Total, x = 2, fill = factor(Division,level=Polar_asv$Division)), Rowv = NA, col = colMain, scale = "column") +
       geom_bar(stat="identity", color = "white", width = 1,fill=Polar_asv$color) + coord_polar("y") + 
       geom_label_repel(aes(y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.5,fill=Polar_asv$color) +
       scale_y_continuous(limits=c(0,sum(Polar_asv %>% select(Total)))) +
@@ -2596,10 +2745,28 @@ set.seed(1)
       theme_unique_darkbis() + 
       #facet_wrap( ~ variable , nrow = 4) +
       labs(y = "ASVs",x="") #+ scale_fill_paletteer_d("ggsci::default_igv")
-    print(bx)
+    print(bxd)
     dev.off()
     write.table(Polar_asv,file="Composition/Table-Total-Division-asv.csv",quote = F,row.names = F,sep="\t")
+  #Try test
+    bxCop <- ggplot(Rowv = NA, col = colMain, scale = "column") +
+      geom_bar(data = Polar_asv,  mapping = aes(y= Total, x = 2, fill = RangInterest), stat="identity", color = "white", width = 1,fill=Polar_asv$color) + 
+      #xlim(1,3) +
+      theme_unique_darkbis() +
+      labs(y = "ASVs",x="") +
+      geom_bar(data = Polar_asv_div, mapping = aes(y= Total, x = 3, fill = factor(Division,level=Polar_asv_div$Division)), stat="identity", color = "white", width = 1,fill=Polar_asv_div$color) + coord_polar("y") + 
+      #geom_label_repel(data = Polar_asv_div, aes(x=3,y = lab.ypos,label = label),color = "white",size = 3,segment.color = "black",show.legend = FALSE, nudge_y = 0.5,fill=Polar_asv_div$color) +
+      geom_text_repel(data = Polar_asv_div, aes(x=3,y = lab.ypos,label = label),fontface= "bold",color = "black",size = 3,segment.color = "black",show.legend = FALSE, nudge_x = 0.8, force_pull = 0) +
+      scale_y_continuous(limits=c(0,sum(Polar_asv_div %>% select(Total)))) +
+      xlim(1,3.8)
+    print(bxCop)
 #
+  # Coplot ------------------------------------------------------------------
+    svglite("Composition/Table-Total-Full.svg",width = 6.50,height = 13.00)
+    b_plot <- plot_grid(bxCop,axCop, labels = c("A","B"), ncol = 1, nrow = 2, rel_widths = c(3),rel_heights = c(3,3))
+    print(b_plot)
+    dev.off()
+
 # Table ASVs majoritaires -------------------------------------------------
   # Table Only ---------------------------------------------------------------------
     for (i in c("Cycle","Fraction","Zone","Cycle90","Fraction90","Zone90")) {
@@ -2645,33 +2812,33 @@ set.seed(1)
       write.table(get(paste0("total",i,"ASV")), file = paste0("dataTables/Total_",i,"_ASV.txt"), sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
       write.table(get(paste0("total",i,"Sequence")), file = paste0("dataTables/Total_",i,"_Sequence.txt"), sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     }
-  ## Date
+  ## Period
     total04Table <- data_seq_tax %>% select(ASV_Id,Total04,RangInterest)
-    total04Table$Dates <- rep(04,each = nrow(total04Table))
+    total04Table$Periods <- rep(04,each = nrow(total04Table))
     total04Table <- total04Table %>% filter(Total04 > 0.05*sum(total04Table$Total04))
     colnames(total04Table)[2]  <- "value"
     ##
     total06Table <- data_seq_tax %>% select(ASV_Id,Total06,RangInterest)
-    total06Table$Dates <- rep(06,each = nrow(total06Table))
+    total06Table$Periods <- rep(06,each = nrow(total06Table))
     total06Table <- total06Table %>% filter(Total06 > 0.05*sum(total06Table$Total06))
     colnames(total06Table)[2]  <- "value"
     ##
     total09Table <- data_seq_tax %>% select(ASV_Id,Total09,RangInterest)
-    total09Table$Dates <- rep(09,each = nrow(total09Table))
+    total09Table$Periods <- rep(09,each = nrow(total09Table))
     total09Table <- total09Table %>% filter(Total09 > 0.05*sum(total09Table$Total09))
     colnames(total09Table)[2]  <- "value"
     ##
     total11Table <- data_seq_tax %>% select(ASV_Id,Total11,RangInterest)
-    total11Table$Dates <- rep(11,each = nrow(total11Table))
+    total11Table$Periods <- rep(11,each = nrow(total11Table))
     total11Table <- total11Table %>% filter(Total11 > 0.05*sum(total11Table$Total11))
     colnames(total11Table)[2]  <- "value"
     ##
-    totalDateTable <- rbind(total04Table,total06Table,total09Table,total11Table)
-    totalDateTable <- merge(totalDateTable,tax_tablemix, by = "ASV_Id")
+    totalPeriodTable <- rbind(total04Table,total06Table,total09Table,total11Table)
+    totalPeriodTable <- merge(totalPeriodTable,tax_tablemix, by = "ASV_Id")
     ##
-    write.table(totalDateTable, file = "dataTables/Total_Dates.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-    write.table(totalDateASV, file = "dataTables/Total_Dates_ASV.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-    write.table(totalDateSequence, file = "dataTables/Total_Dates_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(totalPeriodTable, file = "dataTables/Total_Periods.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(totalPeriodASV, file = "dataTables/Total_Periods_ASV.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(totalPeriodSequence, file = "dataTables/Total_Periods_Sequence.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 #
 # Hist & Table Mix ----------------------------------------------------------------
   data_seq_tax$RangInterestMix <- data_seq_tax$Division 
@@ -2831,7 +2998,7 @@ set.seed(1)
       ky <- ky + labs(x="Fraction",y="Sequences (%)") + theme(legend.position = "none") + theme(axis.title.y = element_blank())
       print(ky)
 #
-    # Date -------------------------------------------------------------------
+    # Period -------------------------------------------------------------------
     ## Avril
       total04Sequence <- data_seq_tax %>% select(ASV_Id,Total04,RangInterest,RangInterestMix)
       row.names(total04Sequence)<-total04Sequence$ASV_Id ; total04Sequence <- total04Sequence %>% select(-ASV_Id)
@@ -2848,7 +3015,7 @@ set.seed(1)
         if (total04Sequence[i,"label"] == "0%") { total04Sequence[i,"label"] <- NA}}
       for (i in rownames(total04Sequence)) {
         if (is.na(total04Sequence[i,"label"]) == FALSE) { total04Sequence[i,"label"] <- paste(total04Sequence[i,"RangInterestMix"]," : ",total04Sequence[i,"label"], sep = "")}}
-      total04Sequence$Date<- rep("04", each = nrow(total04Sequence))
+      total04Sequence$Period<- rep("04", each = nrow(total04Sequence))
     ## Juin
       total06Sequence <- data_seq_tax %>% select(ASV_Id,Total06,RangInterest,RangInterestMix)
       row.names(total06Sequence)<-total06Sequence$ASV_Id ; total06Sequence <- total06Sequence %>% select(-ASV_Id)
@@ -2865,7 +3032,7 @@ set.seed(1)
         if (total06Sequence[i,"label"] == "0%") { total06Sequence[i,"label"] <- NA}}
       for (i in rownames(total06Sequence)) {
         if (is.na(total06Sequence[i,"label"]) == FALSE) { total06Sequence[i,"label"] <- paste(total06Sequence[i,"RangInterestMix"]," : ",total06Sequence[i,"label"], sep = "")}}
-      total06Sequence$Date<- rep("06", each = nrow(total06Sequence))
+      total06Sequence$Period<- rep("06", each = nrow(total06Sequence))
     ## Septembre
       total09Sequence <- data_seq_tax %>% select(ASV_Id,Total09,RangInterest,RangInterestMix)
       row.names(total09Sequence)<-total09Sequence$ASV_Id ; total09Sequence <- total09Sequence %>% select(-ASV_Id)
@@ -2882,7 +3049,7 @@ set.seed(1)
         if (total09Sequence[i,"label"] == "0%") { total09Sequence[i,"label"] <- NA}}
       for (i in rownames(total09Sequence)) {
         if (is.na(total09Sequence[i,"label"]) == FALSE) { total09Sequence[i,"label"] <- paste(total09Sequence[i,"RangInterestMix"]," : ",total09Sequence[i,"label"], sep = "")}}
-      total09Sequence$Date<- rep("09", each = nrow(total09Sequence))
+      total09Sequence$Period<- rep("09", each = nrow(total09Sequence))
     ## Octobre
       total11Sequence <- data_seq_tax %>% select(ASV_Id,Total11,RangInterest,RangInterestMix)
       row.names(total11Sequence)<-total11Sequence$ASV_Id ; total11Sequence <- total11Sequence %>% select(-ASV_Id)
@@ -2899,8 +3066,8 @@ set.seed(1)
         if (total11Sequence[i,"label"] == "0%") { total11Sequence[i,"label"] <- NA}}
       for (i in rownames(total11Sequence)) {
         if (is.na(total11Sequence[i,"label"]) == FALSE) { total11Sequence[i,"label"] <- paste(total11Sequence[i,"RangInterestMix"]," : ",total11Sequence[i,"label"], sep = "")}}
-      total11Sequence$Date<- rep("11", each = nrow(total11Sequence))
-    ## Dates
+      total11Sequence$Period<- rep("11", each = nrow(total11Sequence))
+    ## Periods
       colnames(total04Sequence)[2]  <- "value"
       total04Sequence$Sum <- rep(0, each = nrow(total04Sequence))
       total04Sequence$Sum <- sum(total04Sequence$value)
@@ -2913,13 +3080,13 @@ set.seed(1)
       colnames(total11Sequence)[2]  <- "value"
       total11Sequence$Sum <- rep(0, each = nrow(total11Sequence))
       total11Sequence$Sum <- sum(total11Sequence$value)
-      totalDateSequence <- rbind(total04Sequence,total06Sequence,total09Sequence,total11Sequence)
-      totalDateSequence <- totalDateSequence %>% mutate(percent=paste("(",round(Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))),1)," %)",sep =""))
+      totalPeriodSequence <- rbind(total04Sequence,total06Sequence,total09Sequence,total11Sequence)
+      totalPeriodSequence <- totalPeriodSequence %>% mutate(percent=paste("(",round(Sum*100/(colSums(statRarefy %>% select(`apRarefy-Sequence`))),1)," %)",sep =""))
     ## Plot
-      ly <- ggplot(totalDateSequence, mapping = aes(y= Count, x = Date, fill = factor(RangInterestMix,level=Orderspe), group = factor(RangInterestMix,level=Orderspe)), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity",color="black") +
+      ly <- ggplot(totalPeriodSequence, mapping = aes(y= Count, x = Period, fill = factor(RangInterestMix,level=Orderspe), group = factor(RangInterestMix,level=Orderspe)), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity",color="black") +
         scale_fill_manual(values = paletspe) + theme_unique_art() +
         geom_label(aes(y = 106,label = paste(Sum,"sequences",percent,sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
-      ly <- ly + labs(x="Date",y="Sequences (%)") + theme(legend.position = "none") + theme(axis.title.y = element_blank())
+      ly <- ly + labs(x="Period",y="Sequences (%)") + theme(legend.position = "none") + theme(axis.title.y = element_blank())
       print(ly)
 #
     # Coplot -------------------------------------------------------------------
@@ -3081,7 +3248,7 @@ set.seed(1)
       ky <- ky + labs(x="Fraction",y="ASVs (%)") + theme(legend.position = "none") + theme(axis.title.y = element_blank())
       print(ky)
 #
-    # Date -------------------------------------------------------------------
+    # Period -------------------------------------------------------------------
     ## Avril
       total04ASV <- data_asv_tax %>% select(ASV_Id,Total04,RangInterest,RangInterestMix)
       row.names(total04ASV)<-total04ASV$ASV_Id ; total04ASV <- total04ASV %>% select(-ASV_Id)
@@ -3098,7 +3265,7 @@ set.seed(1)
         if (total04ASV[i,"label"] == "0%") { total04ASV[i,"label"] <- NA}}
       for (i in rownames(total04ASV)) {
         if (is.na(total04ASV[i,"label"]) == FALSE) { total04ASV[i,"label"] <- paste(total04ASV[i,"RangInterestMix"]," : ",total04ASV[i,"label"], sep = "")}}
-      total04ASV$Date<- rep("04", each = nrow(total04ASV))
+      total04ASV$Period<- rep("04", each = nrow(total04ASV))
     ## Juin
       total06ASV <- data_asv_tax %>% select(ASV_Id,Total06,RangInterest,RangInterestMix)
       row.names(total06ASV)<-total06ASV$ASV_Id ; total06ASV <- total06ASV %>% select(-ASV_Id)
@@ -3115,7 +3282,7 @@ set.seed(1)
         if (total06ASV[i,"label"] == "0%") { total06ASV[i,"label"] <- NA}}
       for (i in rownames(total06ASV)) {
         if (is.na(total06ASV[i,"label"]) == FALSE) { total06ASV[i,"label"] <- paste(total06ASV[i,"RangInterestMix"]," : ",total06ASV[i,"label"], sep = "")}}
-      total06ASV$Date<- rep("06", each = nrow(total06ASV))
+      total06ASV$Period<- rep("06", each = nrow(total06ASV))
     ## Septembre
       total09ASV <- data_asv_tax %>% select(ASV_Id,Total09,RangInterest,RangInterestMix)
       row.names(total09ASV)<-total09ASV$ASV_Id ; total09ASV <- total09ASV %>% select(-ASV_Id)
@@ -3132,7 +3299,7 @@ set.seed(1)
         if (total09ASV[i,"label"] == "0%") { total09ASV[i,"label"] <- NA}}
       for (i in rownames(total09ASV)) {
         if (is.na(total09ASV[i,"label"]) == FALSE) { total09ASV[i,"label"] <- paste(total09ASV[i,"RangInterestMix"]," : ",total09ASV[i,"label"], sep = "")}}
-      total09ASV$Date<- rep("09", each = nrow(total09ASV))
+      total09ASV$Period<- rep("09", each = nrow(total09ASV))
     ## Octobre
       total11ASV <- data_asv_tax %>% select(ASV_Id,Total11,RangInterest,RangInterestMix)
       row.names(total11ASV)<-total11ASV$ASV_Id ; total11ASV <- total11ASV %>% select(-ASV_Id)
@@ -3149,8 +3316,8 @@ set.seed(1)
         if (total11ASV[i,"label"] == "0%") { total11ASV[i,"label"] <- NA}}
       for (i in rownames(total11ASV)) {
         if (is.na(total11ASV[i,"label"]) == FALSE) { total11ASV[i,"label"] <- paste(total11ASV[i,"RangInterestMix"]," : ",total11ASV[i,"label"], sep = "")}}
-      total11ASV$Date<- rep("11", each = nrow(total11ASV))
-    ## Dates
+      total11ASV$Period<- rep("11", each = nrow(total11ASV))
+    ## Periods
       colnames(total04ASV)[2]  <- "value"
       total04ASV$Sum <- rep(0, each = nrow(total04ASV))
       total04ASV$Sum <- sum(total04ASV$value)
@@ -3163,12 +3330,12 @@ set.seed(1)
       colnames(total11ASV)[2]  <- "value"
       total11ASV$Sum <- rep(0, each = nrow(total11ASV))
       total11ASV$Sum <- sum(total11ASV$value)
-      totalDateASV <- rbind(total04ASV,total06ASV,total09ASV,total11ASV)
+      totalPeriodASV <- rbind(total04ASV,total06ASV,total09ASV,total11ASV)
     #Figure
-      ly <- ggplot(totalDateASV, mapping = aes(y= Count, x = Date, fill = factor(RangInterestMix,level=Orderspe), group = factor(RangInterestMix,level=Orderspe)), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity",color="black") +
+      ly <- ggplot(totalPeriodASV, mapping = aes(y= Count, x = Period, fill = factor(RangInterestMix,level=Orderspe), group = factor(RangInterestMix,level=Orderspe)), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity",color="black") +
         scale_fill_manual(values = paletspe) + theme_unique_art() +
         geom_label(aes(y = 106,label = paste(Sum,"ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99")
-      ly <- ly + labs(x="Date",y="ASVs (%)") + theme(legend.position = "none") + theme(axis.title.y = element_blank())
+      ly <- ly + labs(x="Period",y="ASVs (%)") + theme(legend.position = "none") + theme(axis.title.y = element_blank())
       print(ly) 
 #
     # Coplot -------------------------------------------------------------------
@@ -3182,12 +3349,12 @@ set.seed(1)
     write.table(totalCycleSequence, file = "dataTables/TotalMix_Cycles_Sequence.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     write.table(totalZoneSequence, file = "dataTables/TotalMix_Zone_Sequence.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     write.table(totalFractionSequence, file = "dataTables/TotalMix_Fraction_Sequence.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-    write.table(totalDateSequence, file = "dataTables/TotalMix_Dates_Sequence.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(totalPeriodSequence, file = "dataTables/TotalMix_Periods_Sequence.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   ## ASV
     write.table(totalCycleASV, file = "dataTables/TotalMix_Cycles_ASV.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     write.table(totalZoneASV, file = "dataTables/TotalMix_Zone_ASV.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     write.table(totalFractionASV, file = "dataTables/TotalMix_Fraction_ASV.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-    write.table(totalDateASV, file = "dataTables/TotalMix_Dates_ASV.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(totalPeriodASV, file = "dataTables/TotalMix_Periods_ASV.csv", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 #
 # Balance plot ------------------------------------------------------------
   # Sequence ---------------------------------------------------------------------

@@ -19,7 +19,7 @@ set.seed(1)
 #
 # Input argument if using Rstudio
   if (inputmode == TRUE) {
-    result <- "V4-unified-correct-paired-out"
+    result <- "V4-unified-correct-paired-out-compo"
     region <- "V4"
   }
 #
@@ -275,7 +275,7 @@ set.seed(1)
   ## rarecurve-raw
     rawcurve <- t(seq_mat)
     pdf("Rarecurve/Rarecurve-Raw.pdf",width = 5.00,height = 5.00)
-    curve <- quickRareCurve(rawcurve, col = "black", cex = 0.6)
+    curve <- quickRareCurve(rawcurve, col = "black", cex = 0.6, label = FALSE)
     dev.off()
   ## Total FractionXZone Raw
   ### SmallXMixo
@@ -1081,8 +1081,14 @@ set.seed(1)
     ggsave("Diversity/ZoneXPeriod_Obs_Rare.svg", device = "svg", width = 5, height = 5)
 #
   # Coplot -----------------------------------------------------------------
-    svglite("Diversity/All_article_Diversity.svg",width = 5,height = 9)
-    Total_fig <- plot_grid(yidiv,zidiv,ymdiv, ncol = 1, nrow = 3, labels =c("A","B","C"), rel_widths = c(3),rel_heights = c(3,3,3))
+    yidivx <- yidiv + theme(axis.title.x=element_blank(), axis.text.x=element_blank()) + lims(y=c(0,7)) + theme(plot.margin = margin(r=1))
+    bidivx <- bidiv + theme(axis.title=element_blank(), axis.text=element_blank()) + lims(y=c(0,7)) + theme(plot.margin = margin(l = 1))
+    zidivx <- zidiv + theme(axis.title.x=element_blank(), axis.text.x=element_blank(), strip.text=element_blank()) + lims(y=c(0,1.3)) + theme(plot.margin = margin(r = 1))
+    aidivx <- aidiv + theme(axis.title=element_blank(), axis.text=element_blank(), strip.text=element_blank()) + lims(y=c(0,1.3)) + theme(plot.margin = margin(l = 1))
+    ymdivx <- ymdiv + theme(strip.text=element_blank()) + lims(y=c(0,950)) + theme(plot.margin = margin(r = 1))
+    zmdivx <- zmdiv + theme(strip.text=element_blank(), axis.text.y=element_blank(), axis.title.y=element_blank()) + lims(y=c(0,950)) + theme(plot.margin = margin(l = 1))
+    svglite("Diversity/All_article_Diversity.svg",width = 10,height = 9)
+    Total_fig <- plot_grid(yidivx,bidivx,zidivx,aidivx,ymdivx,zmdivx, ncol = 2, nrow = 3, labels =c("A","","B","","C",""), rel_widths = c(3,3.5),rel_heights = c(3,3,3),align="v")
     print(Total_fig)
     dev.off()
 #
