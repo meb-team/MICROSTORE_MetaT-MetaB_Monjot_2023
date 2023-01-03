@@ -20,7 +20,7 @@ arg=dict()
 for i in range(1,len(sys.argv)):
     if sys.argv[i]=="-i":
         Input="".join(["\"",sys.argv[i+1],"\""])
-        print("input:",input)
+        print("input:",Input)
 Input=Input.lstrip("\"").split("_")[0]
 ## Primers
 FWD="XFWDX"
