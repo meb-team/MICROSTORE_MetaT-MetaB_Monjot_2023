@@ -2520,7 +2520,7 @@ set.seed(1)
   svglite("Hist-Taxomy/ZoneXFraction-ASV-Total.svg",width = 7.00,height = 9.00)
   Total_ZoneXFraction_ASV_fig <- ggplot(ZoneXFraction_seq_tax_melt_ASV, mapping = aes(y= Proportion, x = Zone, fill = factor(Division,level=Orderspe), group = factor(Division,level=Orderspe)), Rowv = NA, col = colMain, scale = "column") + geom_bar(stat="identity",color="black") +
     facet_grid(.~Fraction,scales="free") + scale_fill_manual(values = paletspe) + guides(fill=guide_legend(ncol=1)) +
-    labs(x="Zones",y="ASVs %",fill="Divisions") + geom_label(aes(y = 106,label = paste(Sum," ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B99") + theme_unique_art()
+    labs(x="Zones",y="ASVs %",fill="Divisions") + geom_label(aes(y = 106,label = paste(Sum," ASVs",sep ="\n")),color = "white",size = 3,show.legend = FALSE, fill = "#3B3B3B") + theme_unique_art()
   print(Total_ZoneXFraction_ASV_fig)
   dev.off()
   write.table(ZoneXFraction_seq_tax_melt_ASV,file="dataTables/ZoneXFraction-ASV-Total-Table.csv",row.names = F, quote = F, sep ="\t")
@@ -2554,9 +2554,9 @@ set.seed(1)
     ## Coplot
       blank <- grid.rect(gp=gpar(col="white"))
     ## Seq
-      balxim <- balxi + theme(axis.text.y = element_blank())
+      balxim <- balxi + theme(axis.text.y = element_blank(),legend.position = c(0.08, 0.92),legend.background = element_rect(fill = "white", color = "black"))
       balxim <- plot_grid(blank,balxim, ncol = 1, nrow = 2, rel_widths = c(2),rel_heights = c(1,35))
-      ymibal_plot <- plot_grid(Total_ZoneXFraction_Sequence_fig,balxim, ncol = 2, nrow = 1, labels=c("A","B"),rel_widths = c(2,3.3),rel_heights = c(3))
+      ymibal_plot <- plot_grid(Total_ZoneXFraction_Sequence_fig,balxim, ncol = 2, nrow = 1, labels=c("C","D"),rel_widths = c(2,3.3),rel_heights = c(3))
       svglite("Hist-Taxomy/Sequence-ALL-ZoneXFraction.svg",width = 18.00,height = 8.60)
       print(ymibal_plot)
       dev.off()
@@ -2588,13 +2588,19 @@ set.seed(1)
     ## Coplot
       blank <- grid.rect(gp=gpar(col="white"))
     ## ASV
-      balxjm <- balxj + theme(axis.text.y = element_blank())
+      balxjm <- balxj + theme(axis.text.y = element_blank(),legend.position = c(0.08, 0.92),legend.background = element_rect(fill = "white", color = "black"))
       balxjm <- plot_grid(blank,balxjm, ncol = 1, nrow = 2, rel_widths = c(2),rel_heights = c(1,35))
       ymjbal_plot <- plot_grid(Total_ZoneXFraction_ASV_fig,balxjm, ncol = 2, nrow = 1, labels=c("A","B"),rel_widths = c(2,3.3),rel_heights = c(3))
       svglite("Hist-Taxomy/ASV-ALL-ZoneXFraction.svg",width = 18.00,height = 8.60)
       print(ymjbal_plot)
       dev.off()
 #
+    # cowplot -----------------------------------------------------------------
+      ymjibal_plot <- plot_grid(ymjbal_plot,ymibal_plot, ncol = 1, nrow = 2,rel_widths = c(2),rel_heights = c(3,3))
+      svglite("Hist-Taxomy/ALL-ALL-ZoneXFraction.svg",width = 18.00,height = 17.2)
+      print(ymjibal_plot)
+      dev.off()
+      
 # Polar ------------------------------------------------------
   # Séquence ----------------------------------------------------------------
   ## Supergroup
