@@ -2547,7 +2547,7 @@ set.seed(1)
         coord_flip() +  # horizontal bars
         geom_text(aes(label = label ,y = 0,vjust = ifelse(value >= 0, 0.5, 0.5), hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
         #geom_label(aes(label = round(Abundance),y = 0, vjust = ifelse(value >= 0, 0.5, 0.5),hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
-        labs(x="",y="Sequences abundance log-ratio",fill="Zones") +
+        labs(x="",y="Sequences abundance log2-ratio",fill="Zones") +
         theme(axis.text.y = element_blank()) + theme_unique_art() + scale_fill_manual(values=balance_palet) + guides(alpha = "none")
       print(balxi)
       dev.off()
@@ -2581,7 +2581,7 @@ set.seed(1)
         coord_flip() +  # horizontal bars
         geom_text(aes(label = label ,y = 0,vjust = ifelse(value >= 0, 0.5, 0.5), hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
         #geom_label(aes(label = round(Abundance),y = 0, vjust = ifelse(value >= 0, 0.5, 0.5),hjust = ifelse(value>= 0, 1.2, -0.2)),color = "black",size = 3,show.legend = FALSE, fill = "white") +
-        labs(x="",y="ASVs log-ratio",fill="Zones") +
+        labs(x="",y="ASVs log2-ratio",fill="Zones") +
         theme(axis.text.y = element_blank()) + theme_unique_art() + scale_fill_manual(values=balance_palet) + guides(alpha = "none")
       print(balxj)
       dev.off()
