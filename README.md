@@ -32,7 +32,7 @@ Second, define current directory: `cd MICROSTORE_MetaT-MetaB_Monjot_2023`
         |-> 10_KO_Metatrans_DESeq2.R (DESeq2 pipeline script)
         |-> environment_REnv_Monjot_2023A.yml (conda environment)
         |-> REnv_Monjot_2023A_packages (local repository to R packages installation)
-    |-> Preprocess_setup.sh (script to launch conda environmnent setup)
+    |-> Preprocess_setup.sh (script to launch conda environment setup)
     |-> Downloading_metaB_rawdata.sh (script to launch  metabarcoding raw reads download)
     |-> Downloading_metaT_rawdata.sh (script to launch  metatranscriptomic catalog genes download)
     |-> DADA2_1_preprocess.sh (script to launch the preprocessing stage)
@@ -127,6 +127,8 @@ This installs the following tools:
     * imagemagick v7.1.0_52
     * python v3.9.15
     * perl v5.32.1
+    * cmake v3.22.1
+    * parallel v20230722
     * numerous libraries (details in script/environment_REnv_Monjot_2023A.yml)
 
 ### 2. Pre-processing and reads re-orientation
@@ -137,7 +139,7 @@ To start DADA2 analysis, the reads must be pooled according to their replicates 
 
 Run pre-processing script : `bash DADA2_1_preprocess.sh`
 
-At the end of this stage, some result files are generated : *V4* and *V4-unified* ; respectively reads V4 not pooled and the reads V4 pooled. These files are created in *reads/* sub-directory located in *dataDADA2/* directory (also create at this stage).
+At the end of this stage, some result files are generated : *V4* and *V4-unified* ; respectively reads V4 not pooled and the reads V4 pooled. These files are created in *reads/* sub-directory located in *dataDADA2/* directory (also created at this stage).
 
 Reads must be re-orient for ASV processing. In fact, Illumina adaptators are randomly linked to the DNA fragments during sequencing process and the reads R1 and R2 are represented by approximately 50% of forward reads and 50% of reverse reads.
 
