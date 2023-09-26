@@ -32,11 +32,12 @@ Second, define current directory: `cd MICROSTORE_MetaT-MetaB_Monjot_2023`
         |-> 10_KO_Metatrans_DESeq2.R (DESeq2 pipeline script)
         |-> environment_REnv_Monjot_2023A.yml (conda environment)
         |-> REnv_Monjot_2023A_packages (local repository to R packages installation)
+    |-> Preprocess_setup.sh (script to launch conda environmnent setup)
     |-> Downloading_metaB_rawdata.sh (script to launch  metabarcoding raw reads download)
     |-> Downloading_metaT_rawdata.sh (script to launch  metatranscriptomic catalog genes download)
     |-> DADA2_1_preprocess.sh (script to launch the preprocessing stage)
     |-> DADA2_2_reorient_py.sh (script to launch raw reads reorientation)
-    |-> R_3_setup.sh (script to launch conda environmnent setup for R scripts)
+    |-> R_3_setup.sh (script to launch R dependencies installation scripts)
     |-> R_4_DADA2_process.sh (script to launch DADA2 pipeline)
     |-> R_5_Taxonomic_analysis.sh (script to launch Taxonomic diversity analysis)
     |-> R_6A_Kmean_Clusterization.sh (script to launch kmean clusterization)
@@ -112,8 +113,24 @@ A table containing the name ("DM", "DN", etc.), the condition (DNOG, DJAP, etc.)
 
 ## Preprocessing and dependencies installation
 
-### 1. Pre-processing and reads re-orientation
+### 1. Conda environment installation
 
+Install miniconda following the standard procedure (https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html)
+
+Then, install conda environment with the following script: `bash Preprocess_setup.sh`
+
+This installs the following tools:
+
+    * KronaTools v2.8
+    * cutadapt v4.1
+    * r-base v4.2.2
+    * imagemagick v7.1.0_52
+    * python v3.9.15
+    * perl v5.32.1
+    * numerous libraries (details in script/environment_REnv_Monjot_2023A.yml)
+
+### 2. Pre-processing and reads re-orientation
+    
 To start DADA2 analysis, the reads must be pooled according to their replicates ID. 
 
 * script: DADA2_1_preprocess.sh
@@ -134,11 +151,9 @@ To complete this, run following script :
 
 => `bash DADA2_2_reorient_py.sh V4-unified 16 "GTG[CT]CAGC[AC]GCCGCGGTA" "TTGG[CT][AG]AATGCTTTCGC"`
 
-### 2. R installation (+ dependencies) if necessary
+### 3. R installation (+ dependencies) if necessary
 
-Install miniconda following the standard procedure (https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html)
-
-Install conda environment grouping all dependencies with the following script: `bash R_3_setup.sh`
+Install R dependencies with the following script: `bash R_3_setup.sh`
 
 This operation installs the following R packages:
 
@@ -157,16 +172,6 @@ This operation installs the following R packages:
     * RColorBrewer          * devtools                  * psych
     * factoextra            * ggExtra                   * ggpubr
     * reshape2              * gplots
-
-and the following tools:
-
-    * KronaTools v2.8
-    * cutadapt v4.1
-    * r-base v4.2.2
-    * imagemagick v7.1.0_52
-    * python v3.9.15
-    * perl v5.32.1
-    * numerous libraries (details in script/environment_REnv_Monjot_2023A.yml)
 
 This may takes a while.
 

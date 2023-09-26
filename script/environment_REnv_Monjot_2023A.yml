@@ -13,9 +13,10 @@ dependencies:
   - bwidget=1.9.14=ha770c72_1
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.07.19=h06a4308_0
+  - ca-certificates=2023.7.22=hbcca054_0
   - cairo=1.16.0=ha61ee94_1014
   - cffi=1.15.1=py39he91dace_2
+  - cmake=3.22.1=h1fce559_0
   - curl=7.86.0=h2283fc2_1
   - cutadapt=4.1=py39hbf8eff0_1
   - dnaio=0.9.1=py39hbf8eff0_1
@@ -86,6 +87,7 @@ dependencies:
   - libtool=2.4.6=h9c3ff4c_1008
   - libunistring=0.9.10=h27cfd23_0
   - libuuid=2.32.1=h7f98852_1000
+  - libuv=1.40.0=h7b6447c_0
   - libwebp=1.2.4=h522a892_0
   - libwebp-base=1.2.4=h166bdaf_0
   - libxcb=1.13=h7f98852_1004
@@ -94,8 +96,9 @@ dependencies:
   - make=4.3=hd18ef5c_1
   - ncurses=6.3=h27087fc_1
   - openjpeg=2.5.0=h7d73246_1
-  - openssl=3.0.7=h166bdaf_0
+  - openssl=3.1.3=hd590300_0
   - pango=1.50.12=h382ae3d_0
+  - parallel=20230722=ha770c72_0
   - pbzip2=1.1.13=0
   - pcre2=10.40=hc3806b6_0
   - perl=5.32.1=2_h7f98852_perl5
@@ -110,6 +113,7 @@ dependencies:
   - python_abi=3.9=3_cp39
   - r-base=4.2.2=hb87df5d_1
   - readline=8.1.2=h0f457ee_0
+  - rhash=1.4.4=hd590300_0
   - sed=4.8=he412f7d_0
   - setuptools=65.5.1=pyhd8ed1ab_0
   - sysroot_linux-64=2.12=he073ed8_15
@@ -135,4 +139,4 @@ dependencies:
   - zlib=1.2.13=h166bdaf_4
   - zstandard=0.19.0=py39h29414ee_1
   - zstd=1.5.2=h6239696_4
-prefix: $CONDA_PREFIX/envs/REnv_Monjot_2023A
+prefix: /home/monjot/miniconda3/envs/REnv_Monjot_2023A

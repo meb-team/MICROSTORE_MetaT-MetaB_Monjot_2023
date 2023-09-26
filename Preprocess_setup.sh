@@ -15,8 +15,11 @@ BEFORE=$SECONDS
 cd script/
 PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
 source $PATHCONDA'/etc/profile.d/conda.sh'
-conda activate REnv_Monjot_2023A
-Rscript 3_Install_dependencies.R
+conda env create -f environment_REnv_Monjot_2023A.yml ; conda activate REnv_Monjot_2023A
+wget https://github.com/marbl/Krona/releases/download/v2.8/KronaTools-2.8.tar
+tar -xvf KronaTools-2.8.tar
+perl KronaTools-2.8/install.pl --prefix ./KronaTools-2.8
+rm KronaTools-2.8.tar
 #
 ELAPSED=$((($SECONDS-$BEFORE)/60))
-echo "R setup finished and takes "$ELAPSED" minutes !"
+echo "Preprocess setup finished and takes "$ELAPSED" minutes !"
