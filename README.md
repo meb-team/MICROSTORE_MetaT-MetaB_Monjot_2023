@@ -2,9 +2,9 @@
 
 **This is a workflow to reproduce analysis conduced in Monjot et al., 2023**
 
-First, clone github repository: `git clone https://github.com/meb-team/Microstore_Analysis_Monjot_et_al._2023.git`
+First, clone github repository: `git clone https://github.com/meb-team/MICROSTORE_MetaT&MetaB_Monjot_2023.git`
 
-Second, define current directory: `cd Microstore_Analysis_Monjot_et_al._2023/`
+Second, define current directory: `cd MICROSTORE_MetaT&MetaB_Monjot_2023`
 
                                         *******************************
                                             Directory organization
