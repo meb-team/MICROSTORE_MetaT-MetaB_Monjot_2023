@@ -711,10 +711,10 @@ MD5sum: 450be3fd3d39699ae65648f7b2880240
 NeedsCompilation: no
 
 Package: ggplot2
-Version: 3.4.0
+Version: 3.4.3
 Depends: R (>= 3.3)
 Imports: cli, glue, grDevices, grid, gtable (>= 0.1.1), isoband,
-        lifecycle (> 1.0.1), MASS, mgcv, rlang (>= 1.0.0), scales (>=
+        lifecycle (> 1.0.1), MASS, mgcv, rlang (>= 1.1.0), scales (>=
         1.2.0), stats, tibble, vctrs (>= 0.5.0), withr (>= 2.5.0)
 Suggests: covr, dplyr, ggplot2movies, hexbin, Hmisc, knitr, lattice,
         mapproj, maps, maptools, multcomp, munsell, nlme, profvis,
@@ -723,7 +723,7 @@ Suggests: covr, dplyr, ggplot2movies, hexbin, Hmisc, knitr, lattice,
         (>= 1.0.0), xml2
 Enhances: sp
 License: MIT + file LICENSE
-MD5sum: f528c4558b9077b13477d0d880a8f525
+MD5sum: 56b406dd3fa5a2839fac8415a7a1b6e1
 NeedsCompilation: no
 
 Package: ggpubr
@@ -890,12 +890,13 @@ MD5sum: d95781d5275b257942860ae484ea2319
 NeedsCompilation: yes
 
 Package: htmlwidgets
-Version: 1.5.4
-Imports: grDevices, htmltools (>= 0.3), jsonlite (>= 0.9.16), yaml
-Suggests: knitr (>= 1.8), rmarkdown, testthat
+Version: 1.6.2
+Imports: grDevices, htmltools (>= 0.5.4), jsonlite (>= 0.9.16), yaml,
+        knitr (>= 1.8), rmarkdown
+Suggests: testthat
 Enhances: shiny (>= 1.1)
 License: MIT + file LICENSE
-MD5sum: 848e70649e90133fb3aa1c1f41d05e0f
+MD5sum: c0654628b49868ed9c56e0570265271d
 NeedsCompilation: no
 
 Package: httpuv
