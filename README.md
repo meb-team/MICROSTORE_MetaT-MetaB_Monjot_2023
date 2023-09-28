@@ -271,7 +271,7 @@ Run kmean clusterization to define clusters:
     
 => `bash R_6A_Kmean_Clusterization.sh Table_Supp_1.tsv V4-unified-correct-paired-out-compo V4`
 
-This operation produces a *cluster_name.tsv* table as providing the number of clusters as well as a *Def_group_by_factor.svg* figure in *rawdata/* directory. Complete the *.tsv* file with names of clusters using the *Def_group_by_factor.svg* figure.
+This operation produces a *cluster_name.tsv* table providing the number of clusters as well as a *Def_group_by_factor.svg* figure in *rawdata/* directory. Complete the *.tsv* file with names of clusters using the *Def_group_by_factor.svg* figure.
 
 For example:
 

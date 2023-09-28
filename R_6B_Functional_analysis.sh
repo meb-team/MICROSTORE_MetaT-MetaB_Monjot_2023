@@ -12,7 +12,7 @@
 BEFORE=$SECONDS
 PATHCONDA=$(conda info | grep -i 'base environment' | awk -F" " '{print $4}')
 source $PATHCONDA'/etc/profile.d/conda.sh'
-conda activate REnv4
+conda activate REnv_Monjot_2023A
 ## INPUT
 if [ $(echo $1 | grep "." |wc -l ) == 1 ]
 then
