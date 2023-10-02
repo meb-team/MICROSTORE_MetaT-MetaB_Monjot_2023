@@ -161,7 +161,9 @@ To complete this, run following script :
 * argument 3: forward primer
 * argument 4: reverse primer
 
+
     bash DADA2_2_reorient_py.sh V4-unified 16 "GTG[CT]CAGC[AC]GCCGCGGTA" "TTGG[CT][AG]AATGCTTTCGC"
+
 
 * This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
