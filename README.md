@@ -2,6 +2,8 @@
 
 **This is a workflow to reproduce analysis conduced in Monjot et al., 2023**
 
+![alt text](https://github.com/meb-team/MICROSTORE_MetaT-MetaB_Monjot_2023.git/blob/main/Figure_1.png?raw=true)
+
 First, clone github repository: `git clone https://github.com/meb-team/MICROSTORE_MetaT-MetaB_Monjot_2023.git`
 
 Second, define current directory: `cd MICROSTORE_MetaT-MetaB_Monjot_2023`
@@ -53,6 +55,8 @@ Second, define current directory: `cd MICROSTORE_MetaT-MetaB_Monjot_2023`
 Raw reads is downloaded from ENA archive under PRJEB61527 accession number: 
 
     bash Downloading_metaB_rawdata.sh
+    
+* script: Downloading_metaB_rawdata.sh
 
 The compressed paired end reads (*R1.fastq.gz* and *R2.fastq.gz*) are automatically placed in a *reads/* sub-directory in *rawdata/* directory.
 
@@ -123,6 +127,7 @@ Then, install conda environment with the following script:
 
     bash Preprocess_setup.sh
 
+* script: Preprocess_setup.sh
 * This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 This installs the following tools:
@@ -141,12 +146,11 @@ This installs the following tools:
     
 To start DADA2 analysis, the reads must be pooled according to their replicates ID. 
 
-* script: DADA2_1_preprocess.sh
-
 Run pre-processing script : 
 
     bash DADA2_1_preprocess.sh
 
+* script: DADA2_1_preprocess.sh
 * This takes just a few seconds on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 At the end of this stage, some result files are generated : *V4* and *V4-unified* ; respectively reads V4 not pooled and the reads V4 pooled. These files are created in *reads/* sub-directory located in *dataDADA2/* directory (also created at this stage).
@@ -162,7 +166,6 @@ To complete this, run following script :
 * argument 2: number of threads to process data
 * argument 3: forward primer
 * argument 4: reverse primer
-
 * This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ### 3. R installation (+ dependencies) if necessary
@@ -171,6 +174,7 @@ Install R dependencies with the following script:
     
     bash R_3_setup.sh
 
+* script: R_3_setup.sh
 * This takes 77 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 This operation installs the following R packages:
@@ -260,7 +264,6 @@ Run DADA2 workflow:
 
 * script: R_4_DADA2_process.sh
 * argument 1: V4-DADA2.ini
-
 * This takes 84 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 #### B. Taxonomic diversity analysis
@@ -271,7 +274,6 @@ Run Taxonomic analysis script:
 
 * script: R_5_Taxonomic_analysis.sh
 * argument 1: V4-DADA2.ini
-
 * This takes 35 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 #### C. Trait-based analysis
@@ -288,7 +290,6 @@ Run kmean clusterization to define clusters:
 * argument 1: name of the trait table in tsv format
 * argument 2: name of the taxonomic analysis results directory
 * argument 3: Region (V4 or V9)
-
 * This takes just a few seconds on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 This operation produces a *cluster_name.tsv* table providing the number of clusters as well as a *Def_group_by_factor.svg* figure in *rawdata/* directory. You have to complete the *.tsv* file with names of clusters using the *Def_group_by_factor.svg* figure.
@@ -316,7 +317,6 @@ Then, run functional analysis script:
 * argument 1: name of the trait table in tsv format
 * argument 2: name of the taxonomic analysis results directory
 * argument 3: Region (V4 or V9)
-
 * This takes 3 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ## Metatranscriptomic analysis
@@ -351,7 +351,6 @@ Then, run metatranscriptomic analysis script:
 
 * script: R_7_Metatranscriptomic_analysis.sh
 * argument 1: MetaT.ini
-
 * This takes 294 min (≈5 hours) on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ## Retrieve article figures
@@ -362,7 +361,6 @@ To retrieve article figures, run following script:
 
 * script: Retrieve_Figures.sh
 * argument 1: V4-unified-correct-paired-out-compo
-
 * This takes just a few seconds on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 The resulting figures can be found in *Monjot_etal_2023/* directory.
