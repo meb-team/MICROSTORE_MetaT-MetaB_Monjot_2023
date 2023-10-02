@@ -2,7 +2,7 @@
 
 **This is a workflow to reproduce analysis conduced in Monjot et al., 2023**
 
-![alt text](https://github.com/meb-team/MICROSTORE_MetaT-MetaB_Monjot_2023.git/blob/main/Figure_1.png?raw=true)
+![alt text](https://github.com/meb-team/MICROSTORE_MetaT-MetaB_Monjot_2023/blob/main/Figure_1.png?raw=true)
 
 First, clone github repository: `git clone https://github.com/meb-team/MICROSTORE_MetaT-MetaB_Monjot_2023.git`
 
