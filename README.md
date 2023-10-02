@@ -117,9 +117,11 @@ A table containing the name ("DM", "DN", etc.), the condition (DNOG, DJAP, etc.)
 
 Install miniconda following the standard procedure (https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html)
 
-Then, install conda environment with the following script: `bash Preprocess_setup.sh`
+Then, install conda environment with the following script: 
+    
+    bash Preprocess_setup.sh
 
-    * This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+`This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM`
 
 This installs the following tools:
 
