@@ -128,7 +128,7 @@ Then, install conda environment with the following script:
     bash Preprocess_setup.sh
 
 * script: Preprocess_setup.sh
-* This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 1 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 This installs the following tools:
 
@@ -151,7 +151,7 @@ Run pre-processing script :
     bash DADA2_1_preprocess.sh
 
 * script: DADA2_1_preprocess.sh
-* This takes just a few seconds on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes just a few seconds on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 At the end of this stage, some result files are generated : *V4* and *V4-unified* ; respectively reads V4 not pooled and the reads V4 pooled. These files are created in *reads/* sub-directory located in *dataDADA2/* directory (also created at this stage).
 
@@ -166,7 +166,7 @@ To complete this, run following script :
 * argument 2: number of threads to process data
 * argument 3: forward primer
 * argument 4: reverse primer
-* This takes 1 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 1 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ### 3. R installation (+ dependencies) if necessary
 
@@ -175,7 +175,7 @@ Install R dependencies with the following script:
     bash R_3_setup.sh
 
 * script: R_3_setup.sh
-* This takes 77 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 77 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 This operation installs the following R packages:
 
@@ -264,7 +264,7 @@ Run DADA2 workflow:
 
 * script: R_4_DADA2_process.sh
 * argument 1: V4-DADA2.ini
-* This takes 84 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 84 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 #### B. Taxonomic diversity analysis
 
@@ -274,7 +274,7 @@ Run Taxonomic analysis script:
 
 * script: R_5_Taxonomic_analysis.sh
 * argument 1: V4-DADA2.ini
-* This takes 35 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 35 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 #### C. Trait-based analysis
 
@@ -290,11 +290,11 @@ Run kmean clusterization to define clusters:
 * argument 1: name of the trait table in tsv format
 * argument 2: name of the taxonomic analysis results directory
 * argument 3: Region (V4 or V9)
-* This takes just a few seconds on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes just a few seconds on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 This operation produces a *cluster_name.tsv* table providing the number of clusters as well as a *Def_group_by_factor.svg* figure in *rawdata/* directory. You have to complete the *.tsv* file with names of clusters using the *Def_group_by_factor.svg* figure.
 
-In Monjot et al. 2023, authors characterized clusters using modalities of each morpho-physio-phenological trait. The functional groups have been named consequently: 1&5) Parasites (PARA): characterized by their feeding strategy, symbiosis type (the majority has been described as having a parasitic lifestyle) and organic covers or naked; 2) Saprotrophs (SAP): characterized by saprotrophic feeding strategy, attached lifestyle and mainly absence of biotic interaction reported in the literature; 3) Heavy-cover- and Swimmer-photoautotrophs (HCOV and SWAT): characterized by plastids presence and osmotrophic ingestion mode with either mineral cover (e.g. siliceous) and non-swimming abilities or organic cover and swimming abilities; 4&7) Strict-heterotrophs (HET): characterized by phagotrophic feeding strategy and the absence of plastids; 6) Mixotrophs (MIXO): considered as mixoplankton (photo-osmo-phago-mixotrophs according to Mitra et al. (2023) and characterized by the presence of chloroplast, motility and their feeding strategy (Phagotrophic in majority); 8) Floater- and colonial-photoautotrophs (FLAT): characterized by non-swimming abilities, plastids presence and osmotrophic ingestion mode; 9) Endophyte (END): characterized by their attached life-style, feeding strategy, biotic interaction with plants and mostly organic covers.
+In Monjot et al. 2023, authors characterized clusters using modalities of each morpho-physio-phenological trait. The functional groups have been named consequently: 1&5) Parasites (PARA): characterized by their feeding strategy, symbiosis type (the majority has been described as having a parasitic lifestyle) and organic covers or naked; 2) Saprotrophs (SAP): characterized by saprotrophic feeding strategy, attached lifestyle and mainly absence of biotic interaction reported in the literature; 3) Heavy-cover- and Swimmer-photoautotrophs (HCOV and SWAT): characterized by plastids presence and osmotrophic ingestion mode with either mineral cover (e.g. siliceous) and non-swimming abilities or organic cover and swimming abilities; 4&7) Strict-heterotrophs (HET): characterized by phagotrophic feeding strategy and the absence of plastids; 6) Mixoplankton (MIXO): considered as photo-osmo-phago-mixotrophs according to Mitra et al. (2023) and characterized by the presence of chloroplast, motility and their feeding strategy (Phagotrophic in majority); 8) Floater- and colonial-photoautotrophs (FLAT): characterized by non-swimming abilities, plastids presence and osmotrophic ingestion mode; 9) Endophyte (END): characterized by their attached life-style, feeding strategy, biotic interaction with plants and mostly organic covers.
 
 For example:
 
@@ -317,7 +317,7 @@ Then, run functional analysis script:
 * argument 1: name of the trait table in tsv format
 * argument 2: name of the taxonomic analysis results directory
 * argument 3: Region (V4 or V9)
-* This takes 3 min on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 3 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ## Metatranscriptomic analysis
 
@@ -351,7 +351,7 @@ Then, run metatranscriptomic analysis script:
 
 * script: R_7_Metatranscriptomic_analysis.sh
 * argument 1: MetaT.ini
-* This takes 294 min (≈5 hours) on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes 294 min (≈5 hours) on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ## Retrieve article figures
 
@@ -361,6 +361,6 @@ To retrieve article figures, run following script:
 
 * script: Retrieve_Figures.sh
 * argument 1: V4-unified-correct-paired-out-compo
-* This takes just a few seconds on Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+* This takes just a few seconds on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 The resulting figures can be found in *Monjot_etal_2023/* directory.
