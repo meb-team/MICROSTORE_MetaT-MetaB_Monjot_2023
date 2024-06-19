@@ -66,13 +66,9 @@ def print_results(res, outfile):
 
 
 if __name__ == '__main__':
-    __description__ = 'Read an annotation file produced by KoFamScan and ' \
-                      'outputs a TSV with 4 columns:\n' \
-                      'sequence ID <tab> KO id <tab> KO name <tab> '\
-                      'significative or best hit \n\n'\
-                      '- Significative: score higher than the profile ' \
-                      'threshold\n' \
-                      '- Best hit: e-value <= 1e-5\n'
+    __description__ = 'Read an annotation file produced by HMMsearch and ' \
+                      'outputs a TSV with 2 columns:\n' \
+                      'sequence ID <tab> Pfam domain(s)\n'
 
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
                                      description = __description__)

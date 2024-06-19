@@ -319,7 +319,41 @@ Then, run functional analysis script:
 * argument 3: Region (V4 or V9)
 * This takes 3 min on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
-## Metatrasmcriptomics data filtering and annotation
+## Metatranscriptomic analysis
+
+Unigenes catalog was downloaded from ZENODO archive (available under https://doi.org/10.5281/zenodo.8376850 DOI link): `bash Downloading_metaT_rawdata.sh`
+
+* This script downloads unigenes table and taxonomy table: respectively *main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv* and *table_taxonomy.perUnigene.allUnigenes.tsv*.
+
+Metadata file as well as KO id definition table must be placed in *rawdata/* directory.
+
+* We provide the following metadata table: *metadata_metaT* as well as KO id definition table generated from https://www.genome.jp/kegg-bin/show_brite?ko00001.keg .
+
+Initialization file *.ini* is then create from the *MetaT.ini*:
+
+For example:
+    
+    ## Enter unigene table (.tsv) (located in rawdata directory) [1]
+    INPUT    main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv
+
+    ## Result path (the same of the composition script output) [2]
+    OUTPUT    V4-unified-correct-paired-out-compo
+
+    ## Unigene Taxonomy path (located in rawdata directory) [3]
+    TAX    table_taxonomy.perUnigene.allUnigenes.tsv
+
+    ## Database path used in the trait study (located in database directory) [4]
+    DATABASE    pr2_version_4.14.0_SSU_dada2.fasta.gz
+
+Then, run metatranscriptomic analysis script: 
+
+    bash R_7_Metatranscriptomic_analysis.sh MetaT.ini
+
+* script: R_7_Metatranscriptomic_analysis.sh
+* argument 1: MetaT.ini
+* This takes 294 min (≈5 hours) on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
+
+## Metatranscriptomics data filtering and annotation
 
 ### Raw data: availability, assembly and cleanning
 
@@ -364,10 +398,13 @@ default parameters:
 
 ```bash
 # Extract long Open-Reading Frames 
-TransDecoder.LongOrfs -m 70 --output_dir out_transDecoder_long -t unigenes.fa
+TransDecoder.LongOrfs -m 70 --output_dir out_transDecoder -t unigenes.fa
 
 # Predict the likely coding regions
-TransDecoder.Predict --output_dir out_transDecoder_pred -t unigenes.fa
+TransDecoder.Predict --output_dir out_transDecoder -t unigenes.fa
+
+# Clean the deflines
+sed -i "s/ \+$//" unigenes.fa.transdecoder.pep
 ```
 
 Proteins have been check against the [_AntiFam_](https://doi.org/10.1093/database/bas003)
@@ -386,18 +423,17 @@ hmmsearch --cut_ga --noali --tblout antifam_search.tsv AntiFam.hmm proteins.fa
 ### _Unigenes_ taxonomic affiliation
 
 We used _MetaEuk_ version _commit 57b63975a942fbea328d8ea39f620d6886958eca_.
-The reference for the taxonomic affiliation is the database provided by _MetaEuk_
-authors, available
-[here](https://wwwuser.gwdguser.de/~compbiol/metaeuk/2020_TAX_DB/). This web-page
-proposes a link to download the data as well as a description of the origin of data
-composing this dataset. Beware the database is a 20 GB _tar.gz_ archive that takes
+The taxonomic affiliation is based on the database provided by _MetaEuk_ authors,
+available [here](https://wwwuser.gwdguser.de/~compbiol/metaeuk/2020_TAX_DB/).
+This web-page proposes a link to download the data as well as a complete description
+of the origin of data. Beware the database is a 20 GB _tar.gz_ archive that takes
 up to **200 GB** of disk-space once uncompressed.
 
 ```bash
 MetaEukTaxoDB=MMETSP_zenodo_3247846_uniclust90_2018_08_seed_valid_taxids
 
 # Create the 'MMSeqs' database
-metaeuk createdb unigenes.cleaned.fa UnigeneDB
+metaeuk createdb unigenes.fa UnigeneDB
 
 # Search the taxonomy for each protein
 metaeuk taxonomy UnigeneDB $MetaEukTaxoDB Unigene_taxoDB tmp \
@@ -414,19 +450,30 @@ metaeuk createtsv UnigeneDB Unigene_taxoDB \
 ```
 
 Then we associated the taxonomy of the protein to its corresponding _Unigene_.
-In cases where several proteins were available for a single _Unigene_, 
+In the case where a single protein is present on a _Unigene_, we simply transfered
+the taxonomic annotation. Otherwise we applied this strategy:
+- one or many _unclassified_ proteins and a **single affiliated** protein,
+we transfer the affiliation as is
+- at least two affiliated protein proteins: _Lowest Common Ancestor_ strategy
 
+This step is performed with the script `metatrascriptome_scripts/map_taxo_to_unigene.py`:
 
-#### Clean contaminant from 
+```bash
+python3 metatrascriptome_scripts/map_taxo_to_unigene.py \
+    -i Unigene_taxonomy_result.tsv \
+    -b unigenes.fa.transdecoder.bed \
+    -o Unigene_taxonomy_result.per_Unigene.tsv
+```
 
-From the taxonomic information, _Unigenes_ with proteins affiliated to _Bacteria_,
-_Archaea_ or _Viruses_ were removed ==> 249 878 Unigenes discarded
+It is important to note that _Unigenes_ **without** predicted proteins are not
+present in this file.
 
-Metazoans too, same way with the taxonomic affiliation of proteins associated to
-Unigenes: 150.368 _Unigenes_ removed
+### Clean contaminant based on taxonomy
 
-single protein ==> report the affiliation to the _Unigene_  
-several proteins ==> report the LCA
+From the taxonomic information, _Unigenes_ affiliated to _Bacteria_, _Archaea_
+or _Viruses_ were removed, representing approximatly 250.000 Unigenes.  
+As our focus is on single-cell eukaryotes, about 150.000 Unigenes affiliated to
+_Metazoans_ have been discarded.
 
 ### Proteins annotations
 
@@ -483,41 +530,6 @@ python3 parse_pfam_hits.py --input results.pfam.txt \
 ```
 
 
-
-
-## Metatranscriptomic analysis
-
-Unigenes catalog was downloaded from ZENODO archive (available under https://doi.org/10.5281/zenodo.8376850 DOI link): `bash Downloading_metaT_rawdata.sh`
-
-* This script downloads unigenes table and taxonomy table: respectively *main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv* and *table_taxonomy.perUnigene.allUnigenes.tsv*.
-
-Metadata file as well as KO id definition table must be placed in *rawdata/* directory.
-
-* We provide the following metadata table: *metadata_metaT* as well as KO id definition table generated from https://www.genome.jp/kegg-bin/show_brite?ko00001.keg .
-
-Initialization file *.ini* is then create from the *MetaT.ini*:
-
-For example:
-    
-    ## Enter unigene table (.tsv) (located in rawdata directory) [1]
-    INPUT    main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv
-
-    ## Result path (the same of the composition script output) [2]
-    OUTPUT    V4-unified-correct-paired-out-compo
-
-    ## Unigene Taxonomy path (located in rawdata directory) [3]
-    TAX    table_taxonomy.perUnigene.allUnigenes.tsv
-
-    ## Database path used in the trait study (located in database directory) [4]
-    DATABASE    pr2_version_4.14.0_SSU_dada2.fasta.gz
-
-Then, run metatranscriptomic analysis script: 
-
-    bash R_7_Metatranscriptomic_analysis.sh MetaT.ini
-
-* script: R_7_Metatranscriptomic_analysis.sh
-* argument 1: MetaT.ini
-* This takes 294 min (≈5 hours) on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
 ## Retrieve article figures
 
