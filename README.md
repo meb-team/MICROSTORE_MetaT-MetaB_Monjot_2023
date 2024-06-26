@@ -321,9 +321,11 @@ Then, run functional analysis script:
 
 ## Metatranscriptomic analysis
 
-Unigenes catalog was downloaded from ZENODO archive (available under https://doi.org/10.5281/zenodo.8376850 DOI link): `bash Downloading_metaT_rawdata.sh`
+Unigenes catalog as well as taxonomic and functional annotations were downloaded from ZENODO archive (available under https://doi.org/10.5281/zenodo.8376850 DOI link): `bash Downloading_metaT_rawdata.sh`
 
-* This script downloads unigenes table and taxonomy table: respectively *main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv* and *table_taxonomy.perUnigene.allUnigenes.tsv*.
+* This script downloads unigenes table (with functional annotations) and taxonomy table: respectively *main_table.mapping.unique.read_per_kb.noHuman.noConta.noMetazoa.annot.tsv* and *table_taxonomy.perUnigene.allUnigenes.tsv*.
+
+The generation of these files (i.e. taxonomy and functional annotations) are described below.
 
 Metadata file as well as KO id definition table must be placed in *rawdata/* directory.
 
@@ -528,7 +530,6 @@ Then, we sent the results to the _Python3_ script
 python3 parse_pfam_hits.py --input results.pfam.txt \
     --ouput results.pfam.parsed.tsv
 ```
-
 
 
 ## Retrieve article figures
