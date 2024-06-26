@@ -353,6 +353,184 @@ Then, run metatranscriptomic analysis script:
 * argument 1: MetaT.ini
 * This takes 294 min (≈5 hours) on [Dual CPU] Intel(R) Xeon(R) CPU E5-2670 with 512 Go of RAM
 
+## Metatranscriptomics data filtering and annotation
+
+### Raw data: availability, assembly and cleanning
+
+<!-- 
+There are only 32 samples of the 48 sequenced, in the databases. The missing are
+those corresponding to the sequencing duplicates, _eg_ "_CEQ\_AV_" that is
+equivalent to "_CEQ\_AH_".  
+To fix this, we can ask to upload them
+
+Another "issue": all metratranscriptomics data are linked to the same _BioSample_.
+So we loose the information about the season, depth, daytime and fraction size.
+ -->
+
+The raw data are available in the public databases under the umbrella of the 
+_BioProject PRJEB61515_. There are 32 samples, each of them assembled one-by-one
+with _oases_ and were clustered all together with _CD-HIT-EST_ with the thresholds
+identity &gt;95% over &gt;90% of the length of the smallest sequence. Moreover,
+transcripts longer than 50kb were discarded, this resulted in 10.359.104
+representative assembled transcripts, called herafter _Unigenes_. The protocol
+is described in grater details in the work from
+[Carradec _et al._ 2018](https://doi.org/10.1038/s41467-017-02342-1).
+
+We then removed human contamination from the _Unigenes_. _Unigenes_ were aligned
+to the Human genome assembly _GRCh38.p13_ with _minimap2 v2.14-r894-dirty_ and
+the default parameters. All _Unigenes_ with a hit against the genome weere
+considered as contaminant as thus discarded for future analysis. Here is an example
+of code to obtain the list of contaminants:
+
+```bash
+minimap2 -t 12 GRCh38.p13.genome.fa.gz Unigenes.fa | cut -f 1 | sort | \
+    uniq >list_unigene_human_contaminant
+```
+
+A total of 32.218 _Unigenes_ were discarded.
+
+### Protein prediction
+
+We used [_TransDecoder v5.5.0_](https://github.com/TransDecoder/TransDecoder/wiki)
+to predict coding sequences present on the _Unigenes_. The minimal protein length
+was set to 70 amino-acids as we observed _Unigenes_ without protein with the
+default parameters:
+
+```bash
+# Extract long Open-Reading Frames 
+TransDecoder.LongOrfs -m 70 --output_dir out_transDecoder -t unigenes.fa
+
+# Predict the likely coding regions
+TransDecoder.Predict --output_dir out_transDecoder -t unigenes.fa
+
+# Clean the deflines
+sed -i "s/ \+$//" unigenes.fa.transdecoder.pep
+```
+
+Proteins have been check against the [_AntiFam_](https://doi.org/10.1093/database/bas003)
+database and _HMMER v3.3.2_ using the profiles' score cutoff. Spurious proteins
+were then discarded:
+
+```bash
+# Resources:
+wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam/current/Antifam.tar.gz
+tar -zxf Antifam.tar.gz
+
+# Run the comparison: only positive hits
+hmmsearch --cut_ga --noali --tblout antifam_search.tsv AntiFam.hmm proteins.fa
+```
+
+### _Unigenes_ taxonomic affiliation
+
+We used _MetaEuk_ version _commit 57b63975a942fbea328d8ea39f620d6886958eca_.
+The taxonomic affiliation is based on the database provided by _MetaEuk_ authors,
+available [here](https://wwwuser.gwdguser.de/~compbiol/metaeuk/2020_TAX_DB/).
+This web-page proposes a link to download the data as well as a complete description
+of the origin of data. Beware the database is a 20 GB _tar.gz_ archive that takes
+up to **200 GB** of disk-space once uncompressed.
+
+```bash
+MetaEukTaxoDB=MMETSP_zenodo_3247846_uniclust90_2018_08_seed_valid_taxids
+
+# Create the 'MMSeqs' database
+metaeuk createdb unigenes.fa UnigeneDB
+
+# Search the taxonomy for each protein
+metaeuk taxonomy UnigeneDB $MetaEukTaxoDB Unigene_taxoDB tmp \
+    --majority 0.5 --tax-lineage 1 --lca-mode 2 --max-seqs 100 -e 0.00001 \
+    -s 6 --max-accept 100
+
+# Get a Krona-like plot
+metaeuk taxonomyreport $MetaEukTaxoDB Unigene_taxoDB \
+    Unigene_report.html --report-mode 1
+
+# Get a tsv
+metaeuk createtsv UnigeneDB Unigene_taxoDB \
+    Unigene_taxonomy_result.tsv
+```
+
+Then we associated the taxonomy of the protein to its corresponding _Unigene_.
+In the case where a single protein is present on a _Unigene_, we simply transfered
+the taxonomic annotation. Otherwise we applied this strategy:
+- one or many _unclassified_ proteins and a **single affiliated** protein,
+we transfer the affiliation as is
+- at least two affiliated protein proteins: _Lowest Common Ancestor_ strategy
+
+This step is performed with the script `metatrascriptome_scripts/map_taxo_to_unigene.py`:
+
+```bash
+python3 metatrascriptome_scripts/map_taxo_to_unigene.py \
+    -i Unigene_taxonomy_result.tsv \
+    -b unigenes.fa.transdecoder.bed \
+    -o Unigene_taxonomy_result.per_Unigene.tsv
+```
+
+It is important to note that _Unigenes_ **without** predicted proteins are not
+present in this file.
+
+### Clean contaminant based on taxonomy
+
+From the taxonomic information, _Unigenes_ affiliated to _Bacteria_, _Archaea_
+or _Viruses_ were removed, representing approximatly 250.000 Unigenes.  
+As our focus is on single-cell eukaryotes, about 150.000 Unigenes affiliated to
+_Metazoans_ have been discarded.
+
+### Proteins annotations
+
+#### KEGG _KO_
+
+Proteins have been annotated with the KEGG's _KO_ through the tool
+[_koFamScan v1.3.0_](https://www.genome.jp/tools/kofamkoala/) using the _KO_
+HMM profiles release "_2022-01-03_", available
+[here](https://www.genome.jp/ftp/db/kofam/).
+
+```bash
+# Get data
+wget https://www.genome.jp/ftp/db/kofam/archives/2022-01-03/ko_list.gz
+gunzip ko_list.gz
+wget https://www.genome.jp/ftp/db/kofam/archives/2022-02-01/profiles.tar.gz
+tar -zxf profiles.tar.gz
+
+# Run
+exec_annotation -o results.koFamScan.tsv --format detail-tsv --ko-list ko_list\
+    --profile profiles proteins.fa
+```
+
+Then, we sent the results to the _Python3_ script
+`metatrascriptome_scripts/parse_ko_hits.py`:
+
+```bash
+python3 parse_ko_hits.py --input results.koFamScan.tsv \
+    --output results.koFamScan.parsed.tsv
+```
+
+This script parses the results in this order of preference:
+
+1. Keep hit if tagged as significant by _KoFamScan_, the ones with a `*` in the
+first field. This type of result is tagged with "_significant_" in the result
+2. If the current protein has **no** significant hit, keep the best hit if its
+_e-value_ is &le; 1.e-5.
+
+#### Pfam
+
+We search all proteins agains the _PfamA_ database, release 35.0, with
+_HMMER v3.1b2_. We used the profile's scores to determine significant hits:
+
+```bash
+hmmsearch --cut_ga --noali --tblout results.pfam.txt Pfam-A.hmm \
+    proteins.fa
+```
+
+Then, we sent the results to the _Python3_ script
+`metatrascriptome_scripts/parse_pfam_hits.py`:
+
+```bash
+python3 parse_pfam_hits.py --input results.pfam.txt \
+    --ouput results.pfam.parsed.tsv
+```
+
+
+
 ## Retrieve article figures
 
 To retrieve article figures, run following script:
